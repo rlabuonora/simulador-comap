@@ -432,6 +432,47 @@ a {
   gap: 16px;
 }
 
+.pdf-export {
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid #e0e6f1;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+.pdf-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #e0e6f1;
+}
+
+.pdf-logo {
+  height: 40px;
+  width: auto;
+}
+
+.pdf-title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.pdf-subtitle {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.pdf-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
 .metric-card {
   padding: 18px;
   background: #fff;

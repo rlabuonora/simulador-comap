@@ -1,5 +1,7 @@
-﻿import { useMemo, useState } from 'react';
+﻿import { useMemo, useRef, useState } from 'react';
 import SummaryChart from './components/SummaryChart.jsx';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import {
   computeIraePct,
   finalScore,
@@ -172,6 +174,8 @@ export default function App() {
   const [numericValues, setNumericValues] = useState(() => buildNumericValues(defaultInputs));
   const [numericErrors, setNumericErrors] = useState({});
   const [currentStep, setCurrentStep] = useState(0);
+  const pdfRef = useRef(null);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   const scores = useMemo(() => {
     return {
@@ -189,6 +193,43 @@ export default function App() {
   const exonerationYears = totalScore >= 8 ? 10 : totalScore >= 6 ? 7 : totalScore >= 4 ? 5 : 3;
 
   const isLastStep = currentStep === steps.length - 1;
+
+  const handleExportPdf = async () => {
+    if (!pdfRef.current || isExportingPdf) {
+      return;
+    }
+
+    setIsExportingPdf(true);
+    try {
+      const canvas = await html2canvas(pdfRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#f6f7f9',
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'pt', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgProps = pdf.getImageProperties(imgData);
+      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft > 0) {
+        position -= pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+
+      pdf.save('simulador-comap.pdf');
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
 
   const handleNumericChange = (key) => (event) => {
     const nextValue = event.target.value;
@@ -307,7 +348,6 @@ export default function App() {
             </div>
           </div>
           <nav className="gov-nav">
-            <a href="#">Panel</a>
             <a className="active" href="#">
               Simulador
             </a>
@@ -739,7 +779,7 @@ export default function App() {
               </div>
               <div>
                 <label className="field-label" htmlFor="strategicLine">
-                  {'Línea estratégica'}
+                  Línea estratégica
                 </label>
                 <input
                   id="strategicLine"
@@ -762,35 +802,54 @@ export default function App() {
                 onChange={handleNumericChange('strategicInvestmentPct')}
                 onBlur={handleNumericBlur('strategicInvestmentPct')}
                 className="narrow-field"
-            />
+              />
             </div>
           </section>
 
           <section className={`step${currentStep === 7 ? ' active' : ''}`}>
-            <div className="metric-grid">
-              <div className="metric-card">
-                <p className="metric-title">Puntaje total</p>
-                <p className="metric-value">{totalScore.toFixed(2)}</p>
+            <div ref={pdfRef} className="pdf-export">
+              <div className="pdf-header">
+                <img className="pdf-logo" src="/mef-logo.png" alt="MEF" />
+                <div>
+                  <div className="pdf-title">Simulador COMAP</div>
+                  <div className="pdf-subtitle">Resumen de resultados</div>
+                </div>
               </div>
-              <div className="metric-card">
-                <p className="metric-title">{'Exoneración IRAE'}</p>
-                <p className="metric-value">{(iraePct * 100).toFixed(1)}%</p>
+              <div className="metric-grid">
+                <div className="metric-card">
+                  <p className="metric-title">Puntaje total</p>
+                  <p className="metric-value">{totalScore.toFixed(2)}</p>
+                </div>
+                <div className="metric-card">
+                  <p className="metric-title">Exoneración IRAE</p>
+                  <p className="metric-value">{(iraePct * 100).toFixed(1)}%</p>
+                </div>
+                <div className="metric-card">
+                  <p className="metric-title">Años de exoneración</p>
+                  <p className="metric-value">{exonerationYears}</p>
+                </div>
               </div>
-              <div className="metric-card">
-                <p className="metric-title">{'Años de exoneración'}</p>
-                <p className="metric-value">{exonerationYears}</p>
+
+              <div className="card summary-card card-plain">
+                <div className="card-header">
+                  <h3>Indicadores</h3>
+                  <span>Escala 0-10</span>
+                </div>
+                <SummaryChart indicators={INDICATORS} scores={scores} />
               </div>
             </div>
 
-            <div className="card summary-card card-plain">
-              <div className="card-header">
-                <h3>Indicadores</h3>
-                <span>Escala 0-10</span>
-              </div>
-              <SummaryChart indicators={INDICATORS} scores={scores} />
+            <div className="pdf-actions">
+              <button
+                className="btn-secondary"
+                type="button"
+                onClick={handleExportPdf}
+                disabled={isExportingPdf}
+              >
+                {isExportingPdf ? 'Generando PDF...' : 'Descargar PDF'}
+              </button>
             </div>
           </section>
-
           <div className="actions">
             <button className="btn-secondary" onClick={goPrev} disabled={currentStep === 0}>
               {'Atrás'}

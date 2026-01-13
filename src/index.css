@@ -157,6 +157,10 @@ a {
   border-left: 4px solid var(--opp-blue);
 }
 
+.card-plain {
+  border-left: none;
+}
+
 .wizard {
   margin-top: 24px;
 }
@@ -219,6 +223,123 @@ a {
   gap: 16px;
 }
 
+.row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.row-narrow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.impacto-ambiental-row {
+  grid-template-columns: minmax(140px, 220px) 1fr;
+  align-items: start;
+}
+
+.impacto-ambiental-row .radio-tight {
+  margin-top: 2px;
+}
+
+.impacto-ambiental-row .radio-tight {
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.impacto-ambiental-row .pill {
+  white-space: nowrap;
+}
+
+.iplus-row {
+  grid-template-columns: minmax(140px, 220px) 1fr;
+  align-items: start;
+}
+
+.iplus-row .radio-tight {
+  margin-top: 2px;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.iplus-row .pill {
+  white-space: nowrap;
+}
+
+.row-narrow .narrow-field .field-control,
+.row-narrow .narrow-control {
+  width: 100%;
+  max-width: none;
+}
+
+.section-subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--opp-dark-blue);
+  margin-bottom: 10px;
+}
+
+.table {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #e0e6f1;
+  background: #f9fbff;
+}
+
+.table.two-col .table-row {
+  grid-template-columns: 1.4fr 1fr;
+}
+
+.table-header {
+  background: #fff;
+  border-color: #d2d7e0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #6b7280;
+}
+
+.table-header .table-cell {
+  padding: 4px 0;
+}
+
+.table-cell {
+  display: flex;
+  align-items: center;
+}
+
+.table-cell .field-group {
+  margin-bottom: 0;
+  width: 100%;
+}
+
+.table-cell .field-label {
+  display: none;
+}
+
+.table-cell .field-control {
+  background: #fff;
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -234,6 +355,18 @@ a {
   flex-direction: column;
   gap: 6px;
   margin-bottom: 10px;
+}
+
+.spacer-top {
+  margin-top: 12px;
+}
+
+.narrow-field .field-control {
+  max-width: 160px;
+}
+
+.narrow-control {
+  width: 200px;
 }
 
 .field-label {
@@ -390,6 +523,27 @@ a {
   transition: width 0.3s ease;
 }
 
+.radio {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.pill input {
+  margin: 0;
+}
+
 .btn-primary,
 .btn-secondary {
   border: none;
@@ -446,5 +600,21 @@ a {
 
   .sim-grid {
     grid-template-columns: 1fr;
+  }
+
+  .table-row {
+    grid-template-columns: 1fr;
+  }
+
+  .table-header {
+    display: none;
+  }
+
+  .table-cell {
+    align-items: flex-start;
+  }
+
+  .table-cell .field-label {
+    display: block;
   }
 }

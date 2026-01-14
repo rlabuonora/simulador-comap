@@ -1,4 +1,4 @@
-﻿import { useMemo, useRef, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import SummaryChart from './components/SummaryChart.jsx';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -12,6 +12,7 @@ import {
   scoreStrategic,
   scoreSustainability,
 } from './utils/scoring.js';
+import { DEPARTMENT_SCORES } from './utils/scoring.js';
 import { INDICATORS } from './utils/constants.js';
 
 const departments = [
@@ -38,7 +39,18 @@ const departments = [
 
 const defaultInputs = {
   investment: 0,
-  employees: 120,
+  employees: 0,
+  annualBillingUi: 0,
+  usdRate: 0,
+  uiRate: 0,
+  machineryUi: 0,
+  installationsUi: 0,
+  civilWorksUi: 0,
+  industrialParkInvestmentUi: 0,
+  occupiedPersonnel: 0,
+  employmentInitial: 0,
+  employmentIncreaseAvg: 0,
+  deptAllocations: [],
   exportPct: 35,
   sustainabilityPct: 0,
   iPlusType: 'b',
@@ -60,20 +72,38 @@ const defaultInputs = {
   othersIncrease: 0,
   currentExports: 0,
   futureExports: 0,
-  certification: 'ninguna',
-  iPlusCategory: 'adecuacion',
+  certification: 'none',
+  iPlusCategory: 'at',
   ministry: '',
+  evaluatingMinistry: '',
   strategicLine: '',
   strategicInvestmentPct: 0,
+  isNewCompany: '',
+  isIndustrialParkUser: '',
+  industrialParkActivity: '',
 };
 
-departments.forEach((dept) => {
-  defaultInputs[`${dept.id}Pct`] = 0;
-});
 
 const buildNumericValues = (source) => {
   const base = {
     investment: source.investment ? String(source.investment) : '',
+    employees: source.employees ? String(source.employees) : '',
+    annualBillingUi: source.annualBillingUi ? String(source.annualBillingUi) : '',
+    usdRate: source.usdRate === 0 ? '0' : String(source.usdRate ?? ''),
+    uiRate: source.uiRate === 0 ? '0' : String(source.uiRate ?? ''),
+    machineryUi: source.machineryUi === 0 ? '0' : String(source.machineryUi ?? ''),
+    installationsUi: source.installationsUi === 0 ? '0' : String(source.installationsUi ?? ''),
+    civilWorksUi: source.civilWorksUi === 0 ? '0' : String(source.civilWorksUi ?? ''),
+    industrialParkInvestmentUi:
+      source.industrialParkInvestmentUi === 0
+        ? '0'
+        : String(source.industrialParkInvestmentUi ?? ''),
+    occupiedPersonnel:
+      source.occupiedPersonnel === 0 ? '0' : String(source.occupiedPersonnel ?? ''),
+    employmentInitial:
+      source.employmentInitial === 0 ? '0' : String(source.employmentInitial ?? ''),
+    employmentIncreaseAvg:
+      source.employmentIncreaseAvg === 0 ? '0' : String(source.employmentIncreaseAvg ?? ''),
     womenBase: String(source.womenBase ?? ''),
     womenIncrease: String(source.womenIncrease ?? ''),
     youthBase: String(source.youthBase ?? ''),
@@ -102,10 +132,22 @@ const buildNumericValues = (source) => {
   return base;
 };
 
-const NumericField = ({ label, name, placeholder, value, error, onChange, onBlur, className }) => {
+const ENABLE_VALIDATION = false;
+
+const NumericField = ({
+  label,
+  labelTitle,
+  name,
+  placeholder,
+  value,
+  error,
+  onChange,
+  onBlur,
+  className,
+}) => {
   return (
     <div className={`field-group${className ? ` ${className}` : ''}`}>
-      <label className="field-label" htmlFor={name}>
+      <label className="field-label" htmlFor={name} title={labelTitle}>
         {label}
       </label>
       <input
@@ -124,18 +166,16 @@ const NumericField = ({ label, name, placeholder, value, error, onChange, onBlur
   );
 };
 
-const isDepartmentKey = (key) => departments.some((dept) => `${dept.id}Pct` === key);
-
 const steps = [
   {
-    id: 'identidad',
-    title: 'Paso 1 - Datos generales del proyecto',
-    hint: 'Información general del proyecto de inversión.',
+    id: 'empresa',
+    title: 'Paso 1 - Datos de la empresa',
+    hint: 'Información general de la empresa solicitante.',
   },
   {
-    id: 'descentralizacion',
-    title: 'Paso 2 - Descentralización',
-    hint: 'Distribuye el porcentaje de inversión por departamento.',
+    id: 'proyecto',
+    title: 'Paso 2 - Datos del proyecto',
+    hint: 'Información general del proyecto de inversión.',
   },
   {
     id: 'empleo',
@@ -148,23 +188,28 @@ const steps = [
     hint: 'Reporta el nivel actual y futuro de exportaciones del proyecto.',
   },
   {
+    id: 'descentralizacion',
+    title: 'Paso 5 - Descentralización',
+    hint: 'Distribuye el porcentaje de inversión por departamento.',
+  },
+  {
     id: 'impacto-ambiental',
-    title: 'Paso 5 - Impacto ambiental',
+    title: 'Paso 6 - Impacto ambiental',
     hint: 'Datos de impacto ambiental.',
   },
   {
     id: 'transformacion',
-    title: 'Paso 6 - Transformación productiva (I+)',
+    title: 'Paso 7 - Transformación productiva (I+)',
     hint: 'Desarrollo tecnológico.',
   },
   {
     id: 'alineacion',
-    title: 'Paso 7 - Alineación estratégica',
+    title: 'Paso 8 - Alineación estratégica',
     hint: 'Cómo tu proyecto encaja en prioridades país.',
   },
   {
     id: 'resultado',
-    title: 'Paso 8 - Resultado',
+    title: 'Paso 9 - Resultado',
     hint: 'Este es el impacto estimado de tu proyecto.',
   },
 ];
@@ -174,8 +219,17 @@ export default function App() {
   const [numericValues, setNumericValues] = useState(() => buildNumericValues(defaultInputs));
   const [numericErrors, setNumericErrors] = useState({});
   const [currentStep, setCurrentStep] = useState(0);
+  const [deptSelection, setDeptSelection] = useState('');
+  const [deptPctValue, setDeptPctValue] = useState('');
+  const [deptAllocations, setDeptAllocations] = useState([]);
+  const [allocationError, setAllocationError] = useState('');
+  const [showEmploymentDetails, setShowEmploymentDetails] = useState(false);
   const pdfRef = useRef(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  useEffect(() => {
+    setInputs((prev) => ({ ...prev, deptAllocations }));
+  }, [deptAllocations]);
 
   const scores = useMemo(() => {
     return {
@@ -191,6 +245,33 @@ export default function App() {
   const totalScore = useMemo(() => finalScore(scores), [scores]);
   const iraePct = useMemo(() => computeIraePct(totalScore), [totalScore]);
   const exonerationYears = totalScore >= 8 ? 10 : totalScore >= 6 ? 7 : totalScore >= 4 ? 5 : 3;
+  const parseNumericValue = (value) => {
+    const parsed = Number(String(value ?? '').trim());
+    return Number.isNaN(parsed) ? 0 : parsed;
+  };
+
+  const investmentTotal = useMemo(() => {
+    return (
+      parseNumericValue(numericValues.machineryUi) +
+      parseNumericValue(numericValues.installationsUi) +
+      parseNumericValue(numericValues.civilWorksUi)
+    );
+  }, [numericValues.civilWorksUi, numericValues.installationsUi, numericValues.machineryUi]);
+
+  const investmentTotalUsd = useMemo(() => {
+    const uiRate = parseNumericValue(numericValues.uiRate);
+    const usdRate = parseNumericValue(numericValues.usdRate);
+    if (!uiRate || !usdRate) {
+      return 0;
+    }
+    return (investmentTotal * uiRate) / usdRate;
+  }, [investmentTotal, numericValues.uiRate, numericValues.usdRate]);
+
+  const totalDepartmentAmount = useMemo(() => {
+    return deptAllocations.reduce((sum, allocation) => sum + (allocation.pct ?? 0), 0);
+  }, [deptAllocations]);
+
+  const totalInvestmentForDept = investmentTotal || totalDepartmentAmount;
 
   const isLastStep = currentStep === steps.length - 1;
 
@@ -242,6 +323,14 @@ export default function App() {
   const handleNumericBlur = (key) => (event) => {
     const rawValue = event.target.value.trim();
 
+    if (!ENABLE_VALIDATION) {
+      const parsed = Number(rawValue);
+      if (!Number.isNaN(parsed)) {
+        setInputs((prev) => ({ ...prev, [key]: parsed }));
+      }
+      return;
+    }
+
     if (!rawValue) {
       setNumericErrors((prev) => ({ ...prev, [key]: 'Este campo es obligatorio.' }));
       return;
@@ -253,8 +342,8 @@ export default function App() {
       return;
     }
 
-    if ((isDepartmentKey(key) || key === 'sustainabilityPct') && (parsed < 0 || parsed > 100)) {
-      setNumericErrors((prev) => ({ ...prev, [key]: 'Debe estar entre 0 y 100.' }));
+    if ((key === 'sustainabilityPct' || key === 'iPlusPct') && parsed < 0) {
+      setNumericErrors((prev) => ({ ...prev, [key]: 'Debe ser mayor o igual a 0.' }));
       return;
     }
 
@@ -262,61 +351,120 @@ export default function App() {
     setInputs((prev) => ({ ...prev, [key]: parsed }));
   };
 
-  const goNext = () => {
-    if (currentStep === 0) {
-      const rawValue = numericValues.investment?.trim();
-      const parsed = Number(rawValue);
+  const handleAddDepartment = () => {
+    const rawPct = deptPctValue.trim();
+    const parsedPct = Number(rawPct);
 
-      if (!rawValue || Number.isNaN(parsed) || parsed <= 0) {
-        setNumericErrors((prev) => ({ ...prev, investment: 'Debe ingresar un valor mayor a 0.' }));
-        return;
-      }
-
-      setInputs((prev) => ({ ...prev, investment: parsed }));
+    if (!deptSelection) {
+      setAllocationError('Seleccione un departamento.');
+      return;
     }
 
-    if (currentStep === 1) {
-      let hasError = false;
-      let total = 0;
+    if (!rawPct || Number.isNaN(parsedPct) || parsedPct < 0) {
+      setAllocationError('Ingrese un monto válido.');
+      return;
+    }
+
+    setDeptAllocations((prev) => {
+      const orderMap = new Map(departments.map((dept, index) => [dept.id, index]));
+      const next = prev.filter((item) => item.id !== deptSelection);
+      return [...next, { id: deptSelection, pct: parsedPct }].sort(
+        (a, b) => orderMap.get(a.id) - orderMap.get(b.id)
+      );
+    });
+
+    setDeptSelection('');
+    setDeptPctValue('');
+    setAllocationError('');
+  };
+
+  const handleRemoveDepartment = (deptId) => {
+    setDeptAllocations((prev) => prev.filter((item) => item.id !== deptId));
+  };
+
+  const goNext = () => {
+    if (!ENABLE_VALIDATION) {
+      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+      return;
+    }
+
+    if (currentStep === 0) {
       const nextErrors = {};
+      const rawBilling = numericValues.annualBillingUi?.trim();
+      const billingParsed = Number(rawBilling);
+      const rawEmployees = numericValues.employees?.trim();
+      const employeesParsed = Number(rawEmployees);
 
-      departments.forEach((dept) => {
-        const key = `${dept.id}Pct`;
-        const rawValue = numericValues[key]?.trim();
-        const parsed = Number(rawValue);
+      if (!rawBilling || Number.isNaN(billingParsed) || billingParsed <= 0) {
+        nextErrors.annualBillingUi = 'Debe ingresar un valor mayor a 0.';
+      }
 
-        if (!rawValue || Number.isNaN(parsed)) {
-          nextErrors[key] = 'Ingrese un valor entre 0 y 100.';
-          hasError = true;
-          return;
-        }
+      if (!rawEmployees || Number.isNaN(employeesParsed) || employeesParsed <= 0) {
+        nextErrors.employees = 'Debe ingresar un valor mayor a 0.';
+      }
 
-        if (parsed < 0 || parsed > 100) {
-          nextErrors[key] = 'Debe estar entre 0 y 100.';
-          hasError = true;
-          return;
-        }
-
-        total += parsed;
-      });
-
-      if (hasError || total !== 100) {
-        if (!hasError) {
-          departments.forEach((dept) => {
-            const key = `${dept.id}Pct`;
-            nextErrors[key] = 'La suma debe ser 100.';
-          });
-        }
+      if (Object.keys(nextErrors).length) {
         setNumericErrors((prev) => ({ ...prev, ...nextErrors }));
         return;
       }
 
-      const nextInputs = {};
-      departments.forEach((dept) => {
-        const key = `${dept.id}Pct`;
-        nextInputs[key] = Number(numericValues[key]);
+      setInputs((prev) => ({
+        ...prev,
+        annualBillingUi: billingParsed,
+        employees: employeesParsed,
+      }));
+    }
+
+    if (currentStep === 1) {
+      const nextErrors = {};
+      const fields = [
+        { key: 'machineryUi', label: 'maquinaria' },
+        { key: 'installationsUi', label: 'instalaciones' },
+        { key: 'civilWorksUi', label: 'obra civil' },
+        { key: 'industrialParkInvestmentUi', label: 'parque industrial' },
+      ];
+
+      fields.forEach(({ key }) => {
+        const rawValue = numericValues[key]?.trim();
+        const parsed = Number(rawValue);
+
+        if (!rawValue || Number.isNaN(parsed) || parsed < 0) {
+          nextErrors[key] = 'Ingrese un valor válido.';
+        }
       });
-      setInputs((prev) => ({ ...prev, ...nextInputs }));
+
+      if (Object.keys(nextErrors).length) {
+        setNumericErrors((prev) => ({ ...prev, ...nextErrors }));
+        return;
+      }
+
+      if (investmentTotal <= 0) {
+        const totalErrors = {};
+        fields.forEach(({ key }) => {
+          totalErrors[key] = 'La suma debe ser mayor a 0.';
+        });
+        setNumericErrors((prev) => ({ ...prev, ...totalErrors }));
+        return;
+      }
+
+      setInputs((prev) => ({
+        ...prev,
+        machineryUi: Number(numericValues.machineryUi),
+        installationsUi: Number(numericValues.installationsUi),
+        civilWorksUi: Number(numericValues.civilWorksUi),
+        industrialParkInvestmentUi: Number(numericValues.industrialParkInvestmentUi),
+        investment: investmentTotal,
+      }));
+    }
+
+    if (currentStep === 4) {
+      if (!deptAllocations.length) {
+        setAllocationError('Agregue al menos un departamento.');
+        return;
+      }
+
+      setAllocationError('');
+      setInputs((prev) => ({ ...prev, deptAllocations }));
     }
 
     if (isLastStep) {
@@ -334,6 +482,11 @@ export default function App() {
     setNumericValues(buildNumericValues(defaultInputs));
     setNumericErrors({});
     setCurrentStep(0);
+    setDeptSelection('');
+    setDeptPctValue('');
+    setDeptAllocations([]);
+    setAllocationError('');
+    setShowEmploymentDetails(false);
   };
 
   return (
@@ -386,13 +539,25 @@ export default function App() {
           <section className={`step${currentStep === 0 ? ' active' : ''}`}>
             <div className="row row-narrow">
               <NumericField
-                label="Inversión elegible total (UI)"
-                name="investment"
-                placeholder="Ej: 10000000"
-                value={numericValues.investment ?? ''}
-                error={numericErrors.investment}
-                onChange={handleNumericChange('investment')}
-                onBlur={handleNumericBlur('investment')}
+                label="Facturación anual (UI)"
+                name="annualBillingUi"
+                placeholder="Ej: 25000000"
+                value={numericValues.annualBillingUi ?? ''}
+                error={numericErrors.annualBillingUi}
+                onChange={handleNumericChange('annualBillingUi')}
+                onBlur={handleNumericBlur('annualBillingUi')}
+              />
+            </div>
+
+            <div className="row row-narrow">
+              <NumericField
+                label="Cantidad de empleados"
+                name="employees"
+                placeholder="Ej: 85"
+                value={numericValues.employees ?? ''}
+                error={numericErrors.employees}
+                onChange={handleNumericChange('employees')}
+                onBlur={handleNumericBlur('employees')}
               />
 
               <div className="field-group">
@@ -414,201 +579,362 @@ export default function App() {
                 </select>
               </div>
             </div>
+
+            <div className="row">
+              <div className="field-group">
+                <label className="field-label">Empresa nueva</label>
+                <div className="radio">
+                  <label className="pill">
+                    <input
+                      type="radio"
+                      name="isNewCompany"
+                      value="si"
+                      checked={inputs.isNewCompany === 'si'}
+                      onChange={(event) =>
+                        setInputs((prev) => ({ ...prev, isNewCompany: event.target.value }))
+                      }
+                    />
+                    Si
+                  </label>
+                  <label className="pill">
+                    <input
+                      type="radio"
+                      name="isNewCompany"
+                      value="no"
+                      checked={inputs.isNewCompany === 'no'}
+                      onChange={(event) =>
+                        setInputs((prev) => ({ ...prev, isNewCompany: event.target.value }))
+                      }
+                    />
+                    No
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="row">
+              <div className="field-group">
+                <label className="field-label">Usuaria de parque industrial</label>
+                <div className="radio">
+                  <label className="pill">
+                    <input
+                      type="radio"
+                      name="isIndustrialParkUser"
+                      value="si"
+                      checked={inputs.isIndustrialParkUser === 'si'}
+                      onChange={(event) =>
+                        setInputs((prev) => ({ ...prev, isIndustrialParkUser: event.target.value }))
+                      }
+                    />
+                    Si
+                  </label>
+                  <label className="pill">
+                    <input
+                      type="radio"
+                      name="isIndustrialParkUser"
+                      value="no"
+                      checked={inputs.isIndustrialParkUser === 'no'}
+                      onChange={(event) =>
+                        setInputs((prev) => ({ ...prev, isIndustrialParkUser: event.target.value }))
+                      }
+                    />
+                    No
+                  </label>
+                </div>
+              </div>
+              <div />
+            </div>
+
+            {inputs.isIndustrialParkUser === 'si' ? (
+              <div className="row">
+                <div className="field-group">
+                  <label className="field-label" htmlFor="industrialParkActivity">
+                    Actividad en parque industrial
+                  </label>
+                  <select
+                    id="industrialParkActivity"
+                    className="field-control"
+                    value={inputs.industrialParkActivity}
+                    onChange={(event) =>
+                      setInputs((prev) => ({
+                        ...prev,
+                        industrialParkActivity: event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">Seleccionar...</option>
+                    <option value="actividades-industriales">Actividades industriales</option>
+                    <option value="servicios-logisticos">
+                      Prestación de servicios como: operaciones de almacenaje, acondicionamiento,
+                      selección, clasificación, fraccionamiento, armado, desarmado, manipulación o
+                      mezcla de mercaderías o materias primas, vinculados a las actividades
+                      desarrolladas en el parque
+                    </option>
+                    <option value="energia-solar">
+                      Actividades de generación de energía solar térmica y/o fotovoltaica enmarcados
+                      en medidas promocionales del Poder Ejecutivo
+                    </option>
+                    <option value="valorizacion-residuos">
+                      Actividades de valorización y aprovechamiento de residuos
+                    </option>
+                    <option value="servicios-tic-biotecnologia">
+                      Actividades de servicios en las áreas de tecnologías de información y
+                      comunicación, biotecnología, industrias creativas dado su potencial para la
+                      contribución a los objetivos establecidos en el artículo 1 de la Ley N°
+                      19.784
+                    </option>
+                  </select>
+                </div>
+                <div />
+              </div>
+            ) : null}
           </section>
 
           <section className={`step${currentStep === 1 ? ' active' : ''}`}>
-            <div className="section-subtitle">{'Distribución por departamento'}</div>
-            <div className="table two-col">
-              <div className="table-row table-header">
-                <div className="table-cell">Departamento</div>
-                <div className="table-cell">% de inversión</div>
+            <div className="row">
+              <div className="field-group">
+                <label className="field-label" htmlFor="evaluatingMinistry">
+                  Ministerio evaluador
+                </label>
+                <select
+                  id="evaluatingMinistry"
+                  className="field-control"
+                  value={inputs.evaluatingMinistry}
+                  onChange={(event) =>
+                    setInputs((prev) => ({ ...prev, evaluatingMinistry: event.target.value }))
+                  }
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="miem">MIEM</option>
+                  <option value="mef">MEF</option>
+                  <option value="mgap">MGAP</option>
+                  <option value="mintur">MINTUR</option>
+                </select>
               </div>
-              {departments.map((dept) => {
-                const fieldName = `${dept.id}Pct`;
-                return (
-                  <div className="table-row" key={dept.id}>
-                    <div className="table-cell">{dept.label}</div>
-                    <div className="table-cell">
-                      <NumericField
-                        label={`${dept.label} (% inversión)`}
-                        name={fieldName}
-                        placeholder="Ej: 10"
-                        value={numericValues[fieldName] ?? ''}
-                        error={numericErrors[fieldName]}
-                        onChange={handleNumericChange(fieldName)}
-                        onBlur={handleNumericBlur(fieldName)}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+              <div />
+            </div>
+
+            <div className="row row-narrow">
+              <NumericField
+                label="Cotización USD"
+                name="usdRate"
+                placeholder="Ej: 39.50"
+                value={numericValues.usdRate ?? ''}
+                error={numericErrors.usdRate}
+                onChange={handleNumericChange('usdRate')}
+                onBlur={handleNumericBlur('usdRate')}
+              />
+              <NumericField
+                label="Cotización UI"
+                name="uiRate"
+                placeholder="Ej: 6.10"
+                value={numericValues.uiRate ?? ''}
+                error={numericErrors.uiRate}
+                onChange={handleNumericChange('uiRate')}
+                onBlur={handleNumericBlur('uiRate')}
+              />
+            </div>
+
+            <div className="form-grid">
+              <NumericField
+                label="Maquinas y equipos (UI)"
+                name="machineryUi"
+                placeholder="Ej: 3000000"
+                value={numericValues.machineryUi ?? ''}
+                error={numericErrors.machineryUi}
+                onChange={handleNumericChange('machineryUi')}
+                onBlur={handleNumericBlur('machineryUi')}
+              />
+              <NumericField
+                label="Instalaciones (UI)"
+                name="installationsUi"
+                placeholder="Ej: 4500000"
+                value={numericValues.installationsUi ?? ''}
+                error={numericErrors.installationsUi}
+                onChange={handleNumericChange('installationsUi')}
+                onBlur={handleNumericBlur('installationsUi')}
+              />
+              <NumericField
+                label="Obra civil (UI)"
+                name="civilWorksUi"
+                placeholder="Ej: 2500000"
+                value={numericValues.civilWorksUi ?? ''}
+                error={numericErrors.civilWorksUi}
+                onChange={handleNumericChange('civilWorksUi')}
+                onBlur={handleNumericBlur('civilWorksUi')}
+              />
+              {inputs.isIndustrialParkUser === 'si' ? (
+                <NumericField
+                  label="Inversión dentro de parque industrial (UI)"
+                  name="industrialParkInvestmentUi"
+                  placeholder="Ej: 1500000"
+                  value={numericValues.industrialParkInvestmentUi ?? ''}
+                  error={numericErrors.industrialParkInvestmentUi}
+                  onChange={handleNumericChange('industrialParkInvestmentUi')}
+                  onBlur={handleNumericBlur('industrialParkInvestmentUi')}
+                />
+              ) : null}
+            </div>
+
+            <div className="row row-narrow">
+              <div className="field-group">
+                <label className="field-label" htmlFor="investmentTotalUi">
+                  Inversión elegible total (UI)
+                </label>
+                <div id="investmentTotalUi" className="field-control">
+                  {investmentTotal.toFixed(0)}
+                </div>
+              </div>
+
+              <div className="field-group">
+                <label className="field-label" htmlFor="investmentTotalUsd">
+                  Inversión elegible total (USD)
+                </label>
+                <div id="investmentTotalUsd" className="field-control">
+                  {investmentTotalUsd.toFixed(2)}
+                </div>
+              </div>
             </div>
           </section>
 
           <section className={`step${currentStep === 2 ? ' active' : ''}`}>
-            <div className="table">
-              <div className="table-row table-header">
-                <div className="table-cell">Colectivo</div>
-                <div className="table-cell">Base</div>
-                <div className="table-cell">Incremento</div>
-              </div>
-
-              <div className="table-row">
-                <div className="table-cell">Mujeres</div>
-                <div className="table-cell">
-                  <NumericField
-                    label="Mujeres (base)"
-                    name="womenBase"
-                    placeholder="Ej: 2"
-                    value={numericValues.womenBase ?? ''}
-                    error={numericErrors.womenBase}
-                    onChange={handleNumericChange('womenBase')}
-                    onBlur={handleNumericBlur('womenBase')}
-                  />
-                </div>
-                <div className="table-cell">
-                  <NumericField
-                    label="Mujeres (incremento)"
-                    name="womenIncrease"
-                    placeholder="Ej: 1"
-                    value={numericValues.womenIncrease ?? ''}
-                    error={numericErrors.womenIncrease}
-                    onChange={handleNumericChange('womenIncrease')}
-                    onBlur={handleNumericBlur('womenIncrease')}
-                  />
-                </div>
-              </div>
-
-              <div className="table-row">
-                <div className="table-cell">{'Jóvenes'}</div>
-                <div className="table-cell">
-                  <NumericField
-                    label={'Jóvenes (base)'}
-                    name="youthBase"
-                    placeholder="Ej: 1"
-                    value={numericValues.youthBase ?? ''}
-                    error={numericErrors.youthBase}
-                    onChange={handleNumericChange('youthBase')}
-                    onBlur={handleNumericBlur('youthBase')}
-                  />
-                </div>
-                <div className="table-cell">
-                  <NumericField
-                    label={'Jóvenes (incremento)'}
-                    name="youthIncrease"
-                    placeholder="Ej: 1"
-                    value={numericValues.youthIncrease ?? ''}
-                    error={numericErrors.youthIncrease}
-                    onChange={handleNumericChange('youthIncrease')}
-                    onBlur={handleNumericBlur('youthIncrease')}
-                  />
-                </div>
-              </div>
-
-              <div className="table-row">
-                <div className="table-cell">Discapacitados</div>
-                <div className="table-cell">
-                  <NumericField
-                    label="Discapacitados (base)"
-                    name="disabilityBase"
-                    placeholder="Ej: 1"
-                    value={numericValues.disabilityBase ?? ''}
-                    error={numericErrors.disabilityBase}
-                    onChange={handleNumericChange('disabilityBase')}
-                    onBlur={handleNumericBlur('disabilityBase')}
-                  />
-                </div>
-                <div className="table-cell">
-                  <NumericField
-                    label="Discapacitados (incremento)"
-                    name="disabilityIncrease"
-                    placeholder="Ej: 1"
-                    value={numericValues.disabilityIncrease ?? ''}
-                    error={numericErrors.disabilityIncrease}
-                    onChange={handleNumericChange('disabilityIncrease')}
-                    onBlur={handleNumericBlur('disabilityIncrease')}
-                  />
-                </div>
-              </div>
-
-              <div className="table-row">
-                <div className="table-cell">DINALI</div>
-                <div className="table-cell">
-                  <NumericField
-                    label="DINALI (base)"
-                    name="dinaliBase"
-                    placeholder="Ej: 1"
-                    value={numericValues.dinaliBase ?? ''}
-                    error={numericErrors.dinaliBase}
-                    onChange={handleNumericChange('dinaliBase')}
-                    onBlur={handleNumericBlur('dinaliBase')}
-                  />
-                </div>
-                <div className="table-cell">
-                  <NumericField
-                    label="DINALI (incremento)"
-                    name="dinaliIncrease"
-                    placeholder="Ej: 1"
-                    value={numericValues.dinaliIncrease ?? ''}
-                    error={numericErrors.dinaliIncrease}
-                    onChange={handleNumericChange('dinaliIncrease')}
-                    onBlur={handleNumericBlur('dinaliIncrease')}
-                  />
-                </div>
-              </div>
-
-              <div className="table-row">
-                <div className="table-cell">TUS/Trans</div>
-                <div className="table-cell">
-                  <NumericField
-                    label="TUS/Trans (base)"
-                    name="tusTransBase"
-                    placeholder="Ej: 1"
-                    value={numericValues.tusTransBase ?? ''}
-                    error={numericErrors.tusTransBase}
-                    onChange={handleNumericChange('tusTransBase')}
-                    onBlur={handleNumericBlur('tusTransBase')}
-                  />
-                </div>
-                <div className="table-cell">
-                  <NumericField
-                    label="TUS/Trans (incremento)"
-                    name="tusTransIncrease"
-                    placeholder="Ej: 1"
-                    value={numericValues.tusTransIncrease ?? ''}
-                    error={numericErrors.tusTransIncrease}
-                    onChange={handleNumericChange('tusTransIncrease')}
-                    onBlur={handleNumericBlur('tusTransIncrease')}
-                  />
-                </div>
-              </div>
-
-              <div className="table-row">
-                <div className="table-cell">Otros</div>
-                <div className="table-cell">
-                  <NumericField
-                    label="Otros (base)"
-                    name="othersBase"
-                    placeholder="Ej: 1"
-                    value={numericValues.othersBase ?? ''}
-                    error={numericErrors.othersBase}
-                    onChange={handleNumericChange('othersBase')}
-                    onBlur={handleNumericBlur('othersBase')}
-                  />
-                </div>
-                <div className="table-cell">
-                  <NumericField
-                    label="Otros (incremento)"
-                    name="othersIncrease"
-                    placeholder="Ej: 1"
-                    value={numericValues.othersIncrease ?? ''}
-                    error={numericErrors.othersIncrease}
-                    onChange={handleNumericChange('othersIncrease')}
-                    onBlur={handleNumericBlur('othersIncrease')}
-                  />
-                </div>
-              </div>
+            <div className="form-grid">
+              <NumericField
+                label="Personal ocupado"
+                labelTitle="Equivalente a 30 hs. semanales o 130 hs. mensuales."
+                name="occupiedPersonnel"
+                placeholder="Ej: 120"
+                value={numericValues.occupiedPersonnel ?? ''}
+                error={numericErrors.occupiedPersonnel}
+                onChange={handleNumericChange('occupiedPersonnel')}
+                onBlur={handleNumericBlur('occupiedPersonnel')}
+              />
+              <NumericField
+                label="Situación inicial"
+                name="employmentInitial"
+                placeholder="Ej: 100"
+                value={numericValues.employmentInitial ?? ''}
+                error={numericErrors.employmentInitial}
+                onChange={handleNumericChange('employmentInitial')}
+                onBlur={handleNumericBlur('employmentInitial')}
+              />
+              <NumericField
+                label="Incremento promedio"
+                name="employmentIncreaseAvg"
+                placeholder="Ej: 20"
+                value={numericValues.employmentIncreaseAvg ?? ''}
+                error={numericErrors.employmentIncreaseAvg}
+                onChange={handleNumericChange('employmentIncreaseAvg')}
+                onBlur={handleNumericBlur('employmentIncreaseAvg')}
+              />
             </div>
+
+            <button
+              className="btn-secondary"
+              type="button"
+              onClick={() => setShowEmploymentDetails((prev) => !prev)}
+            >
+              {showEmploymentDetails ? 'Ocultar detalle por colectivos' : 'Mostrar detalle por colectivos'}
+            </button>
+
+            {showEmploymentDetails ? (
+              <div className="table two-col">
+                <div className="table-row table-header">
+                  <div className="table-cell">Colectivo</div>
+                  <div className="table-cell">Incremento</div>
+                </div>
+
+                <div className="table-row">
+                  <div className="table-cell">Mujeres</div>
+                  <div className="table-cell">
+                    <NumericField
+                      label="Mujeres (incremento)"
+                      name="womenIncrease"
+                      placeholder="Ej: 1"
+                      value={numericValues.womenIncrease ?? ''}
+                      error={numericErrors.womenIncrease}
+                      onChange={handleNumericChange('womenIncrease')}
+                      onBlur={handleNumericBlur('womenIncrease')}
+                    />
+                  </div>
+                </div>
+
+                <div className="table-row">
+                  <div className="table-cell">{'Jóvenes'}</div>
+                  <div className="table-cell">
+                    <NumericField
+                      label={'Jóvenes (incremento)'}
+                      name="youthIncrease"
+                      placeholder="Ej: 1"
+                      value={numericValues.youthIncrease ?? ''}
+                      error={numericErrors.youthIncrease}
+                      onChange={handleNumericChange('youthIncrease')}
+                      onBlur={handleNumericBlur('youthIncrease')}
+                    />
+                  </div>
+                </div>
+
+                <div className="table-row">
+                  <div className="table-cell">Discapacitados</div>
+                  <div className="table-cell">
+                    <NumericField
+                      label="Discapacitados (incremento)"
+                      name="disabilityIncrease"
+                      placeholder="Ej: 1"
+                      value={numericValues.disabilityIncrease ?? ''}
+                      error={numericErrors.disabilityIncrease}
+                      onChange={handleNumericChange('disabilityIncrease')}
+                      onBlur={handleNumericBlur('disabilityIncrease')}
+                    />
+                  </div>
+                </div>
+
+                <div className="table-row">
+                  <div className="table-cell">DINALI</div>
+                  <div className="table-cell">
+                    <NumericField
+                      label="DINALI (incremento)"
+                      name="dinaliIncrease"
+                      placeholder="Ej: 1"
+                      value={numericValues.dinaliIncrease ?? ''}
+                      error={numericErrors.dinaliIncrease}
+                      onChange={handleNumericChange('dinaliIncrease')}
+                      onBlur={handleNumericBlur('dinaliIncrease')}
+                    />
+                  </div>
+                </div>
+
+                <div className="table-row">
+                  <div className="table-cell">TUS/Trans</div>
+                  <div className="table-cell">
+                    <NumericField
+                      label="TUS/Trans (incremento)"
+                      name="tusTransIncrease"
+                      placeholder="Ej: 1"
+                      value={numericValues.tusTransIncrease ?? ''}
+                      error={numericErrors.tusTransIncrease}
+                      onChange={handleNumericChange('tusTransIncrease')}
+                      onBlur={handleNumericBlur('tusTransIncrease')}
+                    />
+                  </div>
+                </div>
+
+                <div className="table-row">
+                  <div className="table-cell">Otros</div>
+                  <div className="table-cell">
+                    <NumericField
+                      label="Otros (incremento)"
+                      name="othersIncrease"
+                      placeholder="Ej: 1"
+                      value={numericValues.othersIncrease ?? ''}
+                      error={numericErrors.othersIncrease}
+                      onChange={handleNumericChange('othersIncrease')}
+                      onBlur={handleNumericBlur('othersIncrease')}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </section>
 
           <section className={`step${currentStep === 3 ? ' active' : ''}`}>
@@ -635,11 +961,99 @@ export default function App() {
           </section>
 
           <section className={`step${currentStep === 4 ? ' active' : ''}`}>
+            <div className="section-subtitle">{'Distribución por departamento'}</div>
+            <div className="form-grid">
+              <div className="field-group">
+                <label className="field-label" htmlFor="deptSelection">
+                  Departamento
+                </label>
+                <select
+                  id="deptSelection"
+                  className="field-control"
+                  value={deptSelection}
+                  onChange={(event) => setDeptSelection(event.target.value)}
+                >
+                  <option value="">Seleccionar...</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="field-group">
+                <label className="field-label" htmlFor="deptPctValue">
+                  Monto (UI)
+                </label>
+                <input
+                  id="deptPctValue"
+                  className="field-control"
+                  type="text"
+                  inputMode="decimal"
+                  value={deptPctValue}
+                  onChange={(event) => setDeptPctValue(event.target.value)}
+                  placeholder="Ej: 250000"
+                />
+              </div>
+
+              <div className="field-group">
+                <span className="field-label">Acciones</span>
+                <button className="btn-secondary" type="button" onClick={handleAddDepartment}>
+                  +
+                </button>
+              </div>
+            </div>
+
+            {deptAllocations.length ? (
+              <div className="table four-col">
+                <div className="table-row table-header">
+                  <div className="table-cell">Departamento</div>
+                  <div className="table-cell">Monto (UI)</div>
+                  <div className="table-cell">Puntaje ponderado</div>
+                  <div className="table-cell">Acciones</div>
+                </div>
+                {deptAllocations.map((allocation) => {
+                  const dept = departments.find((item) => item.id === allocation.id);
+                  const deptScore = DEPARTMENT_SCORES[allocation.id] ?? 0;
+                  const weightedScore = totalInvestmentForDept
+                    ? (allocation.pct / totalInvestmentForDept) * deptScore
+                    : 0;
+                  return (
+                    <div className="table-row" key={allocation.id}>
+                      <div className="table-cell">{dept?.label ?? allocation.id}</div>
+                      <div className="table-cell">{allocation.pct}</div>
+                      <div className="table-cell">{weightedScore.toFixed(2)}</div>
+                      <div className="table-cell">
+                        <button
+                          className="btn-secondary"
+                          type="button"
+                          onClick={() => handleRemoveDepartment(allocation.id)}
+                        >
+                          X
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="table-row">
+                  <div className="table-cell">Total (UI)</div>
+                  <div className="table-cell">{totalDepartmentAmount}</div>
+                  <div className="table-cell" />
+                  <div className="table-cell" />
+                </div>
+              </div>
+            ) : null}
+
+            {allocationError ? <div className="field-error">{allocationError}</div> : null}
+          </section>
+
+          <section className={`step${currentStep === 5 ? ' active' : ''}`}>
             <div className="row impacto-ambiental-row">
               <NumericField
-                label="% inversión"
+                label="Monto inversión (UI)"
                 name="sustainabilityPct"
-                placeholder="Ej: 25"
+                placeholder="Ej: 250000"
                 value={numericValues.sustainabilityPct ?? ''}
                 error={numericErrors.sustainabilityPct}
                 onChange={handleNumericChange('sustainabilityPct')}
@@ -648,67 +1062,39 @@ export default function App() {
               />
 
               <div>
-                <label className="field-label">Certificación</label>
-                <div className="radio radio-tight">
-                  <label className="pill">
-                    <input
-                      type="radio"
-                      name="certification"
-                      value="ninguna"
-                      checked={inputs.certification === 'ninguna'}
-                      onChange={(event) =>
-                        setInputs((prev) => ({ ...prev, certification: event.target.value }))
-                      }
-                    />
-                    Sin certificación
-                  </label>
-                  <label className="pill">
-                    <input
-                      type="radio"
-                      name="certification"
-                      value="leed-breeam"
-                      checked={inputs.certification === 'leed-breeam'}
-                      onChange={(event) =>
-                        setInputs((prev) => ({ ...prev, certification: event.target.value }))
-                      }
-                    />
-                    LEED/BREEAM
-                  </label>
-                  <label className="pill">
-                    <input
-                      type="radio"
-                      name="certification"
-                      value="eficiencia"
-                      checked={inputs.certification === 'eficiencia'}
-                      onChange={(event) =>
-                        setInputs((prev) => ({ ...prev, certification: event.target.value }))
-                      }
-                    />
-                    Sello eficiencia energética
-                  </label>
-                  <label className="pill">
-                    <input
-                      type="radio"
-                      name="certification"
-                      value="iso"
-                      checked={inputs.certification === 'iso'}
-                      onChange={(event) =>
-                        setInputs((prev) => ({ ...prev, certification: event.target.value }))
-                      }
-                    />
-                    ISO 14001 / 50001
-                  </label>
-                </div>
+                <label className="field-label" htmlFor="certification">
+                  Certificación
+                </label>
+                <select
+                  id="certification"
+                  className="field-control"
+                  value={inputs.certification}
+                  onChange={(event) =>
+                    setInputs((prev) => ({ ...prev, certification: event.target.value }))
+                  }
+                >
+                  <option value="none">Sin certificación</option>
+                  <option value="leed">Leed</option>
+                  <option value="leed-plata">Leed Plata</option>
+                  <option value="leed-oro">Leed Oro</option>
+                  <option value="leed-platino">Leed Platino</option>
+                  <option value="breeam-bueno">Breeam Bueno</option>
+                  <option value="breeam-muy-bueno">Breeam Muy Bueno</option>
+                  <option value="breeam-excelente">Breeam Excelente</option>
+                  <option value="breeam-excepcional">Breeam Excepcional</option>
+                  <option value="sello-b">Sello Eficiencia Energética B</option>
+                  <option value="sello-a">Sello Eficiencia Energética A</option>
+                </select>
               </div>
             </div>
           </section>
 
-          <section className={`step${currentStep === 5 ? ' active' : ''}`}>
+          <section className={`step${currentStep === 6 ? ' active' : ''}`}>
             <div className="row iplus-row">
               <NumericField
-                label="% inversión"
+                label="Monto inversión (UI)"
                 name="iPlusPct"
-                placeholder="Ej: 30"
+                placeholder="Ej: 300000"
                 value={numericValues.iPlusPct ?? ''}
                 error={numericErrors.iPlusPct}
                 onChange={handleNumericChange('iPlusPct')}
@@ -716,50 +1102,26 @@ export default function App() {
                 className="narrow-field"
               />
               <div>
-                <label className="field-label">Categoría I+</label>
-                <div className="radio radio-tight">
-                  <label className="pill">
-                    <input
-                      type="radio"
-                      name="iplus"
-                      value="adecuacion"
-                      checked={inputs.iPlusCategory === 'adecuacion'}
-                      onChange={(event) =>
-                        setInputs((prev) => ({ ...prev, iPlusCategory: event.target.value }))
-                      }
-                    />
-                    Adecuación tecnológica
-                  </label>
-                  <label className="pill">
-                    <input
-                      type="radio"
-                      name="iplus"
-                      value="innovacion"
-                      checked={inputs.iPlusCategory === 'innovacion'}
-                      onChange={(event) =>
-                        setInputs((prev) => ({ ...prev, iPlusCategory: event.target.value }))
-                      }
-                    />
-                    Innovación
-                  </label>
-                  <label className="pill">
-                    <input
-                      type="radio"
-                      name="iplus"
-                      value="id"
-                      checked={inputs.iPlusCategory === 'id'}
-                      onChange={(event) =>
-                        setInputs((prev) => ({ ...prev, iPlusCategory: event.target.value }))
-                      }
-                    />
-                    I+D
-                  </label>
-                </div>
+                <label className="field-label" htmlFor="iPlusCategory">
+                  Categoría I+
+                </label>
+                <select
+                  id="iPlusCategory"
+                  className="field-control"
+                  value={inputs.iPlusCategory}
+                  onChange={(event) =>
+                    setInputs((prev) => ({ ...prev, iPlusCategory: event.target.value }))
+                  }
+                >
+                  <option value="at">Adecuación Tecnológica (AT) - 4</option>
+                  <option value="inn">Innovación (INN) - 7</option>
+                  <option value="id">Investigación y Desarrollo Experimental (I+D) - 10</option>
+                </select>
               </div>
             </div>
           </section>
 
-          <section className={`step${currentStep === 6 ? ' active' : ''}`}>
+          <section className={`step${currentStep === 7 ? ' active' : ''}`}>
             <div className="row">
               <div>
                 <label className="field-label" htmlFor="ministry">
@@ -806,7 +1168,7 @@ export default function App() {
             </div>
           </section>
 
-          <section className={`step${currentStep === 7 ? ' active' : ''}`}>
+          <section className={`step${currentStep === 8 ? ' active' : ''}`}>
             <div ref={pdfRef} className="pdf-export">
               <div className="pdf-header">
                 <img className="pdf-logo" src="/mef-logo.png" alt="MEF" />

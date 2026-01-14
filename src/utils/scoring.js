@@ -6,35 +6,85 @@ export function scoreEmployment({ employees }) {
   return clamp((employees / 200) * 10);
 }
 
-export function scoreDecentralization({ regionTier }) {
-  if (regionTier === 'interior') {
-    return 9;
+export const DEPARTMENT_SCORES = {
+  artigas: 10,
+  treintaYTres: 10,
+  cerroLargo: 9,
+  rioNegro: 9,
+  tacuarembo: 8,
+  salto: 8,
+  paysandu: 8,
+  rivera: 7,
+  rocha: 6,
+  soriano: 6,
+  lavalleja: 5,
+  sanJose: 5,
+  canelones: 4,
+  florida: 4,
+  durazno: 3,
+  maldonado: 3,
+  colonia: 2,
+  flores: 2,
+  montevideo: 0,
+};
+
+export function scoreDecentralization({ deptAllocations = [], investment = 0 }) {
+  const totalAllocation = deptAllocations.reduce((sum, item) => sum + (item.pct ?? 0), 0);
+  const totalInvestment = investment > 0 ? investment : totalAllocation;
+
+  if (!totalInvestment) {
+    return 0;
   }
 
-  if (regionTier === 'metro') {
-    return 6;
-  }
+  const weightedScore = deptAllocations.reduce((sum, item) => {
+    const deptScore = DEPARTMENT_SCORES[item.id] ?? 0;
+    return sum + (item.pct / totalInvestment) * deptScore;
+  }, 0);
 
-  return 3;
+  return clamp(weightedScore, 0, 10);
 }
 
 export function scoreExports({ exportPct }) {
   return clamp(exportPct / 10);
 }
 
-export function scoreSustainability({ sustainabilityPct }) {
-  return clamp(sustainabilityPct / 2);
+export const CERTIFICATION_BONUS = {
+  none: 0,
+  leed: 2,
+  'leed-plata': 3,
+  'leed-oro': 4,
+  'leed-platino': 5,
+  'breeam-bueno': 2,
+  'breeam-muy-bueno': 3,
+  'breeam-excelente': 4,
+  'breeam-excepcional': 5,
+  'sello-b': 2,
+  'sello-a': 3,
+};
+
+const calcInvestmentPct = (amount, investment) => {
+  if (!investment) {
+    return 0;
+  }
+  return (amount / investment) * 100;
+};
+
+export function scoreSustainability({ sustainabilityPct, certification, investment }) {
+  const bonus = CERTIFICATION_BONUS[certification] ?? 0;
+  const pct = calcInvestmentPct(sustainabilityPct, investment);
+  return clamp(pct / 2 + bonus);
 }
 
-export function scoreIPlus({ iPlusType, iPlusPct }) {
-  const typeBoost = {
-    a: 2,
-    b: 1,
-    c: 0,
-  };
+const I_PLUS_CATEGORY_POINTS = {
+  at: 4,
+  inn: 7,
+  id: 10,
+};
 
-  const boost = typeBoost[iPlusType] ?? 0;
-  return clamp(iPlusPct / 1.5 + boost);
+export function scoreIPlus({ iPlusCategory, iPlusPct, investment }) {
+  const pct = calcInvestmentPct(iPlusPct, investment);
+  const categoryPoints = I_PLUS_CATEGORY_POINTS[iPlusCategory] ?? 0;
+  return clamp((pct / 100) * categoryPoints);
 }
 
 export function scoreStrategic({ strategicPriorities }) {

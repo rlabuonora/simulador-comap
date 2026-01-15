@@ -1091,35 +1091,26 @@ export default function App() {
           </section>
 
           <section className={`step${currentStep === stepIndexById.empleo ? ' active' : ''}`}>
-            <div className="form-grid">
-              <NumericField
-                label="Situación inicial"
-                name="employmentInitial"
-                placeholder="Ej: 100"
-                value={numericValues.employmentInitial ?? ''}
-                error={numericErrors.employmentInitial}
-                onChange={handleNumericChange('employmentInitial')}
-                onBlur={handleNumericBlur('employmentInitial')}
-              />
-              <NumericField
-                label="Incremento promedio"
-                name="employmentIncreaseAvg"
-                placeholder="Ej: 20"
-                value={numericValues.employmentIncreaseAvg ?? ''}
-                error={numericErrors.employmentIncreaseAvg}
-                onChange={handleNumericChange('employmentIncreaseAvg')}
-                onBlur={handleNumericBlur('employmentIncreaseAvg')}
-              />
-            </div>
-
-            <div className="table two-col">
+            <div className="table">
               <div className="table-row table-header">
                 <div className="table-cell">Colectivo</div>
-                <div className="table-cell">Incremento</div>
+                <div className="table-cell">Situacion inicial</div>
+                <div className="table-cell">Incremento promedio</div>
               </div>
 
               <div className="table-row">
                 <div className="table-cell">Colectivos No Vulnerables</div>
+                <div className="table-cell">
+                  <NumericField
+                    label="Colectivos No Vulnerables (situacion inicial)"
+                    name="othersBase"
+                    placeholder="Ej: 1"
+                    value={numericValues.othersBase ?? ''}
+                    error={numericErrors.othersBase}
+                    onChange={handleNumericChange('othersBase')}
+                    onBlur={handleNumericBlur('othersBase')}
+                  />
+                </div>
                 <div className="table-cell">
                   <NumericField
                     label="Colectivos No Vulnerables (incremento)"
@@ -1137,6 +1128,17 @@ export default function App() {
                 <div className="table-cell">Mujeres</div>
                 <div className="table-cell">
                   <NumericField
+                    label="Mujeres (situacion inicial)"
+                    name="womenBase"
+                    placeholder="Ej: 1"
+                    value={numericValues.womenBase ?? ''}
+                    error={numericErrors.womenBase}
+                    onChange={handleNumericChange('womenBase')}
+                    onBlur={handleNumericBlur('womenBase')}
+                  />
+                </div>
+                <div className="table-cell">
+                  <NumericField
                     label="Mujeres (incremento)"
                     name="womenIncrease"
                     placeholder="Ej: 1"
@@ -1149,10 +1151,21 @@ export default function App() {
               </div>
 
               <div className="table-row">
-                <div className="table-cell">{'Jóvenes'}</div>
+                <div className="table-cell">Jovenes</div>
                 <div className="table-cell">
                   <NumericField
-                    label={'Jóvenes (incremento)'}
+                    label="Jovenes (situacion inicial)"
+                    name="youthBase"
+                    placeholder="Ej: 1"
+                    value={numericValues.youthBase ?? ''}
+                    error={numericErrors.youthBase}
+                    onChange={handleNumericChange('youthBase')}
+                    onBlur={handleNumericBlur('youthBase')}
+                  />
+                </div>
+                <div className="table-cell">
+                  <NumericField
+                    label="Jovenes (incremento)"
                     name="youthIncrease"
                     placeholder="Ej: 1"
                     value={numericValues.youthIncrease ?? ''}
@@ -1165,6 +1178,17 @@ export default function App() {
 
               <div className="table-row">
                 <div className="table-cell">Discapacitados</div>
+                <div className="table-cell">
+                  <NumericField
+                    label="Discapacitados (situacion inicial)"
+                    name="disabilityBase"
+                    placeholder="Ej: 1"
+                    value={numericValues.disabilityBase ?? ''}
+                    error={numericErrors.disabilityBase}
+                    onChange={handleNumericChange('disabilityBase')}
+                    onBlur={handleNumericBlur('disabilityBase')}
+                  />
+                </div>
                 <div className="table-cell">
                   <NumericField
                     label="Discapacitados (incremento)"
@@ -1182,6 +1206,17 @@ export default function App() {
                 <div className="table-cell">DINALI</div>
                 <div className="table-cell">
                   <NumericField
+                    label="DINALI (situacion inicial)"
+                    name="dinaliBase"
+                    placeholder="Ej: 1"
+                    value={numericValues.dinaliBase ?? ''}
+                    error={numericErrors.dinaliBase}
+                    onChange={handleNumericChange('dinaliBase')}
+                    onBlur={handleNumericBlur('dinaliBase')}
+                  />
+                </div>
+                <div className="table-cell">
+                  <NumericField
                     label="DINALI (incremento)"
                     name="dinaliIncrease"
                     placeholder="Ej: 1"
@@ -1195,6 +1230,17 @@ export default function App() {
 
               <div className="table-row">
                 <div className="table-cell">TUS/Trans</div>
+                <div className="table-cell">
+                  <NumericField
+                    label="TUS/Trans (situacion inicial)"
+                    name="tusTransBase"
+                    placeholder="Ej: 1"
+                    value={numericValues.tusTransBase ?? ''}
+                    error={numericErrors.tusTransBase}
+                    onChange={handleNumericChange('tusTransBase')}
+                    onBlur={handleNumericBlur('tusTransBase')}
+                  />
+                </div>
                 <div className="table-cell">
                   <NumericField
                     label="TUS/Trans (incremento)"

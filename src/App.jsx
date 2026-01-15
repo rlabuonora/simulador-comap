@@ -37,6 +37,50 @@ const departments = [
   { id: 'treintaYTres', label: 'Treinta y Tres' },
 ];
 
+const MGAP_EXPORT_OPTIONS = [
+  { id: 'semillas', label: 'Semillas', pct: 75 },
+  { id: 'agricultura', label: 'Agricultura (cultivos de invierno y verano; no arroz)', pct: 92 },
+  { id: 'arroz', label: 'Arroz', pct: 91 },
+  {
+    id: 'legumbres-raices',
+    label:
+      'Legumbres; raíces y tubérculos comestibles ricos en almidón o inulina, vegetales leguminosos secos',
+    pct: 0,
+  },
+  { id: 'frutas-nueces', label: 'Frutas y nueces', pct: 20 },
+  { id: 'azucar', label: 'Cosecha de azúcar', pct: 0 },
+  {
+    id: 'forraje-fibras',
+    label:
+      'Productos de forraje, fibras, plantas vivas, flores y capullos de flores, tabaco en rama, y caucho natural',
+    pct: 2,
+  },
+  { id: 'ganaderia', label: 'Ganadería vacuna o ovina', pct: 75 },
+  {
+    id: 'porcino-aves',
+    label: 'Ganado Porcino, aves de corral; huevos frescos de gallina o de otras aves con cáscara',
+    pct: 0,
+  },
+  { id: 'cueros', label: 'Cueros, pieles, pieles finas, sin curtir', pct: 14 },
+  {
+    id: 'pescado',
+    label: 'Pescado, crustáceos, moluscos u otros invertebrados acuáticos',
+    pct: 86,
+  },
+  {
+    id: 'vegetales-preparados',
+    label:
+      'Vegetales, legumbres y papas preparados o conservados; frutas y nueces preparadas o en conserva',
+    pct: 7,
+  },
+  { id: 'lacteos', label: 'Productos lácteos', pct: 63 },
+  {
+    id: 'madera',
+    label: 'Productos de madera, corcho, paja y materiales tranzables',
+    pct: 92,
+  },
+];
+
 const defaultInputs = {
   investment: 0,
   employees: 0,
@@ -47,6 +91,7 @@ const defaultInputs = {
   installationsUi: 0,
   civilWorksUi: 0,
   industrialParkInvestmentUi: 0,
+  mefRenewableInvestmentUi: 0,
   occupiedPersonnel: 0,
   employmentInitial: 0,
   employmentIncreaseAvg: 0,
@@ -81,6 +126,9 @@ const defaultInputs = {
   isNewCompany: '',
   isIndustrialParkUser: '',
   industrialParkActivity: '',
+  fieldNaturalPct: 0,
+  tourismZoneLocation: '',
+  mineralProcessingLevel: '',
 };
 
 
@@ -98,6 +146,8 @@ const buildNumericValues = (source) => {
       source.industrialParkInvestmentUi === 0
         ? '0'
         : String(source.industrialParkInvestmentUi ?? ''),
+    mefRenewableInvestmentUi:
+      source.mefRenewableInvestmentUi === 0 ? '0' : String(source.mefRenewableInvestmentUi ?? ''),
     occupiedPersonnel:
       source.occupiedPersonnel === 0 ? '0' : String(source.occupiedPersonnel ?? ''),
     employmentInitial:
@@ -122,6 +172,7 @@ const buildNumericValues = (source) => {
     iPlusPct: source.iPlusPct === 0 ? '0' : String(source.iPlusPct ?? ''),
     strategicInvestmentPct:
       source.strategicInvestmentPct === 0 ? '0' : String(source.strategicInvestmentPct ?? ''),
+    fieldNaturalPct: source.fieldNaturalPct === 0 ? '0' : String(source.fieldNaturalPct ?? ''),
   };
 
   departments.forEach((dept) => {
@@ -166,50 +217,59 @@ const NumericField = ({
   );
 };
 
-const steps = [
+const ScoreBadge = ({ label, value }) => {
+  return (
+    <div className="score-pill">
+      <span>{label}</span>
+      <strong>{value.toFixed(2)}</strong>
+    </div>
+  );
+};
+
+const BASE_STEPS = [
   {
     id: 'empresa',
-    title: 'Paso 1 - Datos de la empresa',
+    label: 'Datos de la empresa',
     hint: 'Información general de la empresa solicitante.',
   },
   {
     id: 'proyecto',
-    title: 'Paso 2 - Datos del proyecto',
+    label: 'Datos del proyecto',
     hint: 'Información general del proyecto de inversión.',
   },
   {
     id: 'empleo',
-    title: 'Paso 3 - Generación de Empleo',
+    label: 'Generación de Empleo',
     hint: 'Completa la información de colectivos para generación de empleo.',
   },
   {
     id: 'exportaciones',
-    title: 'Paso 4 - Exportaciones',
+    label: 'Exportaciones',
     hint: 'Reporta el nivel actual y futuro de exportaciones del proyecto.',
   },
   {
     id: 'descentralizacion',
-    title: 'Paso 5 - Descentralización',
+    label: 'Descentralización',
     hint: 'Distribuye el porcentaje de inversión por departamento.',
   },
   {
     id: 'impacto-ambiental',
-    title: 'Paso 6 - Impacto ambiental',
+    label: 'Impacto ambiental',
     hint: 'Datos de impacto ambiental.',
   },
   {
     id: 'transformacion',
-    title: 'Paso 7 - Transformación productiva (I+)',
+    label: 'Transformación productiva (I+)',
     hint: 'Desarrollo tecnológico.',
   },
   {
     id: 'alineacion',
-    title: 'Paso 8 - Alineación estratégica',
+    label: 'Alineación estratégica',
     hint: 'Cómo tu proyecto encaja en prioridades país.',
   },
   {
     id: 'resultado',
-    title: 'Paso 9 - Resultado',
+    label: 'Resultado',
     hint: 'Este es el impacto estimado de tu proyecto.',
   },
 ];
@@ -223,9 +283,45 @@ export default function App() {
   const [deptPctValue, setDeptPctValue] = useState('');
   const [deptAllocations, setDeptAllocations] = useState([]);
   const [allocationError, setAllocationError] = useState('');
-  const [showEmploymentDetails, setShowEmploymentDetails] = useState(false);
+  const [mgapExportSelection, setMgapExportSelection] = useState('');
+  const [mgapExportInitial, setMgapExportInitial] = useState('');
+  const [mgapExportIncrease, setMgapExportIncrease] = useState('');
+  const [mgapExportItems, setMgapExportItems] = useState([]);
+  const [mgapExportError, setMgapExportError] = useState('');
+  const [minturInitial, setMinturInitial] = useState('');
+  const [minturIncrease, setMinturIncrease] = useState('');
   const pdfRef = useRef(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  const steps = useMemo(() => {
+    const nextSteps = [...BASE_STEPS];
+    if (inputs.evaluatingMinistry === 'mef') {
+      const resultIndex = nextSteps.findIndex((step) => step.id === 'resultado');
+      const insertIndex = resultIndex === -1 ? nextSteps.length : resultIndex;
+      nextSteps.splice(insertIndex, 0, {
+        id: 'indicadores-mef',
+        label: 'Indicadores sectoriales MEF',
+        hint: 'Información específica para proyectos evaluados por MEF.',
+      });
+    }
+    return nextSteps.map((step, index) => ({
+      ...step,
+      title: `Paso ${index + 1} - ${step.label}`,
+    }));
+  }, [inputs.evaluatingMinistry]);
+
+  const stepIndexById = useMemo(() => {
+    return steps.reduce((acc, step, index) => {
+      acc[step.id] = index;
+      return acc;
+    }, {});
+  }, [steps]);
+
+  useEffect(() => {
+    if (currentStep > steps.length - 1) {
+      setCurrentStep(steps.length - 1);
+    }
+  }, [currentStep, steps.length]);
 
   useEffect(() => {
     setInputs((prev) => ({ ...prev, deptAllocations }));
@@ -272,6 +368,29 @@ export default function App() {
   }, [deptAllocations]);
 
   const totalInvestmentForDept = investmentTotal || totalDepartmentAmount;
+  const minturCoefficient = 3.22;
+  const minturWeightedIncrease = useMemo(() => {
+    const parsed = Number(minturIncrease.trim());
+    if (!minturIncrease.trim() || Number.isNaN(parsed)) {
+      return 0;
+    }
+    return minturCoefficient * parsed;
+  }, [minturCoefficient, minturIncrease]);
+
+  const scoreByStepId = useMemo(() => {
+    return {
+      empleo: scores.employment,
+      exportaciones: scores.exports,
+      descentralizacion: scores.decentralization,
+      'impacto-ambiental': scores.sustainability,
+      transformacion: scores.iPlus,
+      alineacion: scores.strategic,
+      resultado: totalScore,
+    };
+  }, [scores, totalScore]);
+
+  const currentStepScore = scoreByStepId[steps[currentStep]?.id];
+  const currentStepScoreLabel = 'Puntaje';
 
   const isLastStep = currentStep === steps.length - 1;
 
@@ -306,7 +425,7 @@ export default function App() {
         heightLeft -= pdfHeight;
       }
 
-      pdf.save('simulador-comap.pdf');
+      pdf.save('simulador_decreto_329.pdf');
     } finally {
       setIsExportingPdf(false);
     }
@@ -347,6 +466,11 @@ export default function App() {
       return;
     }
 
+    if (key === 'fieldNaturalPct' && (parsed < 0 || parsed > 100)) {
+      setNumericErrors((prev) => ({ ...prev, [key]: 'Debe estar entre 0 y 100.' }));
+      return;
+    }
+
     setNumericErrors((prev) => ({ ...prev, [key]: '' }));
     setInputs((prev) => ({ ...prev, [key]: parsed }));
   };
@@ -382,13 +506,61 @@ export default function App() {
     setDeptAllocations((prev) => prev.filter((item) => item.id !== deptId));
   };
 
+  const handleAddMgapExport = () => {
+    const initialRaw = mgapExportInitial.trim();
+    const increaseRaw = mgapExportIncrease.trim();
+    const initialParsed = Number(initialRaw);
+    const increaseParsed = Number(increaseRaw);
+
+    if (!mgapExportSelection) {
+      setMgapExportError('Seleccione un rubro.');
+      return;
+    }
+
+    if (!initialRaw || Number.isNaN(initialParsed) || initialParsed < 0) {
+      setMgapExportError('Ingrese un valor inicial válido.');
+      return;
+    }
+
+    if (!increaseRaw || Number.isNaN(increaseParsed) || increaseParsed < 0) {
+      setMgapExportError('Ingrese un incremento válido.');
+      return;
+    }
+
+    const option = MGAP_EXPORT_OPTIONS.find((item) => item.id === mgapExportSelection);
+    if (!option) {
+      setMgapExportError('Seleccione un rubro válido.');
+      return;
+    }
+
+    setMgapExportItems((prev) => [
+      ...prev,
+      {
+        id: mgapExportSelection,
+        label: option.label,
+        pct: option.pct,
+        initial: initialParsed,
+        increase: increaseParsed,
+      },
+    ]);
+
+    setMgapExportSelection('');
+    setMgapExportInitial('');
+    setMgapExportIncrease('');
+    setMgapExportError('');
+  };
+
+  const handleRemoveMgapExport = (indexToRemove) => {
+    setMgapExportItems((prev) => prev.filter((_, index) => index !== indexToRemove));
+  };
+
   const goNext = () => {
     if (!ENABLE_VALIDATION) {
       setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
       return;
     }
 
-    if (currentStep === 0) {
+    if (currentStep === stepIndexById.empresa) {
       const nextErrors = {};
       const rawBilling = numericValues.annualBillingUi?.trim();
       const billingParsed = Number(rawBilling);
@@ -415,7 +587,7 @@ export default function App() {
       }));
     }
 
-    if (currentStep === 1) {
+    if (currentStep === stepIndexById.proyecto) {
       const nextErrors = {};
       const fields = [
         { key: 'machineryUi', label: 'maquinaria' },
@@ -457,7 +629,7 @@ export default function App() {
       }));
     }
 
-    if (currentStep === 4) {
+    if (currentStep === stepIndexById.descentralizacion) {
       if (!deptAllocations.length) {
         setAllocationError('Agregue al menos un departamento.');
         return;
@@ -486,7 +658,13 @@ export default function App() {
     setDeptPctValue('');
     setDeptAllocations([]);
     setAllocationError('');
-    setShowEmploymentDetails(false);
+    setMgapExportSelection('');
+    setMgapExportInitial('');
+    setMgapExportIncrease('');
+    setMgapExportItems([]);
+    setMgapExportError('');
+    setMinturInitial('');
+    setMinturIncrease('');
   };
 
   return (
@@ -500,11 +678,7 @@ export default function App() {
               <small>{'Comisión de Aplicación de la Ley de Inversiones - COMAP'}</small>
             </div>
           </div>
-          <nav className="gov-nav">
-            <a className="active" href="#">
-              Simulador
-            </a>
-          </nav>
+          <nav className="gov-nav" />
         </div>
       </header>
 
@@ -516,9 +690,6 @@ export default function App() {
               {'Completa la información paso a paso para simular el beneficio COMAP estimado.'}
             </p>
           </div>
-          <button className="btn-secondary" onClick={handleReset}>
-            Restablecer
-          </button>
         </div>
 
         <div className="card wizard">
@@ -532,11 +703,16 @@ export default function App() {
           </div>
 
           <div className="step-header">
-            <div className="step-title">{steps[currentStep].title}</div>
-            <div className="hint">{steps[currentStep].hint}</div>
+            <div className="step-info">
+              <div className="step-title">{steps[currentStep].title}</div>
+              <div className="hint">{steps[currentStep].hint}</div>
+            </div>
+            {currentStepScore !== undefined && steps[currentStep]?.id !== 'resultado' ? (
+              <ScoreBadge label={currentStepScoreLabel} value={currentStepScore} />
+            ) : null}
           </div>
 
-          <section className={`step${currentStep === 0 ? ' active' : ''}`}>
+          <section className={`step${currentStep === stepIndexById.empresa ? ' active' : ''}`}>
             <div className="row row-narrow">
               <NumericField
                 label="Facturación anual (UI)"
@@ -690,7 +866,7 @@ export default function App() {
             ) : null}
           </section>
 
-          <section className={`step${currentStep === 1 ? ' active' : ''}`}>
+          <section className={`step${currentStep === stepIndexById.proyecto ? ' active' : ''}`}>
             <div className="row">
               <div className="field-group">
                 <label className="field-label" htmlFor="evaluatingMinistry">
@@ -797,18 +973,8 @@ export default function App() {
             </div>
           </section>
 
-          <section className={`step${currentStep === 2 ? ' active' : ''}`}>
+          <section className={`step${currentStep === stepIndexById.empleo ? ' active' : ''}`}>
             <div className="form-grid">
-              <NumericField
-                label="Personal ocupado"
-                labelTitle="Equivalente a 30 hs. semanales o 130 hs. mensuales."
-                name="occupiedPersonnel"
-                placeholder="Ej: 120"
-                value={numericValues.occupiedPersonnel ?? ''}
-                error={numericErrors.occupiedPersonnel}
-                onChange={handleNumericChange('occupiedPersonnel')}
-                onBlur={handleNumericBlur('occupiedPersonnel')}
-              />
               <NumericField
                 label="Situación inicial"
                 name="employmentInitial"
@@ -829,115 +995,105 @@ export default function App() {
               />
             </div>
 
-            <button
-              className="btn-secondary"
-              type="button"
-              onClick={() => setShowEmploymentDetails((prev) => !prev)}
-            >
-              {showEmploymentDetails ? 'Ocultar detalle por colectivos' : 'Mostrar detalle por colectivos'}
-            </button>
+            <div className="table two-col">
+              <div className="table-row table-header">
+                <div className="table-cell">Colectivo</div>
+                <div className="table-cell">Incremento</div>
+              </div>
 
-            {showEmploymentDetails ? (
-              <div className="table two-col">
-                <div className="table-row table-header">
-                  <div className="table-cell">Colectivo</div>
-                  <div className="table-cell">Incremento</div>
-                </div>
-
-                <div className="table-row">
-                  <div className="table-cell">Mujeres</div>
-                  <div className="table-cell">
-                    <NumericField
-                      label="Mujeres (incremento)"
-                      name="womenIncrease"
-                      placeholder="Ej: 1"
-                      value={numericValues.womenIncrease ?? ''}
-                      error={numericErrors.womenIncrease}
-                      onChange={handleNumericChange('womenIncrease')}
-                      onBlur={handleNumericBlur('womenIncrease')}
-                    />
-                  </div>
-                </div>
-
-                <div className="table-row">
-                  <div className="table-cell">{'Jóvenes'}</div>
-                  <div className="table-cell">
-                    <NumericField
-                      label={'Jóvenes (incremento)'}
-                      name="youthIncrease"
-                      placeholder="Ej: 1"
-                      value={numericValues.youthIncrease ?? ''}
-                      error={numericErrors.youthIncrease}
-                      onChange={handleNumericChange('youthIncrease')}
-                      onBlur={handleNumericBlur('youthIncrease')}
-                    />
-                  </div>
-                </div>
-
-                <div className="table-row">
-                  <div className="table-cell">Discapacitados</div>
-                  <div className="table-cell">
-                    <NumericField
-                      label="Discapacitados (incremento)"
-                      name="disabilityIncrease"
-                      placeholder="Ej: 1"
-                      value={numericValues.disabilityIncrease ?? ''}
-                      error={numericErrors.disabilityIncrease}
-                      onChange={handleNumericChange('disabilityIncrease')}
-                      onBlur={handleNumericBlur('disabilityIncrease')}
-                    />
-                  </div>
-                </div>
-
-                <div className="table-row">
-                  <div className="table-cell">DINALI</div>
-                  <div className="table-cell">
-                    <NumericField
-                      label="DINALI (incremento)"
-                      name="dinaliIncrease"
-                      placeholder="Ej: 1"
-                      value={numericValues.dinaliIncrease ?? ''}
-                      error={numericErrors.dinaliIncrease}
-                      onChange={handleNumericChange('dinaliIncrease')}
-                      onBlur={handleNumericBlur('dinaliIncrease')}
-                    />
-                  </div>
-                </div>
-
-                <div className="table-row">
-                  <div className="table-cell">TUS/Trans</div>
-                  <div className="table-cell">
-                    <NumericField
-                      label="TUS/Trans (incremento)"
-                      name="tusTransIncrease"
-                      placeholder="Ej: 1"
-                      value={numericValues.tusTransIncrease ?? ''}
-                      error={numericErrors.tusTransIncrease}
-                      onChange={handleNumericChange('tusTransIncrease')}
-                      onBlur={handleNumericBlur('tusTransIncrease')}
-                    />
-                  </div>
-                </div>
-
-                <div className="table-row">
-                  <div className="table-cell">Otros</div>
-                  <div className="table-cell">
-                    <NumericField
-                      label="Otros (incremento)"
-                      name="othersIncrease"
-                      placeholder="Ej: 1"
-                      value={numericValues.othersIncrease ?? ''}
-                      error={numericErrors.othersIncrease}
-                      onChange={handleNumericChange('othersIncrease')}
-                      onBlur={handleNumericBlur('othersIncrease')}
-                    />
-                  </div>
+              <div className="table-row">
+                <div className="table-cell">Colectivos No Vulnerables</div>
+                <div className="table-cell">
+                  <NumericField
+                    label="Colectivos No Vulnerables (incremento)"
+                    name="othersIncrease"
+                    placeholder="Ej: 1"
+                    value={numericValues.othersIncrease ?? ''}
+                    error={numericErrors.othersIncrease}
+                    onChange={handleNumericChange('othersIncrease')}
+                    onBlur={handleNumericBlur('othersIncrease')}
+                  />
                 </div>
               </div>
-            ) : null}
+
+              <div className="table-row">
+                <div className="table-cell">Mujeres</div>
+                <div className="table-cell">
+                  <NumericField
+                    label="Mujeres (incremento)"
+                    name="womenIncrease"
+                    placeholder="Ej: 1"
+                    value={numericValues.womenIncrease ?? ''}
+                    error={numericErrors.womenIncrease}
+                    onChange={handleNumericChange('womenIncrease')}
+                    onBlur={handleNumericBlur('womenIncrease')}
+                  />
+                </div>
+              </div>
+
+              <div className="table-row">
+                <div className="table-cell">{'Jóvenes'}</div>
+                <div className="table-cell">
+                  <NumericField
+                    label={'Jóvenes (incremento)'}
+                    name="youthIncrease"
+                    placeholder="Ej: 1"
+                    value={numericValues.youthIncrease ?? ''}
+                    error={numericErrors.youthIncrease}
+                    onChange={handleNumericChange('youthIncrease')}
+                    onBlur={handleNumericBlur('youthIncrease')}
+                  />
+                </div>
+              </div>
+
+              <div className="table-row">
+                <div className="table-cell">Discapacitados</div>
+                <div className="table-cell">
+                  <NumericField
+                    label="Discapacitados (incremento)"
+                    name="disabilityIncrease"
+                    placeholder="Ej: 1"
+                    value={numericValues.disabilityIncrease ?? ''}
+                    error={numericErrors.disabilityIncrease}
+                    onChange={handleNumericChange('disabilityIncrease')}
+                    onBlur={handleNumericBlur('disabilityIncrease')}
+                  />
+                </div>
+              </div>
+
+              <div className="table-row">
+                <div className="table-cell">DINALI</div>
+                <div className="table-cell">
+                  <NumericField
+                    label="DINALI (incremento)"
+                    name="dinaliIncrease"
+                    placeholder="Ej: 1"
+                    value={numericValues.dinaliIncrease ?? ''}
+                    error={numericErrors.dinaliIncrease}
+                    onChange={handleNumericChange('dinaliIncrease')}
+                    onBlur={handleNumericBlur('dinaliIncrease')}
+                  />
+                </div>
+              </div>
+
+              <div className="table-row">
+                <div className="table-cell">TUS/Trans</div>
+                <div className="table-cell">
+                  <NumericField
+                    label="TUS/Trans (incremento)"
+                    name="tusTransIncrease"
+                    placeholder="Ej: 1"
+                    value={numericValues.tusTransIncrease ?? ''}
+                    error={numericErrors.tusTransIncrease}
+                    onChange={handleNumericChange('tusTransIncrease')}
+                    onBlur={handleNumericBlur('tusTransIncrease')}
+                  />
+                </div>
+              </div>
+            </div>
           </section>
 
-          <section className={`step${currentStep === 3 ? ' active' : ''}`}>
+          <section className={`step${currentStep === stepIndexById.exportaciones ? ' active' : ''}`}>
             <div className="row">
               <NumericField
                 label="Exportaciones actuales (USD/año)"
@@ -958,9 +1114,160 @@ export default function App() {
                 onBlur={handleNumericBlur('futureExports')}
               />
             </div>
+
+            {inputs.evaluatingMinistry === 'mgap' ? (
+              <>
+                <div className="section-subtitle">{'Rubro MGAP'}</div>
+                <div className="row row-4">
+                  <div className="field-group">
+                    <label className="field-label" htmlFor="mgapExportSelection">
+                      Rubro
+                    </label>
+                    <select
+                      id="mgapExportSelection"
+                      className="field-control"
+                      value={mgapExportSelection}
+                      onChange={(event) => setMgapExportSelection(event.target.value)}
+                    >
+                      <option value="">Seleccionar...</option>
+                      {MGAP_EXPORT_OPTIONS.map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.label} ({option.pct}%)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="field-group">
+                    <label className="field-label" htmlFor="mgapExportInitial">
+                      Situación inicial
+                    </label>
+                    <input
+                      id="mgapExportInitial"
+                      className="field-control"
+                      type="text"
+                      inputMode="decimal"
+                      value={mgapExportInitial}
+                      onChange={(event) => setMgapExportInitial(event.target.value)}
+                      placeholder="Ej: 100000"
+                    />
+                  </div>
+
+                  <div className="field-group">
+                    <label className="field-label" htmlFor="mgapExportIncrease">
+                      Promedio incremento
+                    </label>
+                    <input
+                      id="mgapExportIncrease"
+                      className="field-control"
+                      type="text"
+                      inputMode="decimal"
+                      value={mgapExportIncrease}
+                      onChange={(event) => setMgapExportIncrease(event.target.value)}
+                      placeholder="Ej: 20000"
+                    />
+                  </div>
+
+                  <div className="field-group">
+                    <span className="field-label">Acciones</span>
+                    <button className="btn-secondary" type="button" onClick={handleAddMgapExport}>
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {mgapExportItems.length ? (
+                  <div className="table five-col">
+                    <div className="table-row table-header">
+                      <div className="table-cell">Situación inicial</div>
+                      <div className="table-cell">% rubro</div>
+                      <div className="table-cell">Promedio incremento</div>
+                      <div className="table-cell">Coef x incremento</div>
+                      <div className="table-cell">Acciones</div>
+                    </div>
+                    {mgapExportItems.map((item, index) => {
+                      const weighted = (item.pct / 100) * item.increase;
+                      return (
+                        <div className="table-row" key={`${item.id}-${index}`}>
+                          <div className="table-cell">{item.initial}</div>
+                          <div className="table-cell">{item.pct}%</div>
+                          <div className="table-cell">{item.increase}</div>
+                          <div className="table-cell">{weighted.toFixed(2)}</div>
+                          <div className="table-cell">
+                            <button
+                              className="btn-secondary"
+                              type="button"
+                              onClick={() => handleRemoveMgapExport(index)}
+                            >
+                              X
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : null}
+
+                {mgapExportError ? <div className="field-error">{mgapExportError}</div> : null}
+              </>
+            ) : null}
+
+            {inputs.evaluatingMinistry === 'mintur' ? (
+              <>
+                <div className="section-subtitle">{'Indicador MINTUR'}</div>
+                <div className="row row-narrow">
+                  <div className="field-group">
+                    <label className="field-label" htmlFor="minturInitial">
+                      Situación inicial
+                    </label>
+                    <input
+                      id="minturInitial"
+                      className="field-control"
+                      type="text"
+                      inputMode="decimal"
+                      value={minturInitial}
+                      onChange={(event) => setMinturInitial(event.target.value)}
+                      placeholder="Ej: 100000"
+                    />
+                  </div>
+                  <div className="field-group">
+                    <label className="field-label" htmlFor="minturIncrease">
+                      Promedio incremento
+                    </label>
+                    <input
+                      id="minturIncrease"
+                      className="field-control"
+                      type="text"
+                      inputMode="decimal"
+                      value={minturIncrease}
+                      onChange={(event) => setMinturIncrease(event.target.value)}
+                      placeholder="Ej: 20000"
+                    />
+                  </div>
+                </div>
+                <div className="row row-narrow">
+                  <div className="field-group">
+                    <label className="field-label" htmlFor="minturCoefficient">
+                      Coeficiente fijo
+                    </label>
+                    <div id="minturCoefficient" className="field-control">
+                      {minturCoefficient.toFixed(2)}
+                    </div>
+                  </div>
+                  <div className="field-group">
+                    <label className="field-label" htmlFor="minturWeighted">
+                      Incremento aplicando coeficiente
+                    </label>
+                    <div id="minturWeighted" className="field-control">
+                      {minturWeightedIncrease.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : null}
           </section>
 
-          <section className={`step${currentStep === 4 ? ' active' : ''}`}>
+          <section className={`step${currentStep === stepIndexById.descentralizacion ? ' active' : ''}`}>
             <div className="section-subtitle">{'Distribución por departamento'}</div>
             <div className="form-grid">
               <div className="field-group">
@@ -1048,7 +1355,7 @@ export default function App() {
             {allocationError ? <div className="field-error">{allocationError}</div> : null}
           </section>
 
-          <section className={`step${currentStep === 5 ? ' active' : ''}`}>
+          <section className={`step${currentStep === stepIndexById['impacto-ambiental'] ? ' active' : ''}`}>
             <div className="row impacto-ambiental-row">
               <NumericField
                 label="Monto inversión (UI)"
@@ -1089,7 +1396,7 @@ export default function App() {
             </div>
           </section>
 
-          <section className={`step${currentStep === 6 ? ' active' : ''}`}>
+          <section className={`step${currentStep === stepIndexById.transformacion ? ' active' : ''}`}>
             <div className="row iplus-row">
               <NumericField
                 label="Monto inversión (UI)"
@@ -1121,44 +1428,49 @@ export default function App() {
             </div>
           </section>
 
-          <section className={`step${currentStep === 7 ? ' active' : ''}`}>
-            <div className="row">
-              <div>
-                <label className="field-label" htmlFor="ministry">
-                  Ministerio
-                </label>
-                <select
-                  id="ministry"
-                  className="field-control"
-                  value={inputs.ministry}
-                  onChange={(event) => setInputs((prev) => ({ ...prev, ministry: event.target.value }))}
-                >
-                  <option value="">Seleccionar...</option>
-                  <option value="mgap">MGAP</option>
-                  <option value="mintur">MINTUR</option>
-                  <option value="miem">MIEM</option>
-                </select>
-              </div>
+          <section className={`step${currentStep === stepIndexById.alineacion ? ' active' : ''}`}>
+            <div className="row row-narrow">
               <div>
                 <label className="field-label" htmlFor="strategicLine">
                   Línea estratégica
                 </label>
-                <input
+                <select
                   id="strategicLine"
                   className="field-control"
-                  type="text"
                   value={inputs.strategicLine}
-                  onChange={(event) => setInputs((prev) => ({ ...prev, strategicLine: event.target.value }))}
-                  placeholder="Ej: riego / turismo / desfosilización"
-                />
+                  onChange={(event) =>
+                    setInputs((prev) => ({ ...prev, strategicLine: event.target.value }))
+                  }
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="riego">Riego</option>
+                  <option value="produccion-ganadera">Mejora de la Producción Ganadera</option>
+                  <option value="pesca-acuicultura">
+                    Desarrollo y modernización de la pesca y la acuicultura
+                  </option>
+                  <option value="infraestructura-turistica">Servicios e infraestructura turística</option>
+                  <option value="eficiencia-desfosilizacion">Eficiencia y Desfosilización</option>
+                  <option value="hidrogeno-verde">
+                    Cadena de valor del hidrógeno verde y sus derivados
+                  </option>
+                  <option value="residuos-reciclaje">Valorización de residuos y reciclaje</option>
+                  <option value="bioinsumos">Producción de Bioinsumos</option>
+                  <option value="farmaceutica-ciencias">
+                    Industria farmacéutica y ciencias de la vida
+                  </option>
+                  <option value="cadena-aeroespacial">
+                    Desarrollo de una cadena industrial aeroespacial
+                  </option>
+                  <option value="plataformas-satelitales">
+                    Desarrollo y manufactura de plataformas satelitales
+                  </option>
+                  <option value="industria-nacional">Componente de Industria Nacional</option>
+                </select>
               </div>
-            </div>
-
-            <div className="spacer-top">
               <NumericField
-                label="% inversión asociada"
+                label="Monto inversión asociada (UI)"
                 name="strategicInvestmentPct"
-                placeholder="Ej: 20"
+                placeholder="Ej: 200000"
                 value={numericValues.strategicInvestmentPct ?? ''}
                 error={numericErrors.strategicInvestmentPct}
                 onChange={handleNumericChange('strategicInvestmentPct')}
@@ -1166,17 +1478,108 @@ export default function App() {
                 className="narrow-field"
               />
             </div>
-          </section>
 
-          <section className={`step${currentStep === 8 ? ' active' : ''}`}>
-            <div ref={pdfRef} className="pdf-export">
-              <div className="pdf-header">
-                <img className="pdf-logo" src="/mef-logo.png" alt="MEF" />
-                <div>
-                  <div className="pdf-title">Simulador COMAP</div>
-                  <div className="pdf-subtitle">Resumen de resultados</div>
+            {inputs.evaluatingMinistry === 'mgap' ? (
+              <div className="spacer-top">
+                <NumericField
+                  label="% Superficie Campo Natural"
+                  name="fieldNaturalPct"
+                  placeholder="Ej: 35"
+                  value={numericValues.fieldNaturalPct ?? ''}
+                  error={numericErrors.fieldNaturalPct}
+                  onChange={handleNumericChange('fieldNaturalPct')}
+                  onBlur={handleNumericBlur('fieldNaturalPct')}
+                  className="narrow-field"
+                />
+              </div>
+            ) : null}
+
+            {inputs.evaluatingMinistry === 'mintur' ? (
+              <div className="spacer-top">
+                <label className="field-label">
+                  Localización Servicios e Infraestructura Turística en zona turística
+                </label>
+                <div className="radio">
+                  <label className="pill">
+                    <input
+                      type="radio"
+                      name="tourismZoneLocation"
+                      value="si"
+                      checked={inputs.tourismZoneLocation === 'si'}
+                      onChange={(event) =>
+                        setInputs((prev) => ({ ...prev, tourismZoneLocation: event.target.value }))
+                      }
+                    />
+                    Si
+                  </label>
+                  <label className="pill">
+                    <input
+                      type="radio"
+                      name="tourismZoneLocation"
+                      value="no"
+                      checked={inputs.tourismZoneLocation === 'no'}
+                      onChange={(event) =>
+                        setInputs((prev) => ({ ...prev, tourismZoneLocation: event.target.value }))
+                      }
+                    />
+                    No
+                  </label>
                 </div>
               </div>
+            ) : null}
+
+            {inputs.evaluatingMinistry === 'miem' ? (
+              <div className="spacer-top">
+                <label className="field-label" htmlFor="mineralProcessingLevel">
+                  Industrialización a partir de minerales naturales
+                </label>
+                <select
+                  id="mineralProcessingLevel"
+                  className="field-control"
+                  value={inputs.mineralProcessingLevel}
+                  onChange={(event) =>
+                    setInputs((prev) => ({
+                      ...prev,
+                      mineralProcessingLevel: event.target.value,
+                    }))
+                  }
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="minima">Transformación Mínima</option>
+                  <option value="intermedia">Transformación Intermedia</option>
+                  <option value="maxima">Transformación Máxima</option>
+                </select>
+              </div>
+            ) : null}
+          </section>
+
+          <section
+            className={`step${currentStep === stepIndexById['indicadores-mef'] ? ' active' : ''}`}
+          >
+            <div className="row row-narrow">
+              <NumericField
+                label="Inversión en energías renovables (UI)"
+                name="mefRenewableInvestmentUi"
+                placeholder="Ej: 500000"
+                value={numericValues.mefRenewableInvestmentUi ?? ''}
+                error={numericErrors.mefRenewableInvestmentUi}
+                onChange={handleNumericChange('mefRenewableInvestmentUi')}
+                onBlur={handleNumericBlur('mefRenewableInvestmentUi')}
+              />
+            </div>
+          </section>
+
+          <section className={`step${currentStep === stepIndexById.resultado ? ' active' : ''}`}>
+            <div ref={pdfRef} className="pdf-export">
+              {isExportingPdf ? (
+                <div className="pdf-header">
+                  <img className="pdf-logo" src="/mef-logo.png" alt="MEF" />
+                  <div>
+                    <div className="pdf-title">Simulador COMAP</div>
+                    <div className="pdf-subtitle">Resumen de resultados</div>
+                  </div>
+                </div>
+              ) : null}
               <div className="metric-grid">
                 <div className="metric-card">
                   <p className="metric-title">Puntaje total</p>

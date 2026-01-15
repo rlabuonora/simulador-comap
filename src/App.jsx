@@ -132,6 +132,49 @@ const defaultInputs = {
 };
 
 
+const getDecimalPlaces = (rawValue) => {
+  const match = String(rawValue ?? '').trim().match(/[.,](\d+)$/);
+  return match ? Math.min(match[1].length, 2) : 0;
+};
+
+  const parseNumericValue = (value) => {
+  const raw = String(value ?? '').trim();
+  if (!raw) {
+    return null;
+  }
+
+  const normalized = raw.replace(/\s/g, '');
+  const lastComma = normalized.lastIndexOf(',');
+  const lastDot = normalized.lastIndexOf('.');
+  const decimalIndex = Math.max(lastComma, lastDot);
+
+  let numberString = normalized;
+  if (decimalIndex >= 0) {
+    const integerPart = normalized.slice(0, decimalIndex).replace(/[.,]/g, '');
+    const decimalPart = normalized.slice(decimalIndex + 1).replace(/[.,]/g, '');
+    numberString = `${integerPart}.${decimalPart}`;
+  } else {
+    numberString = normalized.replace(/[.,]/g, '');
+  }
+
+  if (lastComma === -1 && lastDot > -1 && normalized.match(/\.\d{3}$/)) {
+    numberString = normalized.replace(/[.,]/g, '');
+  }
+
+  const parsed = Number(numberString);
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
+const formatNumberForDisplay = (value, minFractionDigits = 0) => {
+  if (value === null || value === undefined || value === '') {
+    return '';
+  }
+  return new Intl.NumberFormat('es-UY', {
+    minimumFractionDigits: minFractionDigits,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
 const buildNumericValues = (source) => {
   const base = {
     investment: source.investment ? String(source.investment) : '',
@@ -179,6 +222,18 @@ const buildNumericValues = (source) => {
   departments.forEach((dept) => {
     const key = `${dept.id}Pct`;
     base[key] = String(source[key] ?? '');
+  });
+
+  Object.keys(base).forEach((key) => {
+    const rawValue = base[key];
+    if (rawValue === '') {
+      return;
+    }
+    const parsed = parseNumericValue(rawValue);
+    if (parsed !== null) {
+      const decimals = getDecimalPlaces(rawValue);
+      base[key] = formatNumberForDisplay(parsed, decimals);
+    }
   });
 
   return base;
@@ -328,11 +383,6 @@ export default function App() {
     setInputs((prev) => ({ ...prev, deptAllocations }));
   }, [deptAllocations]);
 
-  const parseNumericValue = (value) => {
-    const normalized = String(value ?? '').trim().replace(',', '.');
-    const parsed = Number(normalized);
-    return Number.isNaN(parsed) ? null : parsed;
-  };
 
   const scoringInputs = useMemo(() => {
     const merged = { ...inputs };
@@ -495,6 +545,11 @@ export default function App() {
       const parsed = parseNumericValue(rawValue);
       if (parsed !== null) {
         setInputs((prev) => ({ ...prev, [key]: parsed }));
+        const decimals = getDecimalPlaces(rawValue);
+        setNumericValues((prev) => ({
+          ...prev,
+          [key]: formatNumberForDisplay(parsed, decimals),
+        }));
       }
       return;
     }
@@ -522,6 +577,16 @@ export default function App() {
 
     setNumericErrors((prev) => ({ ...prev, [key]: '' }));
     setInputs((prev) => ({ ...prev, [key]: parsed }));
+  };
+
+  const handleAmountBlur = (setter) => (event) => {
+    const rawValue = event.target.value.trim();
+    const parsed = parseNumericValue(rawValue);
+    if (parsed === null) {
+      return;
+    }
+    const decimals = getDecimalPlaces(rawValue);
+    setter(formatNumberForDisplay(parsed, decimals));
   };
 
   const handleAddDepartment = () => {
@@ -1007,7 +1072,7 @@ export default function App() {
                   Inversión elegible total (UI)
                 </label>
                 <div id="investmentTotalUi" className="field-control">
-                  {investmentTotal.toFixed(0)}
+                  {formatNumberForDisplay(investmentTotal, 0)}
                 </div>
               </div>
 
@@ -1016,7 +1081,7 @@ export default function App() {
                   Inversión elegible total (USD)
                 </label>
                 <div id="investmentTotalUsd" className="field-control">
-                  {investmentTotalUsd.toFixed(2)}
+                  {formatNumberForDisplay(investmentTotalUsd, 2)}
                 </div>
               </div>
             </div>
@@ -1169,10 +1234,10 @@ export default function App() {
             {inputs.evaluatingMinistry === 'mgap' ? (
               <>
                 <div className="section-subtitle">{'Rubro MGAP'}</div>
-                <div className="row row-4">
+                <div className="row row-4 mgap-row">
                   <div className="field-group">
                     <label className="field-label" htmlFor="mgapExportSelection">
-                      Rubro
+                      Rubro 
                     </label>
                     <select
                       id="mgapExportSelection"
@@ -1191,7 +1256,7 @@ export default function App() {
 
                   <div className="field-group">
                     <label className="field-label" htmlFor="mgapExportInitial">
-                      Situación inicial
+                      Situación inicial (USD/Año)
                     </label>
                     <input
                       id="mgapExportInitial"
@@ -1199,14 +1264,15 @@ export default function App() {
                       type="text"
                       inputMode="decimal"
                       value={mgapExportInitial}
-                      onChange={(event) => setMgapExportInitial(event.target.value)}
+                    onChange={(event) => setMgapExportInitial(event.target.value)}
+                    onBlur={handleAmountBlur(setMgapExportInitial)}
                       placeholder="Ej: 100000"
                     />
                   </div>
 
                   <div className="field-group">
                     <label className="field-label" htmlFor="mgapExportIncrease">
-                      Promedio incremento
+                      Incremento (USD/Año)
                     </label>
                     <input
                       id="mgapExportIncrease"
@@ -1214,13 +1280,13 @@ export default function App() {
                       type="text"
                       inputMode="decimal"
                       value={mgapExportIncrease}
-                      onChange={(event) => setMgapExportIncrease(event.target.value)}
+                    onChange={(event) => setMgapExportIncrease(event.target.value)}
+                    onBlur={handleAmountBlur(setMgapExportIncrease)}
                       placeholder="Ej: 20000"
                     />
                   </div>
 
-                  <div className="field-group">
-                    <span className="field-label">Acciones</span>
+                  <div className="field-group mgap-actions">
                     <button className="btn-secondary" type="button" onClick={handleAddMgapExport}>
                       +
                     </button>
@@ -1230,9 +1296,9 @@ export default function App() {
                 {mgapExportItems.length ? (
                   <div className="table five-col">
                     <div className="table-row table-header">
-                      <div className="table-cell">Situación inicial</div>
+                      <div className="table-cell">Situación inicial (USD)</div>
                       <div className="table-cell">% rubro</div>
-                      <div className="table-cell">Promedio incremento</div>
+                      <div className="table-cell">Promedio incremento (USD)</div>
                       <div className="table-cell">Coef x incremento</div>
                       <div className="table-cell">Acciones</div>
                     </div>
@@ -1269,7 +1335,7 @@ export default function App() {
                 <div className="row row-narrow">
                   <div className="field-group">
                     <label className="field-label" htmlFor="minturInitial">
-                      Situación inicial
+                      Situación inicial (USD)
                     </label>
                     <input
                       id="minturInitial"
@@ -1278,6 +1344,7 @@ export default function App() {
                       inputMode="decimal"
                       value={minturInitial}
                       onChange={(event) => setMinturInitial(event.target.value)}
+                      onBlur={handleAmountBlur(setMinturInitial)}
                       placeholder="Ej: 100000"
                     />
                   </div>
@@ -1292,6 +1359,7 @@ export default function App() {
                       inputMode="decimal"
                       value={minturIncrease}
                       onChange={(event) => setMinturIncrease(event.target.value)}
+                      onBlur={handleAmountBlur(setMinturIncrease)}
                       placeholder="Ej: 20000"
                     />
                   </div>
@@ -1351,6 +1419,7 @@ export default function App() {
                   inputMode="decimal"
                   value={deptPctValue}
                   onChange={(event) => setDeptPctValue(event.target.value)}
+                  onBlur={handleAmountBlur(setDeptPctValue)}
                   placeholder="Ej: 250000"
                 />
               </div>

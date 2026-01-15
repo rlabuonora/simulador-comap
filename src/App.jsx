@@ -591,14 +591,14 @@ export default function App() {
 
   const handleAddDepartment = () => {
     const rawAmount = deptPctValue.trim();
-    const parsedAmount = Number(rawAmount);
+    const parsedAmount = parseNumericValue(rawAmount);
 
     if (!deptSelection) {
       setAllocationError('Seleccione un departamento.');
       return;
     }
 
-    if (!rawAmount || Number.isNaN(parsedAmount) || parsedAmount < 0) {
+    if (!rawAmount || parsedAmount === null || parsedAmount < 0) {
       setAllocationError('Ingrese un monto válido.');
       return;
     }

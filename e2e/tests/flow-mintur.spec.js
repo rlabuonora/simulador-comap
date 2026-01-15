@@ -122,10 +122,16 @@ test('flow: mintur tourism project', async ({ page }) => {
   const deptAmountInput = page.locator('#deptPctValue');
   await goToLocator(page, deptSelect);
   await deptSelect.selectOption('rocha');
+  await expect(deptSelect).toHaveValue('rocha');
   await deptAmountInput.fill(String(totalInvestment));
   await decentralizationStep.getByRole('button', { name: '+' }).click();
+  //await expect(decentralizationStep.locator('.field-error')).toHaveCount(0);
   await expect(
-    decentralizationStep.locator('.table-cell').filter({ hasText: /^Rocha$/ })
+    decentralizationStep
+      .locator('.table-row')
+      .filter({ hasText: 'Rocha' })
+      .locator('.table-cell')
+      .first()
   ).toBeVisible();
   await expectStepScore(page, scores.decentralization);
 

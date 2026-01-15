@@ -93,8 +93,6 @@ const defaultInputs = {
   industrialParkInvestmentUi: 0,
   mefRenewableInvestmentUi: 0,
   occupiedPersonnel: 0,
-  employmentInitial: 0,
-  employmentIncreaseAvg: 0,
   deptAllocations: [],
   exportPct: 35,
   sustainabilityAmount: 0,
@@ -193,10 +191,6 @@ const buildNumericValues = (source) => {
       source.mefRenewableInvestmentUi === 0 ? '0' : String(source.mefRenewableInvestmentUi ?? ''),
     occupiedPersonnel:
       source.occupiedPersonnel === 0 ? '0' : String(source.occupiedPersonnel ?? ''),
-    employmentInitial:
-      source.employmentInitial === 0 ? '0' : String(source.employmentInitial ?? ''),
-    employmentIncreaseAvg:
-      source.employmentIncreaseAvg === 0 ? '0' : String(source.employmentIncreaseAvg ?? ''),
     womenBase: String(source.womenBase ?? ''),
     womenIncrease: String(source.womenIncrease ?? ''),
     youthBase: String(source.youthBase ?? ''),
@@ -410,12 +404,19 @@ export default function App() {
   const scores = useMemo(() => {
     return {
       employment: scoreEmployment({
+        investmentUi: investmentTotal,
+        othersBase: parseNumericValue(numericValues.othersBase) ?? 0,
+        womenBase: parseNumericValue(numericValues.womenBase) ?? 0,
+        youthBase: parseNumericValue(numericValues.youthBase) ?? 0,
+        disabilityBase: parseNumericValue(numericValues.disabilityBase) ?? 0,
+        dinaliBase: parseNumericValue(numericValues.dinaliBase) ?? 0,
+        tusTransBase: parseNumericValue(numericValues.tusTransBase) ?? 0,
+        othersIncrease: parseNumericValue(numericValues.othersIncrease) ?? 0,
         womenIncrease: parseNumericValue(numericValues.womenIncrease) ?? 0,
         youthIncrease: parseNumericValue(numericValues.youthIncrease) ?? 0,
         disabilityIncrease: parseNumericValue(numericValues.disabilityIncrease) ?? 0,
         dinaliIncrease: parseNumericValue(numericValues.dinaliIncrease) ?? 0,
         tusTransIncrease: parseNumericValue(numericValues.tusTransIncrease) ?? 0,
-        othersIncrease: parseNumericValue(numericValues.othersIncrease) ?? 0,
       }),
       decentralization: scoreDecentralization(scoringInputs),
       exports: scoreExports({
@@ -431,11 +432,17 @@ export default function App() {
     };
   }, [
     numericValues.disabilityIncrease,
+    numericValues.disabilityBase,
     numericValues.dinaliIncrease,
+    numericValues.dinaliBase,
     numericValues.othersIncrease,
+    numericValues.othersBase,
     numericValues.tusTransIncrease,
+    numericValues.tusTransBase,
     numericValues.womenIncrease,
+    numericValues.womenBase,
     numericValues.youthIncrease,
+    numericValues.youthBase,
     mgapExportItems,
     minturIncrease,
     minturInitial,

@@ -3,17 +3,65 @@ import { WEIGHTS } from './constants.js';
 const clamp = (value, min = 0, max = 10) => Math.min(Math.max(value, min), max);
 
 export function scoreEmployment({
+  investmentUi = 0,
+  othersBase = 0,
+  womenBase = 0,
+  youthBase = 0,
+  disabilityBase = 0,
+  dinaliBase = 0,
+  tusTransBase = 0,
+  othersIncrease = 0,
   womenIncrease = 0,
   youthIncrease = 0,
   disabilityIncrease = 0,
   dinaliIncrease = 0,
   tusTransIncrease = 0,
-  othersIncrease = 0,
 }) {
-  const vulnerableSum =
-    womenIncrease + youthIncrease + disabilityIncrease + dinaliIncrease + tusTransIncrease;
-  const points = othersIncrease + vulnerableSum * 1.25;
-  return clamp(points, 0, 10);
+  const increaseTotal =
+    othersIncrease +
+    womenIncrease +
+    youthIncrease +
+    disabilityIncrease +
+    dinaliIncrease +
+    tusTransIncrease;
+  const deltaTotal = increaseTotal;
+
+  let bonus = 0;
+  if (deltaTotal > 0) {
+    const groups = [
+      { key: 'women', delta: womenIncrease, base: womenBase, type: 'women' },
+      { key: 'youth', delta: youthIncrease, base: youthBase, type: 'youth' },
+      {
+        key: 'disability',
+        delta: disabilityIncrease,
+        base: disabilityBase,
+        type: 'protected',
+      },
+      { key: 'dinali', delta: dinaliIncrease, base: dinaliBase, type: 'protected' },
+      { key: 'tusTrans', delta: tusTransIncrease, base: tusTransBase, type: 'protected' },
+      { key: 'others', delta: othersIncrease, base: othersBase, type: 'others' },
+    ];
+
+    groups.forEach((group) => {
+      if (group.delta <= 0) {
+        return;
+      }
+      if (group.type === 'protected' && group.base > 0) {
+        return;
+      }
+      bonus += 0.25 * group.delta;
+    });
+
+    bonus = Math.min(bonus, 1);
+  }
+
+  const adjustedEmployment = deltaTotal + bonus;
+  if (adjustedEmployment <= 0 || investmentUi <= 0) {
+    return 0;
+  }
+
+  const indicator = adjustedEmployment / Math.cbrt(investmentUi);
+  return clamp(indicator, 0, 10);
 }
 
 export const DEPARTMENT_SCORES = {

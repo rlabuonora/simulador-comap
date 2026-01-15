@@ -4,6 +4,7 @@ import {
   expectStepScore,
   finalScore,
   fillIfVisible,
+  goNext,
   goToLocator,
   scoreDecentralization,
   scoreEmployment,
@@ -77,6 +78,7 @@ test('flow: miem new exporting company', async ({ page }) => {
   await employeesInput.fill('25');
   await sectorSelect.selectOption('industria');
   await newCompanyYes.check();
+  await goNext(page);
 
   const projectStep = page.locator('.step.active');
   const ministrySelect = page.locator('#evaluatingMinistry');
@@ -90,6 +92,7 @@ test('flow: miem new exporting company', async ({ page }) => {
   await installationsInput.fill(String(investment.installationsUi));
   await civilWorksInput.fill(String(investment.civilWorksUi));
   await fillIfVisible(industrialParkInput, investment.industrialParkInvestmentUi);
+  await goNext(page);
 
   const employmentStep = page.locator('.step.active');
   const othersInput = page.locator('#othersIncrease');
@@ -106,6 +109,7 @@ test('flow: miem new exporting company', async ({ page }) => {
   await dinaliInput.fill(String(employmentInputs.dinaliIncrease));
   await transInput.fill(String(employmentInputs.tusTransIncrease));
   await expectStepScore(page, scores.employment);
+  await goNext(page);
 
   const exportsStep = page.locator('.step.active');
   const currentExportsInput = page.locator('#currentExports');
@@ -114,6 +118,7 @@ test('flow: miem new exporting company', async ({ page }) => {
   await currentExportsInput.fill(String(exportInputs.currentExports));
   await exportIncreaseInput.fill(String(exportInputs.exportIncrease));
   await expectStepScore(page, scores.exports);
+  await goNext(page);
 
   const decentralizationStep = page.locator('.step.active');
   const deptSelect = page.locator('#deptSelection');
@@ -124,6 +129,7 @@ test('flow: miem new exporting company', async ({ page }) => {
   await decentralizationStep.getByRole('button', { name: '+' }).click();
   await expect(decentralizationStep.getByText('Artigas')).toBeVisible();
   await expectStepScore(page, scores.decentralization);
+  await goNext(page);
 
   const sustainabilityStep = page.locator('.step.active');
   const sustainabilityAmountInput = page.locator('#sustainabilityAmount');
@@ -132,6 +138,7 @@ test('flow: miem new exporting company', async ({ page }) => {
   await sustainabilityAmountInput.fill(String(sustainabilityInputs.sustainabilityAmount));
   await certificationSelect.selectOption(sustainabilityInputs.certification);
   await expectStepScore(page, scores.sustainability);
+  await goNext(page);
 
   const iPlusStep = page.locator('.step.active');
   const iPlusAmountInput = page.locator('#iPlusPct');
@@ -140,6 +147,7 @@ test('flow: miem new exporting company', async ({ page }) => {
   await iPlusAmountInput.fill(String(iPlusInputs.iPlusPct));
   await iPlusCategorySelect.selectOption(iPlusInputs.iPlusCategory);
   await expectStepScore(page, scores.iPlus);
+  await goNext(page);
 
   const strategicStep = page.locator('.step.active');
   const strategicLineSelect = page.locator('#strategicLine');
@@ -150,6 +158,7 @@ test('flow: miem new exporting company', async ({ page }) => {
   await strategicAmountInput.fill('100000');
   await mineralSelect.selectOption('minima');
   await expectStepScore(page, scores.strategic);
+  await goNext(page);
 
   await goToLocator(page, page.locator('.metric-card'));
   await expectMetricValue(page, 'Puntaje total', finalScore(scores));

@@ -4,6 +4,7 @@ import {
   expectStepScore,
   finalScore,
   fillIfVisible,
+  goNext,
   goToLocator,
   scoreDecentralization,
   scoreEmployment,
@@ -81,6 +82,7 @@ test('flow: mgap agricultural project', async ({ page }) => {
   await employeesInput.fill('40');
   await sectorSelect.selectOption('agro');
   await newCompanyNo.check();
+  await goNext(page);
 
   const projectStep = page.locator('.step.active');
   const ministrySelect = page.locator('#evaluatingMinistry');
@@ -94,6 +96,7 @@ test('flow: mgap agricultural project', async ({ page }) => {
   await installationsInput.fill(String(investment.installationsUi));
   await civilWorksInput.fill(String(investment.civilWorksUi));
   await fillIfVisible(industrialParkInput, investment.industrialParkInvestmentUi);
+  await goNext(page);
 
   const employmentStep = page.locator('.step.active');
   const othersInput = page.locator('#othersIncrease');
@@ -110,6 +113,7 @@ test('flow: mgap agricultural project', async ({ page }) => {
   await dinaliInput.fill(String(employmentInputs.dinaliIncrease));
   await transInput.fill(String(employmentInputs.tusTransIncrease));
   await expectStepScore(page, scores.employment);
+  await goNext(page);
 
   const exportsStep = page.locator('.step.active');
   const currentExportsInput = page.locator('#currentExports');
@@ -126,6 +130,7 @@ test('flow: mgap agricultural project', async ({ page }) => {
   await exportsStep.getByRole('button', { name: '+' }).click();
   await expect(exportsStep.getByText('Semillas')).toBeVisible();
   await expectStepScore(page, scores.exports);
+  await goNext(page);
 
   const decentralizationStep = page.locator('.step.active');
   const deptSelect = page.locator('#deptSelection');
@@ -139,6 +144,7 @@ test('flow: mgap agricultural project', async ({ page }) => {
   await decentralizationStep.getByRole('button', { name: '+' }).click();
   await expect(decentralizationStep.getByText('Tacuarembo')).toBeVisible();
   await expectStepScore(page, scores.decentralization);
+  await goNext(page);
 
   const sustainabilityStep = page.locator('.step.active');
   const sustainabilityAmountInput = page.locator('#sustainabilityAmount');
@@ -147,6 +153,7 @@ test('flow: mgap agricultural project', async ({ page }) => {
   await sustainabilityAmountInput.fill(String(sustainabilityInputs.sustainabilityAmount));
   await certificationSelect.selectOption(sustainabilityInputs.certification);
   await expectStepScore(page, scores.sustainability);
+  await goNext(page);
 
   const iPlusStep = page.locator('.step.active');
   const iPlusAmountInput = page.locator('#iPlusPct');
@@ -155,6 +162,7 @@ test('flow: mgap agricultural project', async ({ page }) => {
   await iPlusAmountInput.fill(String(iPlusInputs.iPlusPct));
   await iPlusCategorySelect.selectOption(iPlusInputs.iPlusCategory);
   await expectStepScore(page, scores.iPlus);
+  await goNext(page);
 
   const strategicStep = page.locator('.step.active');
   const strategicLineSelect = page.locator('#strategicLine');
@@ -165,6 +173,7 @@ test('flow: mgap agricultural project', async ({ page }) => {
   await strategicAmountInput.fill('120000');
   await fieldNaturalInput.fill('35');
   await expectStepScore(page, scores.strategic);
+  await goNext(page);
 
   await goToLocator(page, page.locator('.metric-card'));
   await expectMetricValue(page, 'Puntaje total', finalScore(scores));

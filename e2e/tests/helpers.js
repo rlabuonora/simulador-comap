@@ -35,6 +35,12 @@ export const fillIfVisible = async (locator, value) => {
   }
 };
 
+export const goNext = async (page) => {
+  const nextButton = page.getByRole('button', { name: 'Siguiente' });
+  await expect(nextButton).toBeEnabled();
+  await nextButton.click();
+};
+
 export const expectStepScore = async (page, expectedValue) => {
   const expectedText = expectedValue.toFixed(2);
   await expect(page.locator('.score-pill strong')).toHaveText(expectedText);

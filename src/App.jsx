@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import SummaryChart from './components/SummaryChart.jsx';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -384,17 +384,6 @@ export default function App() {
   }, [deptAllocations]);
 
 
-  const scoringInputs = useMemo(() => {
-    const merged = { ...inputs };
-    Object.entries(numericValues).forEach(([key, value]) => {
-      const parsed = parseNumericValue(value);
-      if (parsed !== null) {
-        merged[key] = parsed;
-      }
-    });
-    return merged;
-  }, [inputs, numericValues]);
-
   const investmentTotal = useMemo(() => {
     const parseValue = (value) => parseNumericValue(value) ?? 0;
     return (
@@ -403,6 +392,20 @@ export default function App() {
       parseValue(numericValues.civilWorksUi)
     );
   }, [numericValues.civilWorksUi, numericValues.installationsUi, numericValues.machineryUi]);
+
+  const scoringInputs = useMemo(() => {
+    const merged = { ...inputs };
+    Object.entries(numericValues).forEach(([key, value]) => {
+      const parsed = parseNumericValue(value);
+      if (parsed !== null) {
+        merged[key] = parsed;
+      }
+    });
+    if (investmentTotal > 0) {
+      merged.investment = investmentTotal;
+    }
+    return merged;
+  }, [inputs, investmentTotal, numericValues]);
 
   const scores = useMemo(() => {
     return {
@@ -623,20 +626,20 @@ export default function App() {
   const handleAddMgapExport = () => {
     const initialRaw = mgapExportInitial.trim();
     const increaseRaw = mgapExportIncrease.trim();
-    const initialParsed = Number(initialRaw);
-    const increaseParsed = Number(increaseRaw);
+    const initialParsed = parseNumericValue(initialRaw);
+    const increaseParsed = parseNumericValue(increaseRaw);
 
     if (!mgapExportSelection) {
       setMgapExportError('Seleccione un rubro.');
       return;
     }
 
-    if (!initialRaw || Number.isNaN(initialParsed) || initialParsed < 0) {
+    if (!initialRaw || initialParsed === null || initialParsed < 0) {
       setMgapExportError('Ingrese un valor inicial válido.');
       return;
     }
 
-    if (!increaseRaw || Number.isNaN(increaseParsed) || increaseParsed < 0) {
+    if (!increaseRaw || increaseParsed === null || increaseParsed < 0) {
       setMgapExportError('Ingrese un incremento válido.');
       return;
     }
@@ -677,15 +680,15 @@ export default function App() {
     if (currentStep === stepIndexById.empresa) {
       const nextErrors = {};
       const rawBilling = numericValues.annualBillingUi?.trim();
-      const billingParsed = Number(rawBilling);
+      const billingParsed = parseNumericValue(rawBilling);
       const rawEmployees = numericValues.employees?.trim();
-      const employeesParsed = Number(rawEmployees);
+      const employeesParsed = parseNumericValue(rawEmployees);
 
-      if (!rawBilling || Number.isNaN(billingParsed) || billingParsed <= 0) {
+      if (!rawBilling || billingParsed === null || billingParsed <= 0) {
         nextErrors.annualBillingUi = 'Debe ingresar un valor mayor a 0.';
       }
 
-      if (!rawEmployees || Number.isNaN(employeesParsed) || employeesParsed <= 0) {
+      if (!rawEmployees || employeesParsed === null || employeesParsed <= 0) {
         nextErrors.employees = 'Debe ingresar un valor mayor a 0.';
       }
 
@@ -712,9 +715,9 @@ export default function App() {
 
       fields.forEach(({ key }) => {
         const rawValue = numericValues[key]?.trim();
-        const parsed = Number(rawValue);
+        const parsed = parseNumericValue(rawValue);
 
-        if (!rawValue || Number.isNaN(parsed) || parsed < 0) {
+        if (!rawValue || parsed === null || parsed < 0) {
           nextErrors[key] = 'Ingrese un valor válido.';
         }
       });
@@ -735,10 +738,10 @@ export default function App() {
 
       setInputs((prev) => ({
         ...prev,
-        machineryUi: Number(numericValues.machineryUi),
-        installationsUi: Number(numericValues.installationsUi),
-        civilWorksUi: Number(numericValues.civilWorksUi),
-        industrialParkInvestmentUi: Number(numericValues.industrialParkInvestmentUi),
+        machineryUi: parseNumericValue(numericValues.machineryUi) ?? 0,
+        installationsUi: parseNumericValue(numericValues.installationsUi) ?? 0,
+        civilWorksUi: parseNumericValue(numericValues.civilWorksUi) ?? 0,
+        industrialParkInvestmentUi: parseNumericValue(numericValues.industrialParkInvestmentUi) ?? 0,
         investment: investmentTotal,
       }));
     }

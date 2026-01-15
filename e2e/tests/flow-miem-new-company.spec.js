@@ -25,6 +25,13 @@ test('flow: miem new exporting company', async ({ page }) => {
     investment.machineryUi + investment.installationsUi + investment.civilWorksUi;
 
   const employmentInputs = {
+    investmentUi: totalInvestment,
+    othersBase: 0,
+    womenBase: 0,
+    youthBase: 0,
+    disabilityBase: 0,
+    dinaliBase: 0,
+    tusTransBase: 0,
     othersIncrease: 2,
     womenIncrease: 1,
     youthIncrease: 1,
@@ -41,7 +48,7 @@ test('flow: miem new exporting company', async ({ page }) => {
   };
   const decentralizationInputs = {
     investment: totalInvestment,
-    deptAllocations: [{ amount: totalInvestment, score: 10 }],
+    deptAllocations: [{ id: 'artigas', amount: totalInvestment }],
   };
   const sustainabilityInputs = {
     investment: totalInvestment,
@@ -95,18 +102,30 @@ test('flow: miem new exporting company', async ({ page }) => {
   await goNext(page);
 
   const employmentStep = page.locator('.step.active');
+  const othersBaseInput = page.locator('#othersBase');
   const othersInput = page.locator('#othersIncrease');
+  const womenBaseInput = page.locator('#womenBase');
   const womenInput = page.locator('#womenIncrease');
+  const youthBaseInput = page.locator('#youthBase');
   const youthInput = page.locator('#youthIncrease');
+  const disabilityBaseInput = page.locator('#disabilityBase');
   const disabilityInput = page.locator('#disabilityIncrease');
+  const dinaliBaseInput = page.locator('#dinaliBase');
   const dinaliInput = page.locator('#dinaliIncrease');
+  const transBaseInput = page.locator('#tusTransBase');
   const transInput = page.locator('#tusTransIncrease');
   await goToLocator(page, othersInput);
+  await othersBaseInput.fill(String(employmentInputs.othersBase));
   await othersInput.fill(String(employmentInputs.othersIncrease));
+  await womenBaseInput.fill(String(employmentInputs.womenBase));
   await womenInput.fill(String(employmentInputs.womenIncrease));
+  await youthBaseInput.fill(String(employmentInputs.youthBase));
   await youthInput.fill(String(employmentInputs.youthIncrease));
+  await disabilityBaseInput.fill(String(employmentInputs.disabilityBase));
   await disabilityInput.fill(String(employmentInputs.disabilityIncrease));
+  await dinaliBaseInput.fill(String(employmentInputs.dinaliBase));
   await dinaliInput.fill(String(employmentInputs.dinaliIncrease));
+  await transBaseInput.fill(String(employmentInputs.tusTransBase));
   await transInput.fill(String(employmentInputs.tusTransIncrease));
   await expectStepScore(page, scores.employment);
   await goNext(page);

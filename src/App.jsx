@@ -403,7 +403,7 @@ export default function App() {
   }, [investmentTotal, numericValues.uiRate, numericValues.usdRate]);
 
   const totalDepartmentAmount = useMemo(() => {
-    return deptAllocations.reduce((sum, allocation) => sum + (allocation.pct ?? 0), 0);
+    return deptAllocations.reduce((sum, allocation) => sum + (allocation.amount ?? 0), 0);
   }, [deptAllocations]);
 
   const totalInvestmentForDept = investmentTotal || totalDepartmentAmount;
@@ -521,15 +521,15 @@ export default function App() {
   };
 
   const handleAddDepartment = () => {
-    const rawPct = deptPctValue.trim();
-    const parsedPct = Number(rawPct);
+    const rawAmount = deptPctValue.trim();
+    const parsedAmount = Number(rawAmount);
 
     if (!deptSelection) {
       setAllocationError('Seleccione un departamento.');
       return;
     }
 
-    if (!rawPct || Number.isNaN(parsedPct) || parsedPct < 0) {
+    if (!rawAmount || Number.isNaN(parsedAmount) || parsedAmount < 0) {
       setAllocationError('Ingrese un monto válido.');
       return;
     }
@@ -537,7 +537,7 @@ export default function App() {
     setDeptAllocations((prev) => {
       const orderMap = new Map(departments.map((dept, index) => [dept.id, index]));
       const next = prev.filter((item) => item.id !== deptSelection);
-      return [...next, { id: deptSelection, pct: parsedPct }].sort(
+      return [...next, { id: deptSelection, amount: parsedAmount }].sort(
         (a, b) => orderMap.get(a.id) - orderMap.get(b.id)
       );
     });
@@ -1371,12 +1371,12 @@ export default function App() {
                   const dept = departments.find((item) => item.id === allocation.id);
                   const deptScore = DEPARTMENT_SCORES[allocation.id] ?? 0;
                   const weightedScore = totalInvestmentForDept
-                    ? (allocation.pct / totalInvestmentForDept) * deptScore
+                    ? (allocation.amount / totalInvestmentForDept) * deptScore
                     : 0;
                   return (
                     <div className="table-row" key={allocation.id}>
                       <div className="table-cell">{dept?.label ?? allocation.id}</div>
-                      <div className="table-cell">{allocation.pct}</div>
+                      <div className="table-cell">{allocation.amount}</div>
                       <div className="table-cell">{weightedScore.toFixed(2)}</div>
                       <div className="table-cell">
                         <button

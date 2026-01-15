@@ -39,7 +39,7 @@ export const DEPARTMENT_SCORES = {
 };
 
 export function scoreDecentralization({ deptAllocations = [], investment = 0 }) {
-  const totalAllocation = deptAllocations.reduce((sum, item) => sum + (item.pct ?? 0), 0);
+  const totalAllocation = deptAllocations.reduce((sum, item) => sum + (item.amount ?? 0), 0);
   const totalInvestment = investment > 0 ? investment : totalAllocation;
 
   if (!totalInvestment) {
@@ -48,7 +48,7 @@ export function scoreDecentralization({ deptAllocations = [], investment = 0 }) 
 
   const weightedScore = deptAllocations.reduce((sum, item) => {
     const deptScore = DEPARTMENT_SCORES[item.id] ?? 0;
-    return sum + (item.pct / totalInvestment) * deptScore;
+    return sum + (item.amount / totalInvestment) * deptScore;
   }, 0);
 
   return clamp(weightedScore, 0, 10);

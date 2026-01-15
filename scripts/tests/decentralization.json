@@ -1,0 +1,13 @@
+[
+  {
+    "name": "Ponderado por monto",
+    "input": {
+      "investment": 200,
+      "deptAllocations": [
+        { "id": "artigas", "amount": 100 },
+        { "id": "montevideo", "amount": 100 }
+      ]
+    },
+    "expected": 5
+  }
+]

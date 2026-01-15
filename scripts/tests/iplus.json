@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Monto con categoria",
+    "input": {
+      "investment": 1000000,
+      "iPlusPct": 100000,
+      "iPlusCategory": "inn"
+    },
+    "expected": 0.7
+  }
+]

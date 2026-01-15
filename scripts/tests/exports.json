@@ -1,0 +1,50 @@
+[
+  {
+    "name": "MEF/MIEM con crecimiento cap",
+    "input": {
+      "evaluatingMinistry": "mef",
+      "isNewCompany": "no",
+      "currentExports": 1000000,
+      "futureExports": 2000000,
+      "totalInvestment": 10000000
+    },
+    "expected": 10
+  },
+  {
+    "name": "Nueva firma",
+    "input": {
+      "evaluatingMinistry": "miem",
+      "isNewCompany": "si",
+      "currentExports": 0,
+      "futureExports": 500000,
+      "totalInvestment": 10000000
+    },
+    "expected": 3.1623,
+    "epsilon": 0.01
+  },
+  {
+    "name": "MGAP con coeficientes",
+    "input": {
+      "evaluatingMinistry": "mgap",
+      "isNewCompany": "no",
+      "currentExports": 800000,
+      "futureExports": 1000000,
+      "totalInvestment": 10000000,
+      "mgapExportItems": [{ "pct": 75, "increase": 200000 }]
+    },
+    "expected": 7.274,
+    "epsilon": 0.01
+  },
+  {
+    "name": "MINTUR con coeficiente fijo",
+    "input": {
+      "evaluatingMinistry": "mintur",
+      "isNewCompany": "no",
+      "minturInitial": 2000000,
+      "minturIncrease": 100000,
+      "totalInvestment": 5000000
+    },
+    "expected": 1.672,
+    "epsilon": 0.01
+  }
+]

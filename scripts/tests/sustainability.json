@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Monto con bonus",
+    "input": {
+      "investment": 1000000,
+      "sustainabilityPct": 200000,
+      "certification": "leed-oro"
+    },
+    "expected": 10
+  }
+]

@@ -127,7 +127,9 @@ test('flow: miem new exporting company', async ({ page }) => {
   await deptSelect.selectOption('artigas');
   await deptAmountInput.fill(String(totalInvestment));
   await decentralizationStep.getByRole('button', { name: '+' }).click();
-  await expect(decentralizationStep.getByText('Artigas')).toBeVisible();
+  await expect(
+    decentralizationStep.locator('.table-row').filter({ hasText: 'Artigas' })
+  ).toHaveCount(1);
   await expectStepScore(page, scores.decentralization);
   await goNext(page);
 

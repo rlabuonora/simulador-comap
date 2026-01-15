@@ -128,7 +128,8 @@ test('flow: mgap agricultural project', async ({ page }) => {
   await mgapInitial.fill('100000');
   await mgapIncrease.fill('200000');
   await exportsStep.getByRole('button', { name: '+' }).click();
-  await expect(exportsStep.getByText('Semillas')).toBeVisible();
+  await expect(exportsStep.locator('.field-error')).toHaveCount(0);
+  await expect(exportsStep.locator('.table-row')).toHaveCount(2);
   await expectStepScore(page, scores.exports);
   await goNext(page);
 
@@ -142,7 +143,9 @@ test('flow: mgap agricultural project', async ({ page }) => {
   await deptSelect.selectOption('montevideo');
   await deptAmountInput.fill('1000000');
   await decentralizationStep.getByRole('button', { name: '+' }).click();
-  await expect(decentralizationStep.getByText('Tacuarembo')).toBeVisible();
+  await expect(
+    decentralizationStep.locator('.table-row').filter({ hasText: 'Tacuarembo' })
+  ).toHaveCount(1);
   await expectStepScore(page, scores.decentralization);
   await goNext(page);
 

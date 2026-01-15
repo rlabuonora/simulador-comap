@@ -17,7 +17,7 @@ export const goToLocator = async (page, locator, maxSteps = 8) => {
   await page.waitForLoadState('domcontentloaded');
   for (let i = 0; i < maxSteps; i += 1) {
     try {
-      await locator.waitFor({ state: 'visible', timeout: 5000 });
+      await locator.first().waitFor({ state: 'visible', timeout: 5000 });
       return;
     } catch (error) {
       const nextButton = page.getByRole('button', { name: 'Siguiente' });

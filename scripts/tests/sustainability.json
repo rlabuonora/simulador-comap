@@ -1,11 +1,29 @@
 [
   {
-    "name": "Monto con bonus",
+    "name": "25% ambiental sin certificación",
     "input": {
       "investment": 1000000,
-      "sustainabilityPct": 200000,
-      "certification": "leed-oro"
+      "sustainabilityAmount": 250000,
+      "certification": "none"
+    },
+    "expected": 5
+  },
+  {
+    "name": "Bonus no supera tope",
+    "input": {
+      "investment": 1000000,
+      "sustainabilityAmount": 500000,
+      "certification": "leed-platino"
     },
     "expected": 10
+  },
+  {
+    "name": "Sin inversión ambiental",
+    "input": {
+      "investment": 1000000,
+      "sustainabilityAmount": 0,
+      "certification": "leed"
+    },
+    "expected": 2
   }
 ]

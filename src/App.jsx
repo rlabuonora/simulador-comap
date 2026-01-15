@@ -97,7 +97,7 @@ const defaultInputs = {
   employmentIncreaseAvg: 0,
   deptAllocations: [],
   exportPct: 35,
-  sustainabilityPct: 0,
+  sustainabilityAmount: 0,
   iPlusType: 'b',
   iPlusPct: 0,
   strategicPriorities: 2,
@@ -116,7 +116,7 @@ const defaultInputs = {
   othersBase: 0,
   othersIncrease: 0,
   currentExports: 0,
-  futureExports: 0,
+  exportIncrease: 0,
   certification: 'none',
   iPlusCategory: 'at',
   ministry: '',
@@ -167,8 +167,9 @@ const buildNumericValues = (source) => {
     othersBase: String(source.othersBase ?? ''),
     othersIncrease: String(source.othersIncrease ?? ''),
     currentExports: String(source.currentExports ?? ''),
-    futureExports: String(source.futureExports ?? ''),
-    sustainabilityPct: source.sustainabilityPct === 0 ? '0' : String(source.sustainabilityPct ?? ''),
+    exportIncrease: String(source.exportIncrease ?? ''),
+    sustainabilityAmount:
+      source.sustainabilityAmount === 0 ? '0' : String(source.sustainabilityAmount ?? ''),
     iPlusPct: source.iPlusPct === 0 ? '0' : String(source.iPlusPct ?? ''),
     strategicInvestmentPct:
       source.strategicInvestmentPct === 0 ? '0' : String(source.strategicInvestmentPct ?? ''),
@@ -506,7 +507,7 @@ export default function App() {
       return;
     }
 
-    if ((key === 'sustainabilityPct' || key === 'iPlusPct') && parsed < 0) {
+    if ((key === 'sustainabilityAmount' || key === 'iPlusPct') && parsed < 0) {
       setNumericErrors((prev) => ({ ...prev, [key]: 'Debe ser mayor o igual a 0.' }));
       return;
     }
@@ -1151,13 +1152,13 @@ export default function App() {
                   onBlur={handleNumericBlur('currentExports')}
                 />
                 <NumericField
-                  label="Exportaciones futuras (USD/año)"
-                  name="futureExports"
+                  label="Incremento exportaciones (USD/año)"
+                  name="exportIncrease"
                   placeholder="Ej: 900000"
-                  value={numericValues.futureExports ?? ''}
-                  error={numericErrors.futureExports}
-                  onChange={handleNumericChange('futureExports')}
-                  onBlur={handleNumericBlur('futureExports')}
+                  value={numericValues.exportIncrease ?? ''}
+                  error={numericErrors.exportIncrease}
+                  onChange={handleNumericChange('exportIncrease')}
+                  onBlur={handleNumericBlur('exportIncrease')}
                 />
               </div>
             ) : null}
@@ -1406,12 +1407,12 @@ export default function App() {
             <div className="row impacto-ambiental-row">
               <NumericField
                 label="Monto inversión (UI)"
-                name="sustainabilityPct"
+                name="sustainabilityAmount"
                 placeholder="Ej: 250000"
-                value={numericValues.sustainabilityPct ?? ''}
-                error={numericErrors.sustainabilityPct}
-                onChange={handleNumericChange('sustainabilityPct')}
-                onBlur={handleNumericBlur('sustainabilityPct')}
+                value={numericValues.sustainabilityAmount ?? ''}
+                error={numericErrors.sustainabilityAmount}
+                onChange={handleNumericChange('sustainabilityAmount')}
+                onBlur={handleNumericBlur('sustainabilityAmount')}
                 className="narrow-field"
               />
 

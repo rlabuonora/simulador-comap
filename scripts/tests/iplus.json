@@ -6,6 +6,43 @@
       "iPlusPct": 100000,
       "iPlusCategory": "inn"
     },
-    "expected": 0.7
+    "expected": 1.4,
+    "epsilon": 1e-9
+  },
+  {
+    "name": "Satura al 50% (inn)",
+    "input": {
+      "investment": 1000000,
+      "iPlusPct": 500000,
+      "iPlusCategory": "inn"
+    },
+    "expected": 7
+  },
+  {
+    "name": "Sobre 50% mantiene tope (id)",
+    "input": {
+      "investment": 1000000,
+      "iPlusPct": 900000,
+      "iPlusCategory": "id"
+    },
+    "expected": 10
+  },
+  {
+    "name": "Sin inversion elegible",
+    "input": {
+      "investment": 0,
+      "iPlusPct": 200000,
+      "iPlusCategory": "at"
+    },
+    "expected": 0
+  },
+  {
+    "name": "Categoria invalida",
+    "input": {
+      "investment": 1000000,
+      "iPlusPct": 200000,
+      "iPlusCategory": "unknown"
+    },
+    "expected": 0
   }
 ]

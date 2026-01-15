@@ -73,26 +73,26 @@ const calcMgapIncrement = (items = []) => {
 
 const calcExportIncrement = ({
   evaluatingMinistry,
-  futureExports = 0,
+  exportIncrease = 0,
   mgapExportItems = [],
   minturIncrease = 0,
 }) => {
   if (evaluatingMinistry === 'mgap') {
-    return parseNumber(futureExports) + calcMgapIncrement(mgapExportItems);
+    return parseNumber(exportIncrease) + calcMgapIncrement(mgapExportItems);
   }
 
   if (evaluatingMinistry === 'mintur') {
     return MINTUR_COEFFICIENT * parseNumber(minturIncrease);
   }
 
-  return parseNumber(futureExports);
+  return parseNumber(exportIncrease);
 };
 
 export function scoreExports({
   evaluatingMinistry,
   isNewCompany,
   currentExports = 0,
-  futureExports = 0,
+  exportIncrease = 0,
   totalInvestment = 0,
   mgapExportItems = [],
   minturInitial = 0,
@@ -100,13 +100,17 @@ export function scoreExports({
 }) {
   const exportIncrement = calcExportIncrement({
     evaluatingMinistry,
-    futureExports,
+    exportIncrease,
     mgapExportItems,
     minturIncrease,
   });
 
   const baselineExports =
     evaluatingMinistry === 'mintur' ? parseNumber(minturInitial) : parseNumber(currentExports);
+
+  if (evaluatingMinistry !== 'mintur' && exportIncrement <= 0) {
+    return 0;
+  }
 
   const delta_m = exportIncrement / EXPORT_DIVISOR;
   const invest_m = parseNumber(totalInvestment) / EXPORT_DIVISOR;
@@ -152,10 +156,10 @@ const calcInvestmentPct = (amount, investment) => {
   return (amount / investment) * 100;
 };
 
-export function scoreSustainability({ sustainabilityPct, certification, investment }) {
+export function scoreSustainability({ sustainabilityAmount, certification, investment }) {
   const bonus = CERTIFICATION_BONUS[certification] ?? 0;
-  const pct = calcInvestmentPct(sustainabilityPct, investment);
-  return clamp(pct / 2 + bonus);
+  const pct = calcInvestmentPct(sustainabilityAmount, investment);
+  return clamp(pct / 5 + bonus, 0, 10);
 }
 
 const I_PLUS_CATEGORY_POINTS = {
@@ -167,7 +171,9 @@ const I_PLUS_CATEGORY_POINTS = {
 export function scoreIPlus({ iPlusCategory, iPlusPct, investment }) {
   const pct = calcInvestmentPct(iPlusPct, investment);
   const categoryPoints = I_PLUS_CATEGORY_POINTS[iPlusCategory] ?? 0;
-  return clamp((pct / 100) * categoryPoints);
+  const share = pct / 100;
+  const scaledShare = Math.min(share / 0.5, 1);
+  return clamp(scaledShare * categoryPoints, 0, categoryPoints);
 }
 
 export function scoreStrategic({ strategicPriorities }) {

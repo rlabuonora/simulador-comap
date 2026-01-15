@@ -1,42 +1,62 @@
 [
   {
-    "name": "MEF/MIEM con crecimiento cap",
+    "name": "Base formula – existing firm, no growth bonus",
+    "policy": "IE = ΔX / (0.1 × √I)",
     "input": {
       "evaluatingMinistry": "mef",
       "isNewCompany": "no",
       "currentExports": 1000000,
-      "futureExports": 2000000,
+      "exportIncrease": 1100000,
       "totalInvestment": 10000000
     },
-    "expected": 10
+    "expected": 6.957,
+    "epsilon": 0.01
   },
   {
-    "name": "Nueva firma",
+    "name": "Growth bonus saturates at 2×",
+    "policy": "Adjustment factor = 1 + min(ΔX / X0, 1)",
+    "input": {
+      "evaluatingMinistry": "mef",
+      "isNewCompany": "no",
+      "currentExports": 1000000,
+      "exportIncrease": 3000000,
+      "totalInvestment": 10000000
+    },
+    "expected": 10,
+    "epsilon": 0.01
+  },
+  {
+    "name": "New company multiplier",
+    "policy": "New firms multiply score by 2",
     "input": {
       "evaluatingMinistry": "miem",
       "isNewCompany": "si",
       "currentExports": 0,
-      "futureExports": 500000,
+      "exportIncrease": 500000,
       "totalInvestment": 10000000
     },
     "expected": 3.1623,
     "epsilon": 0.01
   },
   {
-    "name": "MGAP con coeficientes",
+    "name": "MGAP weighted increment",
+    "policy": "MGAP uses weighted export structure",
     "input": {
       "evaluatingMinistry": "mgap",
       "isNewCompany": "no",
       "currentExports": 800000,
-      "futureExports": 1000000,
+      "exportIncrease": 1000000,
       "totalInvestment": 10000000,
-      "mgapExportItems": [{ "pct": 75, "increase": 200000 }]
+      "mgapExportItems": [
+        { "pct": 75, "increase": 200000 }
+      ]
     },
     "expected": 7.274,
     "epsilon": 0.01
   },
   {
-    "name": "MINTUR con coeficiente fijo",
+    "name": "MINTUR coefficient applied",
+    "policy": "Tourism uses coefficient 3.22",
     "input": {
       "evaluatingMinistry": "mintur",
       "isNewCompany": "no",
@@ -46,5 +66,29 @@
     },
     "expected": 1.672,
     "epsilon": 0.01
+  },
+  {
+    "name": "Score is capped at 10",
+    "policy": "Max score = 10 points",
+    "input": {
+      "evaluatingMinistry": "mef",
+      "isNewCompany": "si",
+      "currentExports": 0,
+      "exportIncrease": 5000000,
+      "totalInvestment": 1000000
+    },
+    "expected": 10
+  },
+  {
+    "name": "Zero increment gives zero score",
+    "policy": "If ΔX ≤ 0, score = 0",
+    "input": {
+      "evaluatingMinistry": "mef",
+      "isNewCompany": "no",
+      "currentExports": 1000000,
+      "exportIncrease": 0,
+      "totalInvestment": 10000000
+    },
+    "expected": 0
   }
 ]

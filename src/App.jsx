@@ -1378,7 +1378,7 @@ export default function App() {
                       Incremento aplicando coeficiente
                     </label>
                     <div id="minturWeighted" className="field-control">
-                      {minturWeightedIncrease.toFixed(2)}
+                      {formatNumberForDisplay(minturWeightedIncrease, 2)}
                     </div>
                   </div>
                 </div>

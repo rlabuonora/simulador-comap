@@ -58,8 +58,30 @@ const EXPORT_DIVISOR = 1_000_000;
 const MINTUR_COEFFICIENT = 3.22;
 
 const parseNumber = (value) => {
-  const normalized = String(value ?? '').trim().replace(',', '.');
-  const parsed = Number(normalized);
+  const raw = String(value ?? '').trim();
+  if (!raw) {
+    return 0;
+  }
+
+  const normalized = raw.replace(/\s/g, '');
+  const lastComma = normalized.lastIndexOf(',');
+  const lastDot = normalized.lastIndexOf('.');
+  const decimalIndex = Math.max(lastComma, lastDot);
+
+  let numberString = normalized;
+  if (decimalIndex >= 0) {
+    const integerPart = normalized.slice(0, decimalIndex).replace(/[.,]/g, '');
+    const decimalPart = normalized.slice(decimalIndex + 1).replace(/[.,]/g, '');
+    numberString = `${integerPart}.${decimalPart}`;
+  } else {
+    numberString = normalized.replace(/[.,]/g, '');
+  }
+
+  if (lastComma === -1 && lastDot > -1 && normalized.match(/\.\d{3}$/)) {
+    numberString = normalized.replace(/[.,]/g, '');
+  }
+
+  const parsed = Number(numberString);
   return Number.isNaN(parsed) ? 0 : parsed;
 };
 

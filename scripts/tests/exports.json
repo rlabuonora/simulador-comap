@@ -90,5 +90,18 @@
       "totalInvestment": 10000000
     },
     "expected": 0
+  },
+  {
+    "name": "MINTUR parses formatted amounts",
+    "policy": "Formatted amounts should parse with thousand separators",
+    "input": {
+      "evaluatingMinistry": "mintur",
+      "isNewCompany": "no",
+      "minturInitial": "2.000.000",
+      "minturIncrease": "100.000",
+      "totalInvestment": "5.000.000"
+    },
+    "expected": 1.672,
+    "epsilon": 0.01
   }
 ]

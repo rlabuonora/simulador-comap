@@ -2,8 +2,18 @@ import { WEIGHTS } from './constants.js';
 
 const clamp = (value, min = 0, max = 10) => Math.min(Math.max(value, min), max);
 
-export function scoreEmployment({ employees }) {
-  return clamp((employees / 200) * 10);
+export function scoreEmployment({
+  womenIncrease = 0,
+  youthIncrease = 0,
+  disabilityIncrease = 0,
+  dinaliIncrease = 0,
+  tusTransIncrease = 0,
+  othersIncrease = 0,
+}) {
+  const vulnerableSum =
+    womenIncrease + youthIncrease + disabilityIncrease + dinaliIncrease + tusTransIncrease;
+  const points = othersIncrease + vulnerableSum * 1.25;
+  return clamp(points, 0, 10);
 }
 
 export const DEPARTMENT_SCORES = {
@@ -44,8 +54,81 @@ export function scoreDecentralization({ deptAllocations = [], investment = 0 }) 
   return clamp(weightedScore, 0, 10);
 }
 
-export function scoreExports({ exportPct }) {
-  return clamp(exportPct / 10);
+const EXPORT_DIVISOR = 1_000_000;
+const MINTUR_COEFFICIENT = 3.22;
+
+const parseNumber = (value) => {
+  const normalized = String(value ?? '').trim().replace(',', '.');
+  const parsed = Number(normalized);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const calcMgapIncrement = (items = []) => {
+  return items.reduce((sum, item) => {
+    const pct = parseNumber(item.pct) / 100;
+    const increase = parseNumber(item.increase);
+    return sum + pct * increase;
+  }, 0);
+};
+
+const calcExportIncrement = ({
+  evaluatingMinistry,
+  futureExports = 0,
+  mgapExportItems = [],
+  minturIncrease = 0,
+}) => {
+  if (evaluatingMinistry === 'mgap') {
+    return parseNumber(futureExports) + calcMgapIncrement(mgapExportItems);
+  }
+
+  if (evaluatingMinistry === 'mintur') {
+    return MINTUR_COEFFICIENT * parseNumber(minturIncrease);
+  }
+
+  return parseNumber(futureExports);
+};
+
+export function scoreExports({
+  evaluatingMinistry,
+  isNewCompany,
+  currentExports = 0,
+  futureExports = 0,
+  totalInvestment = 0,
+  mgapExportItems = [],
+  minturInitial = 0,
+  minturIncrease = 0,
+}) {
+  const exportIncrement = calcExportIncrement({
+    evaluatingMinistry,
+    futureExports,
+    mgapExportItems,
+    minturIncrease,
+  });
+
+  const baselineExports =
+    evaluatingMinistry === 'mintur' ? parseNumber(minturInitial) : parseNumber(currentExports);
+
+  const delta_m = exportIncrement / EXPORT_DIVISOR;
+  const invest_m = parseNumber(totalInvestment) / EXPORT_DIVISOR;
+
+  if (delta_m <= 0 || invest_m <= 0) {
+    return 0;
+  }
+
+  const intensityScore = delta_m / (0.1 * Math.sqrt(invest_m));
+
+  let adjustmentFactor = 1;
+  if (isNewCompany === 'si') {
+    adjustmentFactor = 2;
+  } else {
+    const safeBaseline = Math.max(baselineExports, 0.001);
+    const growthRatio = exportIncrement / safeBaseline;
+    const growthBonus = Math.min(growthRatio, 1);
+    adjustmentFactor = 1 + growthBonus;
+  }
+
+  const rawScore = intensityScore * adjustmentFactor;
+  return clamp(rawScore, 0, 10);
 }
 
 export const CERTIFICATION_BONUS = {

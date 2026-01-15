@@ -123,8 +123,8 @@ const defaultInputs = {
   evaluatingMinistry: '',
   strategicLine: '',
   strategicInvestmentPct: 0,
-  isNewCompany: '',
-  isIndustrialParkUser: '',
+  isNewCompany: 'no',
+  isIndustrialParkUser: 'no',
   industrialParkActivity: '',
   fieldNaturalPct: 0,
   tourismZoneLocation: '',
@@ -327,32 +327,71 @@ export default function App() {
     setInputs((prev) => ({ ...prev, deptAllocations }));
   }, [deptAllocations]);
 
+  const parseNumericValue = (value) => {
+    const normalized = String(value ?? '').trim().replace(',', '.');
+    const parsed = Number(normalized);
+    return Number.isNaN(parsed) ? null : parsed;
+  };
+
+  const scoringInputs = useMemo(() => {
+    const merged = { ...inputs };
+    Object.entries(numericValues).forEach(([key, value]) => {
+      const parsed = parseNumericValue(value);
+      if (parsed !== null) {
+        merged[key] = parsed;
+      }
+    });
+    return merged;
+  }, [inputs, numericValues]);
+
+  const investmentTotal = useMemo(() => {
+    const parseValue = (value) => parseNumericValue(value) ?? 0;
+    return (
+      parseValue(numericValues.machineryUi) +
+      parseValue(numericValues.installationsUi) +
+      parseValue(numericValues.civilWorksUi)
+    );
+  }, [numericValues.civilWorksUi, numericValues.installationsUi, numericValues.machineryUi]);
+
   const scores = useMemo(() => {
     return {
-      employment: scoreEmployment(inputs),
-      decentralization: scoreDecentralization(inputs),
-      exports: scoreExports(inputs),
-      sustainability: scoreSustainability(inputs),
-      iPlus: scoreIPlus(inputs),
-      strategic: scoreStrategic(inputs),
+      employment: scoreEmployment({
+        womenIncrease: parseNumericValue(numericValues.womenIncrease) ?? 0,
+        youthIncrease: parseNumericValue(numericValues.youthIncrease) ?? 0,
+        disabilityIncrease: parseNumericValue(numericValues.disabilityIncrease) ?? 0,
+        dinaliIncrease: parseNumericValue(numericValues.dinaliIncrease) ?? 0,
+        tusTransIncrease: parseNumericValue(numericValues.tusTransIncrease) ?? 0,
+        othersIncrease: parseNumericValue(numericValues.othersIncrease) ?? 0,
+      }),
+      decentralization: scoreDecentralization(scoringInputs),
+      exports: scoreExports({
+        ...scoringInputs,
+        totalInvestment: investmentTotal,
+        mgapExportItems,
+        minturInitial,
+        minturIncrease,
+      }),
+      sustainability: scoreSustainability(scoringInputs),
+      iPlus: scoreIPlus(scoringInputs),
+      strategic: scoreStrategic(scoringInputs),
     };
-  }, [inputs]);
+  }, [
+    numericValues.disabilityIncrease,
+    numericValues.dinaliIncrease,
+    numericValues.othersIncrease,
+    numericValues.tusTransIncrease,
+    numericValues.womenIncrease,
+    numericValues.youthIncrease,
+    mgapExportItems,
+    minturIncrease,
+    minturInitial,
+    investmentTotal,
+    scoringInputs,
+  ]);
 
   const totalScore = useMemo(() => finalScore(scores), [scores]);
   const iraePct = useMemo(() => computeIraePct(totalScore), [totalScore]);
   const exonerationYears = totalScore >= 8 ? 10 : totalScore >= 6 ? 7 : totalScore >= 4 ? 5 : 3;
-  const parseNumericValue = (value) => {
-    const parsed = Number(String(value ?? '').trim());
-    return Number.isNaN(parsed) ? 0 : parsed;
-  };
-
-  const investmentTotal = useMemo(() => {
-    return (
-      parseNumericValue(numericValues.machineryUi) +
-      parseNumericValue(numericValues.installationsUi) +
-      parseNumericValue(numericValues.civilWorksUi)
-    );
-  }, [numericValues.civilWorksUi, numericValues.installationsUi, numericValues.machineryUi]);
 
   const investmentTotalUsd = useMemo(() => {
     const uiRate = parseNumericValue(numericValues.uiRate);
@@ -370,8 +409,8 @@ export default function App() {
   const totalInvestmentForDept = investmentTotal || totalDepartmentAmount;
   const minturCoefficient = 3.22;
   const minturWeightedIncrease = useMemo(() => {
-    const parsed = Number(minturIncrease.trim());
-    if (!minturIncrease.trim() || Number.isNaN(parsed)) {
+    const parsed = parseNumericValue(minturIncrease);
+    if (parsed === null) {
       return 0;
     }
     return minturCoefficient * parsed;
@@ -402,11 +441,11 @@ export default function App() {
     setIsExportingPdf(true);
     try {
       const canvas = await html2canvas(pdfRef.current, {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
         backgroundColor: '#f6f7f9',
       });
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/jpeg', 0.82);
       const pdf = new jsPDF('p', 'pt', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -415,13 +454,13 @@ export default function App() {
       let heightLeft = imgHeight;
       let position = 0;
 
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
       heightLeft -= pdfHeight;
 
       while (heightLeft > 0) {
         position -= pdfHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
         heightLeft -= pdfHeight;
       }
 
@@ -437,14 +476,20 @@ export default function App() {
     if (numericErrors[key]) {
       setNumericErrors((prev) => ({ ...prev, [key]: '' }));
     }
+    if (!ENABLE_VALIDATION) {
+      const parsed = parseNumericValue(nextValue);
+      if (parsed !== null) {
+        setInputs((prev) => ({ ...prev, [key]: parsed }));
+      }
+    }
   };
 
   const handleNumericBlur = (key) => (event) => {
     const rawValue = event.target.value.trim();
 
     if (!ENABLE_VALIDATION) {
-      const parsed = Number(rawValue);
-      if (!Number.isNaN(parsed)) {
+      const parsed = parseNumericValue(rawValue);
+      if (parsed !== null) {
         setInputs((prev) => ({ ...prev, [key]: parsed }));
       }
       return;
@@ -455,8 +500,8 @@ export default function App() {
       return;
     }
 
-    const parsed = Number(rawValue);
-    if (Number.isNaN(parsed)) {
+    const parsed = parseNumericValue(rawValue);
+    if (parsed === null) {
       setNumericErrors((prev) => ({ ...prev, [key]: 'Ingrese un número válido.' }));
       return;
     }
@@ -1094,26 +1139,28 @@ export default function App() {
           </section>
 
           <section className={`step${currentStep === stepIndexById.exportaciones ? ' active' : ''}`}>
-            <div className="row">
-              <NumericField
-                label="Exportaciones actuales (USD/año)"
-                name="currentExports"
-                placeholder="Ej: 500000"
-                value={numericValues.currentExports ?? ''}
-                error={numericErrors.currentExports}
-                onChange={handleNumericChange('currentExports')}
-                onBlur={handleNumericBlur('currentExports')}
-              />
-              <NumericField
-                label="Exportaciones futuras (USD/año)"
-                name="futureExports"
-                placeholder="Ej: 900000"
-                value={numericValues.futureExports ?? ''}
-                error={numericErrors.futureExports}
-                onChange={handleNumericChange('futureExports')}
-                onBlur={handleNumericBlur('futureExports')}
-              />
-            </div>
+            {inputs.evaluatingMinistry !== 'mintur' ? (
+              <div className="row">
+                <NumericField
+                  label="Exportaciones actuales (USD/año)"
+                  name="currentExports"
+                  placeholder="Ej: 500000"
+                  value={numericValues.currentExports ?? ''}
+                  error={numericErrors.currentExports}
+                  onChange={handleNumericChange('currentExports')}
+                  onBlur={handleNumericBlur('currentExports')}
+                />
+                <NumericField
+                  label="Exportaciones futuras (USD/año)"
+                  name="futureExports"
+                  placeholder="Ej: 900000"
+                  value={numericValues.futureExports ?? ''}
+                  error={numericErrors.futureExports}
+                  onChange={handleNumericChange('futureExports')}
+                  onBlur={handleNumericBlur('futureExports')}
+                />
+              </div>
+            ) : null}
 
             {inputs.evaluatingMinistry === 'mgap' ? (
               <>

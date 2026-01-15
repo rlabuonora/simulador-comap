@@ -1,0 +1,156 @@
+import { expect, test } from '@playwright/test';
+import {
+  expectMetricValue,
+  expectStepScore,
+  finalScore,
+  fillIfVisible,
+  goToLocator,
+  scoreDecentralization,
+  scoreEmployment,
+  scoreExports,
+  scoreIPlus,
+  scoreStrategic,
+  scoreSustainability,
+} from './helpers.js';
+
+test('flow: miem new exporting company', async ({ page }) => {
+  const investment = {
+    machineryUi: 1000000,
+    installationsUi: 500000,
+    civilWorksUi: 500000,
+    industrialParkInvestmentUi: 0,
+  };
+  const totalInvestment =
+    investment.machineryUi + investment.installationsUi + investment.civilWorksUi;
+
+  const employmentInputs = {
+    othersIncrease: 2,
+    womenIncrease: 1,
+    youthIncrease: 1,
+    disabilityIncrease: 0,
+    dinaliIncrease: 0,
+    tusTransIncrease: 0,
+  };
+  const exportInputs = {
+    evaluatingMinistry: 'miem',
+    isNewCompany: 'si',
+    currentExports: 0,
+    exportIncrease: 500000,
+    totalInvestment,
+  };
+  const decentralizationInputs = {
+    investment: totalInvestment,
+    deptAllocations: [{ amount: totalInvestment, score: 10 }],
+  };
+  const sustainabilityInputs = {
+    investment: totalInvestment,
+    sustainabilityAmount: 200000,
+    certification: 'leed-oro',
+  };
+  const iPlusInputs = {
+    investment: totalInvestment,
+    iPlusPct: 600000,
+    iPlusCategory: 'inn',
+  };
+  const strategicInputs = {
+    strategicPriorities: 2,
+  };
+
+  const scores = {
+    employment: scoreEmployment(employmentInputs),
+    exports: scoreExports(exportInputs),
+    decentralization: scoreDecentralization(decentralizationInputs),
+    sustainability: scoreSustainability(sustainabilityInputs),
+    iPlus: scoreIPlus(iPlusInputs),
+    strategic: scoreStrategic(strategicInputs),
+  };
+
+  await page.goto('/');
+
+  const companyStep = page.locator('.step.active');
+  const billingInput = page.locator('#annualBillingUi');
+  const employeesInput = page.locator('#employees');
+  const sectorSelect = page.locator('#sector');
+  const newCompanyYes = page.locator('input[name="isNewCompany"][value="si"]');
+  await goToLocator(page, billingInput);
+  await billingInput.fill('25000000');
+  await employeesInput.fill('25');
+  await sectorSelect.selectOption('industria');
+  await newCompanyYes.check();
+
+  const projectStep = page.locator('.step.active');
+  const ministrySelect = page.locator('#evaluatingMinistry');
+  const machineryInput = page.locator('#machineryUi');
+  const installationsInput = page.locator('#installationsUi');
+  const civilWorksInput = page.locator('#civilWorksUi');
+  const industrialParkInput = page.locator('#industrialParkInvestmentUi');
+  await goToLocator(page, machineryInput);
+  await ministrySelect.selectOption('miem');
+  await machineryInput.fill(String(investment.machineryUi));
+  await installationsInput.fill(String(investment.installationsUi));
+  await civilWorksInput.fill(String(investment.civilWorksUi));
+  await fillIfVisible(industrialParkInput, investment.industrialParkInvestmentUi);
+
+  const employmentStep = page.locator('.step.active');
+  const othersInput = page.locator('#othersIncrease');
+  const womenInput = page.locator('#womenIncrease');
+  const youthInput = page.locator('#youthIncrease');
+  const disabilityInput = page.locator('#disabilityIncrease');
+  const dinaliInput = page.locator('#dinaliIncrease');
+  const transInput = page.locator('#tusTransIncrease');
+  await goToLocator(page, othersInput);
+  await othersInput.fill(String(employmentInputs.othersIncrease));
+  await womenInput.fill(String(employmentInputs.womenIncrease));
+  await youthInput.fill(String(employmentInputs.youthIncrease));
+  await disabilityInput.fill(String(employmentInputs.disabilityIncrease));
+  await dinaliInput.fill(String(employmentInputs.dinaliIncrease));
+  await transInput.fill(String(employmentInputs.tusTransIncrease));
+  await expectStepScore(page, scores.employment);
+
+  const exportsStep = page.locator('.step.active');
+  const currentExportsInput = page.locator('#currentExports');
+  const exportIncreaseInput = page.locator('#exportIncrease');
+  await goToLocator(page, currentExportsInput);
+  await currentExportsInput.fill(String(exportInputs.currentExports));
+  await exportIncreaseInput.fill(String(exportInputs.exportIncrease));
+  await expectStepScore(page, scores.exports);
+
+  const decentralizationStep = page.locator('.step.active');
+  const deptSelect = page.locator('#deptSelection');
+  const deptAmountInput = page.locator('#deptPctValue');
+  await goToLocator(page, deptSelect);
+  await deptSelect.selectOption('artigas');
+  await deptAmountInput.fill(String(totalInvestment));
+  await decentralizationStep.getByRole('button', { name: '+' }).click();
+  await expect(decentralizationStep.getByText('Artigas')).toBeVisible();
+  await expectStepScore(page, scores.decentralization);
+
+  const sustainabilityStep = page.locator('.step.active');
+  const sustainabilityAmountInput = page.locator('#sustainabilityAmount');
+  const certificationSelect = page.locator('#certification');
+  await goToLocator(page, sustainabilityAmountInput);
+  await sustainabilityAmountInput.fill(String(sustainabilityInputs.sustainabilityAmount));
+  await certificationSelect.selectOption(sustainabilityInputs.certification);
+  await expectStepScore(page, scores.sustainability);
+
+  const iPlusStep = page.locator('.step.active');
+  const iPlusAmountInput = page.locator('#iPlusPct');
+  const iPlusCategorySelect = page.locator('#iPlusCategory');
+  await goToLocator(page, iPlusAmountInput);
+  await iPlusAmountInput.fill(String(iPlusInputs.iPlusPct));
+  await iPlusCategorySelect.selectOption(iPlusInputs.iPlusCategory);
+  await expectStepScore(page, scores.iPlus);
+
+  const strategicStep = page.locator('.step.active');
+  const strategicLineSelect = page.locator('#strategicLine');
+  const strategicAmountInput = page.locator('#strategicInvestmentPct');
+  const mineralSelect = page.locator('#mineralProcessingLevel');
+  await goToLocator(page, strategicLineSelect);
+  await strategicLineSelect.selectOption('riego');
+  await strategicAmountInput.fill('100000');
+  await mineralSelect.selectOption('minima');
+  await expectStepScore(page, scores.strategic);
+
+  await goToLocator(page, page.locator('.metric-card'));
+  await expectMetricValue(page, 'Puntaje total', finalScore(scores));
+});

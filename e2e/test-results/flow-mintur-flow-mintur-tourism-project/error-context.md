@@ -1,0 +1,48 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img "MEF logo" [ref=e7]
+        - generic [ref=e8]:
+          - text: Ministerio de Economía y Finanzas
+          - generic [ref=e9]: Comisión de Aplicación de la Ley de Inversiones - COMAP
+      - navigation
+  - main [ref=e10]:
+    - generic [ref=e12]:
+      - generic [ref=e13]: Simulador de Exoneración
+      - paragraph [ref=e14]: Completa la información paso a paso para simular el beneficio COMAP estimado.
+    - generic [ref=e15]:
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e28]: Paso 6 - Impacto ambiental
+          - generic [ref=e29]: Datos de impacto ambiental.
+        - generic [ref=e30]:
+          - generic [ref=e31]: Puntaje
+          - strong [ref=e32]: "0.00"
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - generic [ref=e36]: Monto inversión (UI)
+          - textbox "Monto inversión (UI)" [active] [ref=e37]:
+            - /placeholder: "Ej: 250000"
+            - text: "800000"
+        - generic [ref=e38]:
+          - text: Certificación
+          - combobox "Certificación" [ref=e39]:
+            - option "Sin certificación" [selected]
+            - option "Leed"
+            - option "Leed Plata"
+            - option "Leed Oro"
+            - option "Leed Platino"
+            - option "Breeam Bueno"
+            - option "Breeam Muy Bueno"
+            - option "Breeam Excelente"
+            - option "Breeam Excepcional"
+            - option "Sello Eficiencia Energética B"
+            - option "Sello Eficiencia Energética A"
+      - generic [ref=e40]:
+        - button "Atrás" [ref=e41] [cursor=pointer]
+        - button "Siguiente" [ref=e42] [cursor=pointer]
+```

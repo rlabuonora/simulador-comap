@@ -85,8 +85,8 @@ const defaultInputs = {
   investment: 0,
   employees: 0,
   annualBillingUi: 0,
-  usdRate: 0,
-  uiRate: 0,
+  usdRate: 38.5,
+  uiRate: 6.5,
   machineryUi: 0,
   installationsUi: 0,
   civilWorksUi: 0,
@@ -441,6 +441,9 @@ export default function App() {
 
     setIsExportingPdf(true);
     try {
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
       const canvas = await html2canvas(pdfRef.current, {
         scale: 1.5,
         useCORS: true,

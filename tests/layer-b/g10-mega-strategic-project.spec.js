@@ -1,4 +1,4 @@
-import { computeScenario, exonerationYears } from './helpers.js';
+import { computeScenario } from './helpers.js';
 
 const scenario = {
   company: { annualBillingUi: 800000000, employees: 300, sector: 'industria', isNew: false },
@@ -23,9 +23,9 @@ const scenario = {
 
 test('G10 - Mega strategic project', () => {
   // Policy: major project should max out IRAE and obtain the maximum years.
-  const { total, irae } = computeScenario(scenario);
+  const { irae, years } = computeScenario(scenario);
   expect(irae).toBeGreaterThanOrEqual(0.99);
-  expect(exonerationYears(total)).toBeGreaterThanOrEqual(5);
+  expect(years).toBeGreaterThanOrEqual(5);
 });
 
 /*

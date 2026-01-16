@@ -5,6 +5,7 @@ import { jsPDF } from 'jspdf';
 import {
   classifyCompany,
   computeIraePct,
+  computeIraeYears,
   finalScore,
   scoreDecentralization,
   scoreEmployment,
@@ -14,7 +15,7 @@ import {
   scoreSustainability,
 } from './utils/scoring.js';
 import { DEPARTMENT_SCORES } from './utils/scoring.js';
-import { INDICATORS } from './utils/constants.js';
+import { INDICATORS, WEIGHTS } from './utils/constants.js';
 
 const departments = [
   { id: 'artigas', label: 'Artigas' },
@@ -99,7 +100,7 @@ const defaultInputs = {
   sustainabilityAmount: 0,
   iPlusType: 'b',
   iPlusPct: 0,
-  strategicPriorities: 2,
+  strategicPriorities: 0,
   regionTier: 'interior',
   sector: '',
   womenBase: 0,
@@ -469,10 +470,28 @@ export default function App() {
         investmentTotal,
         filedDate: inputs.filedDate,
         firmSize: companyCategory || undefined,
+        coreScoreSum,
       }),
-    [companyCategory, inputs.filedDate, investmentTotal, scores, totalScore]
+    [companyCategory, coreScoreSum, inputs.filedDate, investmentTotal, scores, totalScore]
   );
-  const exonerationYears = totalScore >= 8 ? 10 : totalScore >= 6 ? 7 : totalScore >= 4 ? 5 : 3;
+  const coreScoreSum = useMemo(() => {
+    return Object.entries(scores).reduce((sum, [key, value]) => {
+      if (key === 'decentralization') {
+        return sum;
+      }
+      return sum + (value ?? 0) * WEIGHTS[key];
+    }, 0);
+  }, [scores]);
+  const exonerationYears = useMemo(
+    () =>
+      computeIraeYears({
+        investmentTotal,
+        weightedScore: totalScore,
+        coreScoreSum,
+        firmSize: companyCategory || undefined,
+      }),
+    [companyCategory, coreScoreSum, investmentTotal, totalScore]
+  );
 
   const investmentTotalUsd = useMemo(() => {
     const uiRate = parseNumericValue(numericValues.uiRate);

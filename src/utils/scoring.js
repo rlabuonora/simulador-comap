@@ -76,7 +76,8 @@ export function scoreEmployment({
     return 0;
   }
 
-  const indicator = adjustedEmployment / Math.cbrt(investmentUi);
+  const investmentMillions = investmentUi / 1_000_000;
+  const indicator = adjustedEmployment / Math.cbrt(investmentMillions);
   return clamp(indicator, 0, 10);
 }
 
@@ -295,11 +296,15 @@ const isOnOrBefore = (dateValue, cutoff) => {
 };
 
 export function computeIraePct(finalScoreValue, options = {}) {
-  const { scores, investmentTotal, filedDate, firmSize } = options;
+  const { scores, investmentTotal, filedDate, firmSize, coreScoreSum } = options;
   const hasOverrideInputs =
     scores && typeof investmentTotal === 'number' && Number.isFinite(investmentTotal) && filedDate;
 
   if (hasOverrideInputs) {
+    if (coreScoreSum !== undefined && coreScoreSum < 1) {
+      return 0;
+    }
+
     const iPlusScore = scores.iPlus ?? 0;
     const employmentScore = scores.employment ?? 0;
     const inWindowA =
@@ -314,6 +319,10 @@ export function computeIraePct(finalScoreValue, options = {}) {
     }
   }
 
+  if (coreScoreSum !== undefined && coreScoreSum < 1) {
+    return 0;
+  }
+
   const roundedScore = Math.round(finalScoreValue * 100) / 100;
   const baseRate = ((roundedScore - 1) / 9) * 0.7 + 0.3;
   let bonus = 0;
@@ -325,4 +334,46 @@ export function computeIraePct(finalScoreValue, options = {}) {
   }
 
   return Math.min(baseRate + bonus, 1);
+}
+
+export function computeIraeYears({ investmentTotal, weightedScore, coreScoreSum, firmSize }) {
+  if (coreScoreSum < 1) {
+    return 0;
+  }
+
+  let baseYears = 0;
+  let maxYears = 0;
+
+  if (investmentTotal <= 3_500_000) {
+    baseYears = ((weightedScore - 1) * 12) / 9 + 4;
+    maxYears = 16;
+  } else if (investmentTotal <= 14_000_000) {
+    baseYears = ((weightedScore - 1) * 13) / 9 + 4;
+    maxYears = 17;
+  } else if (investmentTotal <= 70_000_000) {
+    baseYears = ((weightedScore - 1) * 14) / 9 + 4;
+    maxYears = 18;
+  } else if (investmentTotal <= 140_000_000) {
+    baseYears = ((weightedScore - 1) * 16) / 9 + 4;
+    maxYears = 20;
+  } else if (investmentTotal <= 250_000_000) {
+    baseYears = ((weightedScore - 1) * 18) / 9 + 4;
+    maxYears = 22;
+  } else if (investmentTotal <= 500_000_000) {
+    baseYears = ((weightedScore - 1) * 20) / 9 + 4;
+    maxYears = 24;
+  } else {
+    baseYears = ((weightedScore - 1) * 21) / 9 + 4;
+    maxYears = 25;
+  }
+
+  let years = Math.min(baseYears, maxYears);
+
+  if (firmSize === 'MICRO' || firmSize === 'PEQUEÑA') {
+    years += 2;
+  } else if (firmSize === 'MEDIANA') {
+    years += 1;
+  }
+
+  return Math.round(years);
 }

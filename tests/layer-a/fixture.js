@@ -1,3 +1,4 @@
+import { WEIGHTS } from '../../src/utils/constants.js';
 import {
   classifyCompany,
   computeIraePct,
@@ -158,11 +159,18 @@ export const calculateScores = (fixture) => {
     fixture.company?.annualBillingUi ?? 0,
     fixture.company?.employees ?? 0
   );
+  const coreScoreSum = Object.entries(scores).reduce((sum, [key, value]) => {
+    if (key === 'decentralization') {
+      return sum;
+    }
+    return sum + (value ?? 0) * WEIGHTS[key];
+  }, 0);
   const irae = computeIraePct(totalScore, {
     scores,
     investmentTotal: totalInvestment,
     filedDate: fixture.project?.filedDate,
     firmSize,
+    coreScoreSum,
   });
 
   return {

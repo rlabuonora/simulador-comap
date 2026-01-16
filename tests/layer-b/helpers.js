@@ -1,6 +1,8 @@
+import { WEIGHTS } from '../../src/utils/constants.js';
 import {
   classifyCompany,
   computeIraePct,
+  computeIraeYears,
   finalScore,
   scoreDecentralization,
   scoreEmployment,
@@ -81,6 +83,12 @@ export const computeScenario = (scenario) => {
   };
 
   const total = finalScore(scores);
+  const coreScoreSum = Object.entries(scores).reduce((sum, [key, value]) => {
+    if (key === 'decentralization') {
+      return sum;
+    }
+    return sum + (value ?? 0) * WEIGHTS[key];
+  }, 0);
   const firmSize = classifyCompany(
     scenario.company?.annualBillingUi ?? 0,
     scenario.company?.employees ?? 0
@@ -90,24 +98,28 @@ export const computeScenario = (scenario) => {
     investmentTotal: investment,
     filedDate: scenario.project.filedDate,
     firmSize,
+    coreScoreSum,
+  });
+  const years = computeIraeYears({
+    investmentTotal: investment,
+    weightedScore: total,
+    coreScoreSum,
+    firmSize,
   });
 
   return {
     scores,
     total,
     irae,
+    years,
   };
 };
 
-export const exonerationYears = (totalScore) => {
-  if (totalScore >= 8) {
-    return 10;
-  }
-  if (totalScore >= 6) {
-    return 7;
-  }
-  if (totalScore >= 4) {
-    return 5;
-  }
-  return 3;
+export const computeCoreScoreSum = (scores) => {
+  return Object.entries(scores).reduce((sum, [key, value]) => {
+    if (key === 'decentralization') {
+      return sum;
+    }
+    return sum + (value ?? 0) * WEIGHTS[key];
+  }, 0);
 };

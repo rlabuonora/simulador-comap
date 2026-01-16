@@ -22,10 +22,12 @@ const scenario = {
 
 test('G1 - Micro rural startup', () => {
   // Policy: new rural agro firm should qualify with modest IRAE; employment leads.
-  const { scores, total, irae } = computeScenario(scenario);
+  const { scores, total, irae, years } = computeScenario(scenario);
+    console.log('Scores:', scores);
+
   expect(total).toBeGreaterThanOrEqual(1);
-  expect(irae).toBeGreaterThanOrEqual(0.3);
-  expect(irae).toBeLessThan(0.6);
+  expect(irae).toBeCloseTo(0.6289, 4);
+  expect(years).toBe(8);
   const maxCoreScore = Math.max(
     scores.exports,
     scores.sustainability,

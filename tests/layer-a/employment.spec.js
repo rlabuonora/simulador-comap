@@ -47,7 +47,7 @@ const cases = [
       // Rule: bonus applies when delta_total > 0; non-vulnerable increases are bonus-eligible.
       const deltaTotal = 4;
       const bonus = Math.min(deltaTotal * 0.25, 1);
-      const expected = (deltaTotal + bonus) / cubeRoot(totalInvestment);
+      const expected = (deltaTotal + bonus) / cubeRoot(totalInvestment / 1_000_000);
       expect(scores.employment).toBeCloseTo(expected, 8);
     },
   },
@@ -97,7 +97,7 @@ const cases = [
       // Rule: total bonus is capped at 1.
       const deltaTotal = 10;
       const bonus = 1;
-      const expected = (deltaTotal + bonus) / cubeRoot(totalInvestment);
+      const expected = (deltaTotal + bonus) / cubeRoot(totalInvestment / 1_000_000);
       expect(scores.employment).toBeCloseTo(expected, 8);
     },
   },

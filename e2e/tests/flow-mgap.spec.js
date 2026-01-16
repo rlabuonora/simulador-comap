@@ -17,12 +17,10 @@ import {
 test('flow: mgap agricultural project', async ({ page }) => {
   const investment = {
     machineryUi: 1500000,
-    installationsUi: 1000000,
     civilWorksUi: 500000,
     industrialParkInvestmentUi: 0,
   };
-  const totalInvestment =
-    investment.machineryUi + investment.installationsUi + investment.civilWorksUi;
+  const totalInvestment = investment.machineryUi + investment.civilWorksUi;
 
   const employmentInputs = {
     investmentUi: totalInvestment,
@@ -45,7 +43,7 @@ test('flow: mgap agricultural project', async ({ page }) => {
     currentExports: 800000,
     exportIncrease: 1000000,
     totalInvestment,
-    mgapExportItems: [{ pct: 75, increase: 200000 }],
+    indirectExports: [{ pct: 75, increase: 200000 }],
   };
   const decentralizationInputs = {
     investment: totalInvestment,
@@ -94,13 +92,11 @@ test('flow: mgap agricultural project', async ({ page }) => {
   const projectStep = page.locator('.step.active');
   const ministrySelect = page.locator('#evaluatingMinistry');
   const machineryInput = page.locator('#machineryUi');
-  const installationsInput = page.locator('#installationsUi');
   const civilWorksInput = page.locator('#civilWorksUi');
   const industrialParkInput = page.locator('#industrialParkInvestmentUi');
   await goToLocator(page, machineryInput);
   await ministrySelect.selectOption('mgap');
   await machineryInput.fill(String(investment.machineryUi));
-  await installationsInput.fill(String(investment.installationsUi));
   await civilWorksInput.fill(String(investment.civilWorksUi));
   await fillIfVisible(industrialParkInput, investment.industrialParkInvestmentUi);
   await goNext(page);

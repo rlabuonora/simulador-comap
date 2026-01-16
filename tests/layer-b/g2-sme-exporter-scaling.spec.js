@@ -13,7 +13,7 @@ const scenario = {
     base: { noVulnerable: 30, women: 10, youth: 5, disability: 0, dinali: 0, tus: 0 },
     inc: { noVulnerable: 3, women: 1, youth: 1, disability: 0, dinali: 0, tus: 0 },
   },
-  exports: { miemInitial: 1000000, miemIncrease: 1200000 },
+  exports: { currentExports: 1000000, exportIncrease: 1200000 },
   decentralization: { canelones: 2000000 },
   sustainability: { amountUi: 100000, certification: 'none' },
   iplus: { amountUi: 200000, category: 'at' },

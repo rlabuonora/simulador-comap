@@ -1,7 +1,7 @@
-[
+﻿[
   {
-    "name": "Base formula – existing firm, no growth bonus",
-    "policy": "IE = ΔX / (0.1 × √I)",
+    "name": "Base formula, existing firm, no growth bonus",
+    "policy": "Base formula without growth bonus",
     "input": {
       "evaluatingMinistry": "mef",
       "isNewCompany": "no",
@@ -13,8 +13,8 @@
     "epsilon": 0.01
   },
   {
-    "name": "Growth bonus saturates at 2×",
-    "policy": "Adjustment factor = 1 + min(ΔX / X0, 1)",
+    "name": "Growth bonus saturates at 2x",
+    "policy": "Adjustment factor = 1 + min(growth ratio, 1)",
     "input": {
       "evaluatingMinistry": "mef",
       "isNewCompany": "no",
@@ -47,7 +47,7 @@
       "currentExports": 800000,
       "exportIncrease": 1000000,
       "totalInvestment": 10000000,
-      "mgapExportItems": [
+      "indirectExports": [
         { "pct": 75, "increase": 200000 }
       ]
     },
@@ -60,8 +60,11 @@
     "input": {
       "evaluatingMinistry": "mintur",
       "isNewCompany": "no",
-      "minturInitial": 2000000,
-      "minturIncrease": 100000,
+      "currentExports": 2000000,
+      "exportIncrease": 0,
+      "indirectExports": [
+        { "pct": 100, "increase": 100000 }
+      ],
       "totalInvestment": 5000000
     },
     "expected": 1.672,
@@ -81,7 +84,7 @@
   },
   {
     "name": "Zero increment gives zero score",
-    "policy": "If ΔX ≤ 0, score = 0",
+    "policy": "If increment is zero, score = 0",
     "input": {
       "evaluatingMinistry": "mef",
       "isNewCompany": "no",
@@ -97,8 +100,11 @@
     "input": {
       "evaluatingMinistry": "mintur",
       "isNewCompany": "no",
-      "minturInitial": "2.000.000",
-      "minturIncrease": "100.000",
+      "currentExports": "2.000.000",
+      "exportIncrease": 0,
+      "indirectExports": [
+        { "pct": 100, "increase": "100.000" }
+      ],
       "totalInvestment": "5.000.000"
     },
     "expected": 1.672,

@@ -28,7 +28,12 @@ describe('Layer A: Global invariants', () => {
     const higher = calculateScores(
       withMutation({
         exports: {
-          minturIncrease: baselineFixture.exports.minturIncrease + 100000,
+          indirectExports: [
+            {
+              pct: 100,
+              increase: baselineFixture.exports.indirectExports[0].increase + 100000,
+            },
+          ],
         },
       })
     );
@@ -80,7 +85,7 @@ describe('Layer A: Global invariants', () => {
           },
         },
         exports: {
-          minturIncrease: 0,
+          indirectExports: [],
         },
         sustainability: {
           amountUi: 0,

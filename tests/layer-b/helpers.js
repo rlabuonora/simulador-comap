@@ -40,12 +40,10 @@ export const computeScenario = (scenario) => {
   const exportsInputs = {
     evaluatingMinistry: scenario.project.ministry,
     isNewCompany: scenario.company.isNew ? 'si' : 'no',
-    currentExports: scenario.exports.miemInitial ?? scenario.exports.mgapInitial ?? 0,
-    exportIncrease: scenario.exports.miemIncrease ?? scenario.exports.mgapIncrease ?? 0,
+    currentExports: scenario.exports.currentExports ?? 0,
+    exportIncrease: scenario.exports.exportIncrease ?? 0,
     totalInvestment: investment,
-    mgapExportItems: scenario.exports.mgapItems ?? [],
-    minturInitial: scenario.exports.minturInitial ?? 0,
-    minturIncrease: scenario.exports.minturIncrease ?? 0,
+    indirectExports: scenario.exports.indirectExports ?? [],
   };
 
   const deptAllocations = Object.entries(scenario.decentralization)

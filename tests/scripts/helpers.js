@@ -2,7 +2,8 @@ import fs from 'node:fs';
 
 export const loadJson = (filePath) => {
   const raw = fs.readFileSync(filePath, 'utf8');
-  return JSON.parse(raw);
+  const cleaned = raw.replace(/^\uFEFF/, '');
+  return JSON.parse(cleaned);
 };
 
 export const assertCase = (actual, expected, epsilon) => {

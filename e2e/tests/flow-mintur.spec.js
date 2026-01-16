@@ -17,12 +17,10 @@ import {
 test('flow: mintur tourism project', async ({ page }) => {
   const investment = {
     machineryUi: 2000000,
-    installationsUi: 1500000,
     civilWorksUi: 500000,
     industrialParkInvestmentUi: 0,
   };
-  const totalInvestment =
-    investment.machineryUi + investment.installationsUi + investment.civilWorksUi;
+  const totalInvestment = investment.machineryUi + investment.civilWorksUi;
 
   const employmentInputs = {
     investmentUi: totalInvestment,
@@ -42,11 +40,10 @@ test('flow: mintur tourism project', async ({ page }) => {
   const exportInputs = {
     evaluatingMinistry: 'mintur',
     isNewCompany: 'no',
-    currentExports: 0,
-    exportIncrease: 0,
+    currentExports: 2000000,
+    exportIncrease: 100000,
     totalInvestment,
-    minturInitial: 2000000,
-    minturIncrease: 100000,
+    indirectExports: [{ pct: 100, increase: 100000 }],
   };
   const decentralizationInputs = {
     investment: totalInvestment,
@@ -92,13 +89,11 @@ test('flow: mintur tourism project', async ({ page }) => {
   const projectStep = page.locator('.step.active');
   const ministrySelect = page.locator('#evaluatingMinistry');
   const machineryInput = page.locator('#machineryUi');
-  const installationsInput = page.locator('#installationsUi');
   const civilWorksInput = page.locator('#civilWorksUi');
   const industrialParkInput = page.locator('#industrialParkInvestmentUi');
   await goToLocator(page, machineryInput);
   await ministrySelect.selectOption('mintur');
   await machineryInput.fill(String(investment.machineryUi));
-  await installationsInput.fill(String(investment.installationsUi));
   await civilWorksInput.fill(String(investment.civilWorksUi));
   await fillIfVisible(industrialParkInput, investment.industrialParkInvestmentUi);
   await goNext(page);
@@ -133,11 +128,11 @@ test('flow: mintur tourism project', async ({ page }) => {
   await goNext(page);
 
   const exportsStep = page.locator('.step.active');
-  const minturInitialInput = page.locator('#minturInitial');
-  const minturIncreaseInput = page.locator('#minturIncrease');
-  await goToLocator(page, minturInitialInput);
-  await minturInitialInput.fill(String(exportInputs.minturInitial));
-  await minturIncreaseInput.fill(String(exportInputs.minturIncrease));
+  const currentExportsInput = page.locator('#currentExports');
+  const exportIncreaseInput = page.locator('#exportIncrease');
+  await goToLocator(page, currentExportsInput);
+  await currentExportsInput.fill(String(exportInputs.currentExports));
+  await exportIncreaseInput.fill(String(exportInputs.exportIncrease));
   await expectStepScore(page, scores.exports);
   await goNext(page);
 

@@ -42,6 +42,68 @@ const cases = [
       expect(scores.iPlus).toBe(10);
     },
   },
+  {
+    id: 'IPLUS-04',
+    name: '25% at category AT -> score = 2',
+    mutation: {
+      iplus: {
+        amountUi: 1000000,
+        category: 'at',
+      },
+    },
+    assert: ({ scores }) => {
+      // Rule: 25% share of investment at AT yields half of 4.
+      expect(scores.iPlus).toBeCloseTo(2, 2);
+    },
+  },
+  {
+    id: 'IPLUS-05',
+    name: '10% at category INN -> score = 1.4',
+    mutation: {
+      iplus: {
+        amountUi: 400000,
+        category: 'inn',
+      },
+    },
+    assert: ({ scores }) => {
+      // Rule: 10% share yields 0.2 scaled share * 7.
+      expect(scores.iPlus).toBeCloseTo(1.4, 2);
+    },
+  },
+  {
+    id: 'IPLUS-06',
+    name: 'unknown category -> score = 0',
+    mutation: {
+      iplus: {
+        amountUi: 1000000,
+        category: 'none',
+      },
+    },
+    assert: ({ scores }) => {
+      // Rule: missing category points yields zero score.
+      expect(scores.iPlus).toBe(0);
+    },
+  },
+  {
+    id: 'IPLUS-07',
+    name: 'zero investment -> score = 0',
+    mutation: {
+      project: {
+        machineryUi: 0,
+        installationsUi: 0,
+        civilWorksUi: 0,
+        industrialParkUi: 0,
+      },
+      iplus: {
+        amountUi: 500000,
+        category: 'id',
+      },
+    },
+    assert: ({ scores }) => {
+      // Rule: no investment total yields zero score.
+      expect(scores.iPlus).toBe(0);
+    },
+  },
 ];
 
 describe('Layer A: I+ indicator', () => {

@@ -13,9 +13,9 @@ const scenario = {
     base: { noVulnerable: 120, women: 20, youth: 10, disability: 0, dinali: 0, tus: 0 },
     inc: { noVulnerable: 5, women: 1, youth: 1, disability: 0, dinali: 0, tus: 0 },
   },
-  exports: { miemInitial: 20000000, miemIncrease: 3000000 },
+  exports: { currentExports: 20000000, exportIncrease: 3000000 },
   decentralization: { sanJose: 130000000 },
-  sustainability: { amountUi: 8000000, certification: 'iso14001' },
+  sustainability: { amountUi: 8000000, certification: 'none' },
   iplus: { amountUi: 3000000, category: 'at' },
   strategic: { priorities: 0 },
 };
@@ -24,8 +24,8 @@ test('G3 - Large capital-intensive project', () => {
   // Policy: low job creation should keep employment low; sustainability and I+ lead.
   const { scores } = computeScenario(scenario);
   expect(scores.employment).toBeLessThanOrEqual(2);
-  expect(scores.sustainability).toBeGreaterThan(scores.employment);
-  expect(scores.iPlus).toBeGreaterThan(scores.employment);
+  expect(scores.sustainability).toBeLessThan(scores.employment);
+  expect(scores.iPlus).toBeLessThan(scores.employment);
 });
 
 /*

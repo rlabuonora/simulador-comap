@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import SummaryChart from './components/SummaryChart.jsx';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -90,7 +90,6 @@ const defaultInputs = {
   usdRate: 38.5,
   uiRate: 6.5,
   machineryUi: 0,
-  installationsUi: 0,
   civilWorksUi: 0,
   industrialParkInvestmentUi: 0,
   mefRenewableInvestmentUi: 0,
@@ -184,7 +183,6 @@ const buildNumericValues = (source) => {
     usdRate: source.usdRate === 0 ? '0' : String(source.usdRate ?? ''),
     uiRate: source.uiRate === 0 ? '0' : String(source.uiRate ?? ''),
     machineryUi: source.machineryUi === 0 ? '0' : String(source.machineryUi ?? ''),
-    installationsUi: source.installationsUi === 0 ? '0' : String(source.installationsUi ?? ''),
     civilWorksUi: source.civilWorksUi === 0 ? '0' : String(source.civilWorksUi ?? ''),
     industrialParkInvestmentUi:
       source.industrialParkInvestmentUi === 0
@@ -293,7 +291,7 @@ const BASE_STEPS = [
   {
     id: 'empleo',
     label: 'Generación de Empleo',
-    hint: 'Completa la información de colectivos para generación de empleo.',
+    hint: 'Completa la Información de colectivos para Generación de empleo.',
   },
   {
     id: 'exportaciones',
@@ -339,10 +337,8 @@ export default function App() {
   const [mgapExportSelection, setMgapExportSelection] = useState('');
   const [mgapExportInitial, setMgapExportInitial] = useState('');
   const [mgapExportIncrease, setMgapExportIncrease] = useState('');
-  const [mgapExportItems, setMgapExportItems] = useState([]);
+  const [indirectExports, setIndirectExports] = useState([]);
   const [mgapExportError, setMgapExportError] = useState('');
-  const [minturInitial, setMinturInitial] = useState('');
-  const [minturIncrease, setMinturIncrease] = useState('');
   const pdfRef = useRef(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
@@ -384,11 +380,9 @@ export default function App() {
   const investmentTotal = useMemo(() => {
     const parseValue = (value) => parseNumericValue(value) ?? 0;
     return (
-      parseValue(numericValues.machineryUi) +
-      parseValue(numericValues.installationsUi) +
-      parseValue(numericValues.civilWorksUi)
+      parseValue(numericValues.machineryUi) + parseValue(numericValues.civilWorksUi)
     );
-  }, [numericValues.civilWorksUi, numericValues.installationsUi, numericValues.machineryUi]);
+  }, [numericValues.civilWorksUi, numericValues.machineryUi]);
 
   const companyCategory = useMemo(() => {
     const revenue = parseNumericValue(numericValues.annualBillingUi) ?? 0;
@@ -413,6 +407,17 @@ export default function App() {
     return merged;
   }, [inputs, investmentTotal, numericValues]);
 
+  const indirectExportsForScore = useMemo(() => {
+    if (inputs.evaluatingMinistry !== 'mintur') {
+      return indirectExports;
+    }
+    const parsedIncrease = parseNumericValue(numericValues.exportIncrease);
+    if (!parsedIncrease || parsedIncrease <= 0) {
+      return [];
+    }
+    return [{ pct: 100, increase: parsedIncrease }];
+  }, [indirectExports, inputs.evaluatingMinistry, numericValues.exportIncrease]);
+
   const scores = useMemo(() => {
     return {
       employment: scoreEmployment({
@@ -434,9 +439,7 @@ export default function App() {
       exports: scoreExports({
         ...scoringInputs,
         totalInvestment: investmentTotal,
-        mgapExportItems,
-        minturInitial,
-        minturIncrease,
+        indirectExports: indirectExportsForScore,
       }),
       sustainability: scoreSustainability(scoringInputs),
       iPlus: scoreIPlus(scoringInputs),
@@ -455,9 +458,7 @@ export default function App() {
     numericValues.womenBase,
     numericValues.youthIncrease,
     numericValues.youthBase,
-    mgapExportItems,
-    minturIncrease,
-    minturInitial,
+    indirectExportsForScore,
     investmentTotal,
     scoringInputs,
   ]);
@@ -509,12 +510,12 @@ export default function App() {
   const totalInvestmentForDept = investmentTotal || totalDepartmentAmount;
   const minturCoefficient = 3.22;
   const minturWeightedIncrease = useMemo(() => {
-    const parsed = parseNumericValue(minturIncrease);
+    const parsed = parseNumericValue(numericValues.exportIncrease);
     if (parsed === null) {
       return 0;
     }
     return minturCoefficient * parsed;
-  }, [minturCoefficient, minturIncrease]);
+  }, [minturCoefficient, numericValues.exportIncrease]);
 
   const scoreByStepId = useMemo(() => {
     return {
@@ -696,7 +697,7 @@ export default function App() {
       return;
     }
 
-    setMgapExportItems((prev) => [
+    setIndirectExports((prev) => [
       ...prev,
       {
         id: mgapExportSelection,
@@ -714,7 +715,7 @@ export default function App() {
   };
 
   const handleRemoveMgapExport = (indexToRemove) => {
-    setMgapExportItems((prev) => prev.filter((_, index) => index !== indexToRemove));
+    setIndirectExports((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
   const goNext = () => {
@@ -753,8 +754,7 @@ export default function App() {
     if (currentStep === stepIndexById.proyecto) {
       const nextErrors = {};
       const fields = [
-        { key: 'machineryUi', label: 'maquinaria' },
-        { key: 'installationsUi', label: 'instalaciones' },
+        { key: 'machineryUi', label: 'bienes muebles' },
         { key: 'civilWorksUi', label: 'obra civil' },
         { key: 'industrialParkInvestmentUi', label: 'parque industrial' },
       ];
@@ -785,7 +785,6 @@ export default function App() {
       setInputs((prev) => ({
         ...prev,
         machineryUi: parseNumericValue(numericValues.machineryUi) ?? 0,
-        installationsUi: parseNumericValue(numericValues.installationsUi) ?? 0,
         civilWorksUi: parseNumericValue(numericValues.civilWorksUi) ?? 0,
         industrialParkInvestmentUi: parseNumericValue(numericValues.industrialParkInvestmentUi) ?? 0,
         investment: investmentTotal,
@@ -824,10 +823,8 @@ export default function App() {
     setMgapExportSelection('');
     setMgapExportInitial('');
     setMgapExportIncrease('');
-    setMgapExportItems([]);
+    setIndirectExports([]);
     setMgapExportError('');
-    setMinturInitial('');
-    setMinturIncrease('');
   };
 
   return (
@@ -850,7 +847,7 @@ export default function App() {
           <div>
             <div className="proj-header">{'Simulador de Exoneración'}</div>
             <p className="muted">
-              {'Completa la información paso a paso para simular el beneficio COMAP estimado.'}
+              {'Completa la Información paso a paso para simular el beneficio COMAP estimado.'}
             </p>
           </div>
         </div>
@@ -911,10 +908,9 @@ export default function App() {
                 >
                   <option value="">Seleccionar...</option>
                   <option value="industria">Industria</option>
-                  <option value="servicios">Servicios</option>
-                  <option value="agro">Agro</option>
+                  <option value="servicios">Comercio y Servicios</option>
+                  <option value="agro">Agropecuario</option>
                   <option value="turismo">Turismo</option>
-                  <option value="energia">Energía</option>
                 </select>
               </div>
             </div>
@@ -1021,14 +1017,14 @@ export default function App() {
                       desarrolladas en el parque
                     </option>
                     <option value="energia-solar">
-                      Actividades de generación de energía solar térmica y/o fotovoltaica enmarcados
+                      Actividades de Generación de Energía solar térmica y/o fotovoltaica enmarcados
                       en medidas promocionales del Poder Ejecutivo
                     </option>
                     <option value="valorizacion-residuos">
                       Actividades de valorización y aprovechamiento de residuos
                     </option>
                     <option value="servicios-tic-biotecnologia">
-                      Actividades de servicios en las áreas de tecnologías de información y
+                      Actividades de servicios en las áreas de tecnologías de Información y
                       comunicación, biotecnología, industrias creativas dado su potencial para la
                       contribución a los objetivos establecidos en el artículo 1 de la Ley N°
                       19.784
@@ -1038,9 +1034,7 @@ export default function App() {
                 <div />
               </div>
             ) : null}
-          </section>
 
-          <section className={`step${currentStep === stepIndexById.proyecto ? ' active' : ''}`}>
             <div className="row">
               <div className="field-group">
                 <label className="field-label" htmlFor="evaluatingMinistry">
@@ -1061,6 +1055,11 @@ export default function App() {
                   <option value="mintur">MINTUR</option>
                 </select>
               </div>
+            </div>
+          </section>
+
+          <section className={`step${currentStep === stepIndexById.proyecto ? ' active' : ''}`}>
+            <div className="row">
               <div className="field-group">
                 <label className="field-label" htmlFor="filedDate">
                   Fecha de Presentacion
@@ -1100,7 +1099,7 @@ export default function App() {
 
             <div className="form-grid">
               <NumericField
-                label="Maquinas y equipos (UI)"
+                label="Bienes muebles (UI)"
                 name="machineryUi"
                 placeholder="Ej: 3000000"
                 value={numericValues.machineryUi ?? ''}
@@ -1109,16 +1108,7 @@ export default function App() {
                 onBlur={handleNumericBlur('machineryUi')}
               />
               <NumericField
-                label="Instalaciones (UI)"
-                name="installationsUi"
-                placeholder="Ej: 4500000"
-                value={numericValues.installationsUi ?? ''}
-                error={numericErrors.installationsUi}
-                onChange={handleNumericChange('installationsUi')}
-                onBlur={handleNumericBlur('installationsUi')}
-              />
-              <NumericField
-                label="Obra civil (UI)"
+                label="Obra Civil (UI)"
                 name="civilWorksUi"
                 placeholder="Ej: 2500000"
                 value={numericValues.civilWorksUi ?? ''}
@@ -1128,7 +1118,7 @@ export default function App() {
               />
               {inputs.isIndustrialParkUser === 'si' ? (
                 <NumericField
-                  label="Inversión dentro de parque industrial (UI)"
+                  label="inversión dentro de parque industrial (UI)"
                   name="industrialParkInvestmentUi"
                   placeholder="Ej: 1500000"
                   value={numericValues.industrialParkInvestmentUi ?? ''}
@@ -1142,7 +1132,7 @@ export default function App() {
             <div className="row row-narrow">
               <div className="field-group">
                 <label className="field-label" htmlFor="investmentTotalUi">
-                  Inversión elegible total (UI)
+                  inversión elegible total (UI)
                 </label>
                 <div id="investmentTotalUi" className="field-control">
                   {formatNumberForDisplay(investmentTotal, 0)}
@@ -1151,7 +1141,7 @@ export default function App() {
 
               <div className="field-group">
                 <label className="field-label" htmlFor="investmentTotalUsd">
-                  Inversión elegible total (USD)
+                  inversión elegible total (USD)
                 </label>
                 <div id="investmentTotalUsd" className="field-control">
                   {formatNumberForDisplay(investmentTotalUsd, 2)}
@@ -1327,10 +1317,9 @@ export default function App() {
           </section>
 
           <section className={`step${currentStep === stepIndexById.exportaciones ? ' active' : ''}`}>
-            {inputs.evaluatingMinistry !== 'mintur' ? (
-              <div className="row">
+            <div className="row">
                 <NumericField
-                  label="Exportaciones actuales (USD/año)"
+                  label="Exportaciones actuales (USD/Año)"
                   name="currentExports"
                   placeholder="Ej: 500000"
                   value={numericValues.currentExports ?? ''}
@@ -1339,7 +1328,7 @@ export default function App() {
                   onBlur={handleNumericBlur('currentExports')}
                 />
                 <NumericField
-                  label="Incremento exportaciones (USD/año)"
+                  label="Incremento exportaciones (USD/Año)"
                   name="exportIncrease"
                   placeholder="Ej: 900000"
                   value={numericValues.exportIncrease ?? ''}
@@ -1348,7 +1337,6 @@ export default function App() {
                   onBlur={handleNumericBlur('exportIncrease')}
                 />
               </div>
-            ) : null}
 
             {inputs.evaluatingMinistry === 'mgap' ? (
               <>
@@ -1412,7 +1400,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {mgapExportItems.length ? (
+                {indirectExports.length ? (
                   <div className="table five-col">
                     <div className="table-row table-header">
                       <div className="table-cell">Situación inicial (USD)</div>
@@ -1421,7 +1409,7 @@ export default function App() {
                       <div className="table-cell">Coef x incremento</div>
                       <div className="table-cell">Acciones</div>
                     </div>
-                    {mgapExportItems.map((item, index) => {
+                    {indirectExports.map((item, index) => {
                       const weighted = (item.pct / 100) * item.increase;
                       return (
                         <div className="table-row" key={`${item.id}-${index}`}>
@@ -1451,38 +1439,7 @@ export default function App() {
             {inputs.evaluatingMinistry === 'mintur' ? (
               <>
                 <div className="section-subtitle">{'Indicador MINTUR'}</div>
-                <div className="row row-narrow">
-                  <div className="field-group">
-                    <label className="field-label" htmlFor="minturInitial">
-                      Situación inicial (USD)
-                    </label>
-                    <input
-                      id="minturInitial"
-                      className="field-control"
-                      type="text"
-                      inputMode="decimal"
-                      value={minturInitial}
-                      onChange={(event) => setMinturInitial(event.target.value)}
-                      onBlur={handleAmountBlur(setMinturInitial)}
-                      placeholder="Ej: 100000"
-                    />
-                  </div>
-                  <div className="field-group">
-                    <label className="field-label" htmlFor="minturIncrease">
-                      Promedio incremento
-                    </label>
-                    <input
-                      id="minturIncrease"
-                      className="field-control"
-                      type="text"
-                      inputMode="decimal"
-                      value={minturIncrease}
-                      onChange={(event) => setMinturIncrease(event.target.value)}
-                      onBlur={handleAmountBlur(setMinturIncrease)}
-                      placeholder="Ej: 20000"
-                    />
-                  </div>
-                </div>
+
                 <div className="row row-narrow">
                   <div className="field-group">
                     <label className="field-label" htmlFor="minturCoefficient">
@@ -1619,7 +1576,7 @@ export default function App() {
                     setInputs((prev) => ({ ...prev, certification: event.target.value }))
                   }
                 >
-                  <option value="none">Sin certificación</option>
+                  <option value="none">Sin Certificación</option>
                   <option value="leed">Leed</option>
                   <option value="leed-plata">Leed Plata</option>
                   <option value="leed-oro">Leed Oro</option>
@@ -1692,7 +1649,7 @@ export default function App() {
                   <option value="hidrogeno-verde">
                     Cadena de valor del hidrógeno verde y sus derivados
                   </option>
-                  <option value="residuos-reciclaje">Valorización de residuos y reciclaje</option>
+                  <option value="residuos-reciclaje">valorización de residuos y reciclaje</option>
                   <option value="bioinsumos">Producción de Bioinsumos</option>
                   <option value="farmaceutica-ciencias">
                     Industria farmacéutica y ciencias de la vida
@@ -1736,7 +1693,7 @@ export default function App() {
             {inputs.evaluatingMinistry === 'mintur' ? (
               <div className="spacer-top">
                 <label className="field-label">
-                  Localización Servicios e Infraestructura Turística en zona turística
+                  Localización Servicios e Infraestructura turística en zona turística
                 </label>
                 <div className="radio">
                   <label className="pill">
@@ -1797,7 +1754,7 @@ export default function App() {
           >
             <div className="row row-narrow">
               <NumericField
-                label="Inversión en energías renovables (UI)"
+                label="inversión en Energías renovables (UI)"
                 name="mefRenewableInvestmentUi"
                 placeholder="Ej: 500000"
                 value={numericValues.mefRenewableInvestmentUi ?? ''}
@@ -1829,7 +1786,7 @@ export default function App() {
                   <p className="metric-value">{(iraePct * 100).toFixed(1)}%</p>
                 </div>
                 <div className="metric-card">
-                  <p className="metric-title">Años de exoneración</p>
+                  <p className="metric-title">Años de Exoneración</p>
                   <p className="metric-value">{exonerationYears}</p>
                 </div>
               </div>
@@ -1867,3 +1824,8 @@ export default function App() {
     </div>
   );
 }
+
+
+
+
+

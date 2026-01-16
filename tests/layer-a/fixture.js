@@ -44,8 +44,9 @@ export const baselineFixture = {
     },
   },
   exports: {
-    minturInitial: 2000000,
-    minturIncrease: 100000,
+    currentExports: 2000000,
+    exportIncrease: 0,
+    indirectExports: [{ pct: 100, increase: 100000 }],
   },
   decentralization: {
     rocha: 4000000,
@@ -115,9 +116,7 @@ export const calculateScores = (fixture) => {
     currentExports: fixture.exports.currentExports ?? 0,
     exportIncrease: fixture.exports.exportIncrease ?? 0,
     totalInvestment,
-    mgapExportItems: fixture.exports.mgapExportItems ?? [],
-    minturInitial: fixture.exports.minturInitial ?? 0,
-    minturIncrease: fixture.exports.minturIncrease ?? 0,
+    indirectExports: fixture.exports.indirectExports ?? [],
   };
 
   const deptAllocations = Object.entries(fixture.decentralization)

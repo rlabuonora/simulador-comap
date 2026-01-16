@@ -13,7 +13,11 @@ const scenario = {
     base: { noVulnerable: 0, women: 0, youth: 0, disability: 0, dinali: 0, tus: 0 },
     inc: { noVulnerable: 150, women: 30, youth: 20, disability: 0, dinali: 0, tus: 0 },
   },
-  exports: { mgapInitial: 0, mgapIncrease: 0 },
+  exports: {
+    currentExports: 800000,
+    exportIncrease: 1000000,
+    indirectExports: [{ pct: 75, increase: 200000 }],
+  },
   decentralization: { artigas: 350000 },
   sustainability: { amountUi: 20000, certification: 'none' },
   iplus: { amountUi: 0, category: 'none' },
@@ -23,11 +27,15 @@ const scenario = {
 test('G1 - Micro rural startup', () => {
   // Policy: new rural agro firm should qualify with modest IRAE; employment leads.
   const { scores, total, irae, years } = computeScenario(scenario);
-    console.log('Scores:', scores);
 
   expect(total).toBeGreaterThanOrEqual(1);
-  expect(irae).toBeCloseTo(0.6289, 4);
-  expect(years).toBe(8);
+  expect(total).toBeCloseTo(6.73, 2);
+  expect(scores.exports).toBeCloseTo(10, 2);
+  expect(scores.decentralization).toBe(10);
+  expect(scores.sustainability).toBeCloseTo(1.14, 2);
+  expect(scores.iPlus).toBe(0);
+  expect(irae).toBeCloseTo(0.8957, 4);
+  expect(years).toBe(14);
   const maxCoreScore = Math.max(
     scores.exports,
     scores.sustainability,

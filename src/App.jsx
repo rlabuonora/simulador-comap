@@ -305,12 +305,12 @@ const BASE_STEPS = [
   },
   {
     id: 'impacto-ambiental',
-    label: 'Impacto ambiental',
-    hint: 'Datos de impacto ambiental.',
+    label: 'Sostenibilidad mbiental',
+    hint: 'Datos de Sostenibilidad ambiental.',
   },
   {
     id: 'transformacion',
-    label: 'Transformación productiva (I+)',
+    label: 'Adecuación Tecnológica, Innovación, Investigación y Desarrollo',
     hint: 'Desarrollo tecnológico.',
   },
   {

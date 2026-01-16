@@ -462,6 +462,14 @@ export default function App() {
     scoringInputs,
   ]);
 
+  const coreScoreSum = useMemo(() => {
+    return Object.entries(scores).reduce((sum, [key, value]) => {
+      if (key === 'decentralization') {
+        return sum;
+      }
+      return sum + (value ?? 0) * WEIGHTS[key];
+    }, 0);
+  }, [scores]);
   const totalScore = useMemo(() => finalScore(scores), [scores]);
   const iraePct = useMemo(
     () =>
@@ -474,14 +482,6 @@ export default function App() {
       }),
     [companyCategory, coreScoreSum, inputs.filedDate, investmentTotal, scores, totalScore]
   );
-  const coreScoreSum = useMemo(() => {
-    return Object.entries(scores).reduce((sum, [key, value]) => {
-      if (key === 'decentralization') {
-        return sum;
-      }
-      return sum + (value ?? 0) * WEIGHTS[key];
-    }, 0);
-  }, [scores]);
   const exonerationYears = useMemo(
     () =>
       computeIraeYears({

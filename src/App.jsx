@@ -3,6 +3,7 @@ import SummaryChart from './components/SummaryChart.jsx';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import {
+  classifyCompany,
   computeIraePct,
   finalScore,
   scoreDecentralization,
@@ -119,6 +120,7 @@ const defaultInputs = {
   iPlusCategory: 'at',
   ministry: '',
   evaluatingMinistry: '',
+  filedDate: '',
   strategicLine: '',
   strategicInvestmentPct: 0,
   isNewCompany: 'no',
@@ -135,7 +137,7 @@ const getDecimalPlaces = (rawValue) => {
   return match ? Math.min(match[1].length, 2) : 0;
 };
 
-  const parseNumericValue = (value) => {
+const parseNumericValue = (value) => {
   const raw = String(value ?? '').trim();
   if (!raw) {
     return null;
@@ -387,6 +389,15 @@ export default function App() {
     );
   }, [numericValues.civilWorksUi, numericValues.installationsUi, numericValues.machineryUi]);
 
+  const companyCategory = useMemo(() => {
+    const revenue = parseNumericValue(numericValues.annualBillingUi) ?? 0;
+    const employees = parseNumericValue(numericValues.employees) ?? 0;
+    if (!revenue && !employees) {
+      return '';
+    }
+    return classifyCompany(revenue, employees);
+  }, [numericValues.annualBillingUi, numericValues.employees]);
+
   const scoringInputs = useMemo(() => {
     const merged = { ...inputs };
     Object.entries(numericValues).forEach(([key, value]) => {
@@ -451,7 +462,16 @@ export default function App() {
   ]);
 
   const totalScore = useMemo(() => finalScore(scores), [scores]);
-  const iraePct = useMemo(() => computeIraePct(totalScore), [totalScore]);
+  const iraePct = useMemo(
+    () =>
+      computeIraePct(totalScore, {
+        scores,
+        investmentTotal,
+        filedDate: inputs.filedDate,
+        firmSize: companyCategory || undefined,
+      }),
+    [companyCategory, inputs.filedDate, investmentTotal, scores, totalScore]
+  );
   const exonerationYears = totalScore >= 8 ? 10 : totalScore >= 6 ? 7 : totalScore >= 4 ? 5 : 3;
 
   const investmentTotalUsd = useMemo(() => {
@@ -880,6 +900,17 @@ export default function App() {
               </div>
             </div>
 
+            <div className="row row-narrow">
+              <div className="field-group">
+                <label className="field-label" htmlFor="companyCategory">
+                  Categoría de Empresa
+                </label>
+                <div id="companyCategory" className="field-control">
+                  {companyCategory || '-'}
+                </div>
+              </div>
+            </div>
+
             <div className="row">
               <div className="field-group">
                 <label className="field-label">Empresa nueva</label>
@@ -1011,7 +1042,20 @@ export default function App() {
                   <option value="mintur">MINTUR</option>
                 </select>
               </div>
-              <div />
+              <div className="field-group">
+                <label className="field-label" htmlFor="filedDate">
+                  Fecha de Presentacion
+                </label>
+                <input
+                  id="filedDate"
+                  className="field-control"
+                  type="date"
+                  value={inputs.filedDate}
+                  onChange={(event) =>
+                    setInputs((prev) => ({ ...prev, filedDate: event.target.value }))
+                  }
+                />
+              </div>
             </div>
 
             <div className="row row-narrow">

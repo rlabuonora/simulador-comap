@@ -1,4 +1,3 @@
-import { test, expect } from '@playwright/test';
 import {
   assertGlobalInvariants,
   baselineFixture,
@@ -140,7 +139,7 @@ const cases = [
   },
 ];
 
-test.describe('Layer A: Employment indicator', () => {
+describe('Layer A: Employment indicator', () => {
   cases.forEach((testCase) => {
     test(`${testCase.id}: ${testCase.name}`, () => {
       const fixture = withMutation(testCase.mutation);

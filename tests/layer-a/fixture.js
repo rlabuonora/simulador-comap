@@ -1,4 +1,5 @@
 import {
+  classifyCompany,
   computeIraePct,
   finalScore,
   scoreDecentralization,
@@ -7,7 +8,7 @@ import {
   scoreIPlus,
   scoreStrategic,
   scoreSustainability,
-} from '../../../src/utils/scoring.js';
+} from '../../src/utils/scoring.js';
 
 export const baselineFixture = {
   company: {
@@ -153,7 +154,16 @@ export const calculateScores = (fixture) => {
   };
 
   const totalScore = finalScore(scores);
-  const irae = computeIraePct(totalScore);
+  const firmSize = classifyCompany(
+    fixture.company?.annualBillingUi ?? 0,
+    fixture.company?.employees ?? 0
+  );
+  const irae = computeIraePct(totalScore, {
+    scores,
+    investmentTotal: totalInvestment,
+    filedDate: fixture.project?.filedDate,
+    firmSize,
+  });
 
   return {
     scores,

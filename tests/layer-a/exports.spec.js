@@ -1,4 +1,3 @@
-import { test, expect } from '@playwright/test';
 import { assertGlobalInvariants, calculateScores, withMutation } from './fixture.js';
 
 const cases = [
@@ -57,7 +56,7 @@ const cases = [
   },
 ];
 
-test.describe('Layer A: Exports indicator', () => {
+describe('Layer A: Exports indicator', () => {
   cases.forEach((testCase) => {
     test(`${testCase.id}: ${testCase.name}`, () => {
       const fixture = withMutation(testCase.mutation);

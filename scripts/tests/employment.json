@@ -1,7 +1,0 @@
-[
-  {
-    "name": "Puntos por colectivos",
-    "input": { "othersIncrease": 5, "womenIncrease": 2 },
-    "expected": 7.5
-  }
-]

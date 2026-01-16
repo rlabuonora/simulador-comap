@@ -2,6 +2,22 @@ import { WEIGHTS } from './constants.js';
 
 const clamp = (value, min = 0, max = 10) => Math.min(Math.max(value, min), max);
 
+export function classifyCompany(revenue, employees) {
+  if (revenue > 75_000_000) {
+    return 'GRAN EMPRESA';
+  }
+  if (employees <= 4 && revenue <= 2_000_000) {
+    return 'MICRO';
+  }
+  if (employees <= 19 && revenue <= 10_000_000) {
+    return 'PEQUEÑA';
+  }
+  if (employees <= 50 && revenue <= 75_000_000) {
+    return 'MEDIANA';
+  }
+  return 'GRAN EMPRESA';
+}
+
 export function scoreEmployment({
   investmentUi = 0,
   othersBase = 0,
@@ -251,6 +267,17 @@ export function scoreStrategic({ strategicPriorities }) {
 }
 
 export function finalScore(scores) {
+  const coreTotal = Object.keys(WEIGHTS).reduce((sum, key) => {
+    if (key === 'decentralization') {
+      return sum;
+    }
+    return sum + (scores[key] ?? 0) * WEIGHTS[key];
+  }, 0);
+
+  if (coreTotal < 1) {
+    return 0;
+  }
+
   const total = Object.keys(WEIGHTS).reduce((sum, key) => {
     return sum + (scores[key] ?? 0) * WEIGHTS[key];
   }, 0);
@@ -258,6 +285,44 @@ export function finalScore(scores) {
   return clamp(total, 0, 10);
 }
 
-export function computeIraePct(finalScoreValue) {
-  return Math.min(((finalScoreValue - 1) / 9) * 0.7 + 0.3, 1);
+const isIsoDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value);
+
+const isOnOrBefore = (dateValue, cutoff) => {
+  if (!isIsoDate(dateValue)) {
+    return false;
+  }
+  return dateValue <= cutoff;
+};
+
+export function computeIraePct(finalScoreValue, options = {}) {
+  const { scores, investmentTotal, filedDate, firmSize } = options;
+  const hasOverrideInputs =
+    scores && typeof investmentTotal === 'number' && Number.isFinite(investmentTotal) && filedDate;
+
+  if (hasOverrideInputs) {
+    const iPlusScore = scores.iPlus ?? 0;
+    const employmentScore = scores.employment ?? 0;
+    const inWindowA =
+      isOnOrBefore(filedDate, '2027-12-31') &&
+      investmentTotal >= 180_000_000 &&
+      investmentTotal < 300_000_000;
+    const inWindowB =
+      isOnOrBefore(filedDate, '2028-12-31') && investmentTotal >= 300_000_000;
+
+    if (iPlusScore >= 4 && employmentScore >= 5 && (inWindowA || inWindowB)) {
+      return 1;
+    }
+  }
+
+  const roundedScore = Math.round(finalScoreValue * 100) / 100;
+  const baseRate = ((roundedScore - 1) / 9) * 0.7 + 0.3;
+  let bonus = 0;
+
+  if (firmSize === 'MICRO' || firmSize === 'PEQUEÑA') {
+    bonus = 0.15;
+  } else if (firmSize === 'MEDIANA') {
+    bonus = 0.1;
+  }
+
+  return Math.min(baseRate + bonus, 1);
 }

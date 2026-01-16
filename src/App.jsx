@@ -120,7 +120,7 @@ const defaultInputs = {
   iPlusCategory: 'at',
   ministry: '',
   evaluatingMinistry: '',
-  filedDate: '',
+  filedDate: new Date().toISOString().slice(0, 10),
   strategicLine: '',
   strategicInvestmentPct: 0,
   isNewCompany: 'no',
@@ -129,6 +129,9 @@ const defaultInputs = {
   fieldNaturalPct: 0,
   tourismZoneLocation: '',
   mineralProcessingLevel: '',
+  nationalComponent: 'no',
+  nationalGoodsUi: 0,
+  nationalCivilWorksUi: 0,
 };
 
 
@@ -212,6 +215,9 @@ const buildNumericValues = (source) => {
     strategicInvestmentPct:
       source.strategicInvestmentPct === 0 ? '0' : String(source.strategicInvestmentPct ?? ''),
     fieldNaturalPct: source.fieldNaturalPct === 0 ? '0' : String(source.fieldNaturalPct ?? ''),
+    nationalGoodsUi: source.nationalGoodsUi === 0 ? '0' : String(source.nationalGoodsUi ?? ''),
+    nationalCivilWorksUi:
+      source.nationalCivilWorksUi === 0 ? '0' : String(source.nationalCivilWorksUi ?? ''),
   };
 
   departments.forEach((dept) => {
@@ -1745,6 +1751,61 @@ export default function App() {
                   <option value="intermedia">Transformación Intermedia</option>
                   <option value="maxima">Transformación Máxima</option>
                 </select>
+              </div>
+            ) : null}
+
+            <div className="spacer-top">
+              <label className="field-label">Componente Nacional</label>
+              <div className="radio">
+                <label className="pill">
+                  <input
+                    type="radio"
+                    name="nationalComponent"
+                    value="si"
+                    checked={inputs.nationalComponent === 'si'}
+                    onChange={(event) =>
+                      setInputs((prev) => ({ ...prev, nationalComponent: event.target.value }))
+                    }
+                  />
+                  Si
+                </label>
+                <label className="pill">
+                  <input
+                    type="radio"
+                    name="nationalComponent"
+                    value="no"
+                    checked={inputs.nationalComponent === 'no'}
+                    onChange={(event) =>
+                      setInputs((prev) => ({ ...prev, nationalComponent: event.target.value }))
+                    }
+                  />
+                  No
+                </label>
+              </div>
+            </div>
+
+            {inputs.nationalComponent === 'si' ? (
+              <div className="row row-narrow spacer-top">
+                <NumericField
+                  label="Bienes muebles Nacional (UI)"
+                  name="nationalGoodsUi"
+                  placeholder="Ej: 200000"
+                  value={numericValues.nationalGoodsUi ?? ''}
+                  error={numericErrors.nationalGoodsUi}
+                  onChange={handleNumericChange('nationalGoodsUi')}
+                  onBlur={handleNumericBlur('nationalGoodsUi')}
+                  className="narrow-field"
+                />
+                <NumericField
+                  label="Materiales Obra Civil Nacional (UI)"
+                  name="nationalCivilWorksUi"
+                  placeholder="Ej: 150000"
+                  value={numericValues.nationalCivilWorksUi ?? ''}
+                  error={numericErrors.nationalCivilWorksUi}
+                  onChange={handleNumericChange('nationalCivilWorksUi')}
+                  onBlur={handleNumericBlur('nationalCivilWorksUi')}
+                  className="narrow-field"
+                />
               </div>
             ) : null}
           </section>

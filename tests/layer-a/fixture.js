@@ -102,12 +102,14 @@ export const calculateScores = (fixture) => {
     disabilityBase: fixture.employment.base.disability,
     dinaliBase: fixture.employment.base.dinali,
     tusTransBase: fixture.employment.base.tus,
+    protectedProgramBase: fixture.employment.base.protectedProgram ?? 0,
     othersIncrease: fixture.employment.inc.noVulnerable,
     womenIncrease: fixture.employment.inc.women,
     youthIncrease: fixture.employment.inc.youth,
     disabilityIncrease: fixture.employment.inc.disability,
     dinaliIncrease: fixture.employment.inc.dinali,
     tusTransIncrease: fixture.employment.inc.tus,
+    protectedProgramIncrease: fixture.employment.inc.protectedProgram ?? 0,
   };
 
   const exportInputs = {
@@ -142,6 +144,10 @@ export const calculateScores = (fixture) => {
 
   const strategicInputs = {
     strategicPriorities: fixture.strategic.priorities,
+    evaluatingMinistry: fixture.project?.ministry ?? '',
+    minturStrategicFlag: fixture.strategic.minturFlag ?? 'no',
+    minturInvestmentZoneUi: fixture.strategic.minturInvestmentZoneUi ?? 0,
+    minturInvestmentOutsideUi: fixture.strategic.minturInvestmentOutsideUi ?? 0,
   };
 
   const scores = {

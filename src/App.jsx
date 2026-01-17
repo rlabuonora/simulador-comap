@@ -83,6 +83,41 @@ const MGAP_EXPORT_OPTIONS = [
   },
 ];
 
+const MIEM_STRATEGIC_INDICATORS = [
+  {
+    id: 'miemEnergy',
+    label: 'Eficiencia energética y desfosilización',
+  },
+  {
+    id: 'miemHydrogen',
+    label: 'Cadena de valor del hidrógeno verde y derivados',
+  },
+  {
+    id: 'miemWaste',
+    label: 'Valorización de residuos y reciclaje',
+  },
+  {
+    id: 'miemBio',
+    label: 'Producción de bioinsumos',
+  },
+  {
+    id: 'miemPharma',
+    label: 'Industria farmacéutica y ciencias de la vida',
+  },
+  {
+    id: 'miemAerospace',
+    label: 'Cadena industrial aeroespacial',
+  },
+  {
+    id: 'miemSatellites',
+    label: 'Plataformas satelitales',
+  },
+].map((item) => ({
+  ...item,
+  flagKey: `${item.id}Flag`,
+  amountKey: `${item.id}InvestmentUi`,
+}));
+
 const defaultInputs = {
   investment: 0,
   employees: 0,
@@ -92,8 +127,9 @@ const defaultInputs = {
   machineryUi: 0,
   civilWorksUi: 0,
   industrialParkInvestmentUi: 0,
-  mefRenewableInvestmentUi: 0,
-  occupiedPersonnel: 0,
+    mefRenewableInvestmentUi: 0,
+    occupiedPersonnel: 0,
+    mineralEligibleInvestmentUi: 0,
   deptAllocations: [],
   exportPct: 35,
   sustainabilityAmount: 0,
@@ -112,6 +148,8 @@ const defaultInputs = {
   dinaliIncrease: 0,
   tusTransBase: 0,
   tusTransIncrease: 0,
+  protectedProgramBase: 0,
+  protectedProgramIncrease: 0,
   othersBase: 0,
   othersIncrease: 0,
   currentExports: 0,
@@ -129,9 +167,28 @@ const defaultInputs = {
   fieldNaturalPct: 0,
   tourismZoneLocation: '',
   mineralProcessingLevel: '',
+  minturStrategicFlag: 'no',
+  minturInvestmentZoneUi: 0,
+  minturInvestmentOutsideUi: 0,
+  miemEnergyFlag: 'no',
+  miemEnergyInvestmentUi: 0,
+  miemHydrogenFlag: 'no',
+  miemHydrogenInvestmentUi: 0,
+  miemWasteFlag: 'no',
+  miemWasteInvestmentUi: 0,
+  miemBioFlag: 'no',
+  miemBioInvestmentUi: 0,
+  miemPharmaFlag: 'no',
+  miemPharmaInvestmentUi: 0,
+  miemAerospaceFlag: 'no',
+  miemAerospaceInvestmentUi: 0,
+  miemSatellitesFlag: 'no',
+  miemSatellitesInvestmentUi: 0,
   nationalComponent: 'no',
   nationalGoodsUi: 0,
+  nationalGoodsTotalUi: 0,
   nationalCivilWorksUi: 0,
+  civilWorksMaterialsUi: 0,
 };
 
 
@@ -195,6 +252,14 @@ const buildNumericValues = (source) => {
       source.mefRenewableInvestmentUi === 0 ? '0' : String(source.mefRenewableInvestmentUi ?? ''),
     occupiedPersonnel:
       source.occupiedPersonnel === 0 ? '0' : String(source.occupiedPersonnel ?? ''),
+    mineralEligibleInvestmentUi:
+      source.mineralEligibleInvestmentUi === 0
+        ? '0'
+        : String(source.mineralEligibleInvestmentUi ?? ''),
+    minturInvestmentZoneUi:
+      source.minturInvestmentZoneUi === 0 ? '0' : String(source.minturInvestmentZoneUi ?? ''),
+    minturInvestmentOutsideUi:
+      source.minturInvestmentOutsideUi === 0 ? '0' : String(source.minturInvestmentOutsideUi ?? ''),
     womenBase: String(source.womenBase ?? ''),
     womenIncrease: String(source.womenIncrease ?? ''),
     youthBase: String(source.youthBase ?? ''),
@@ -205,6 +270,8 @@ const buildNumericValues = (source) => {
     dinaliIncrease: String(source.dinaliIncrease ?? ''),
     tusTransBase: String(source.tusTransBase ?? ''),
     tusTransIncrease: String(source.tusTransIncrease ?? ''),
+    protectedProgramBase: String(source.protectedProgramBase ?? ''),
+    protectedProgramIncrease: String(source.protectedProgramIncrease ?? ''),
     othersBase: String(source.othersBase ?? ''),
     othersIncrease: String(source.othersIncrease ?? ''),
     currentExports: String(source.currentExports ?? ''),
@@ -216,8 +283,26 @@ const buildNumericValues = (source) => {
       source.strategicInvestmentPct === 0 ? '0' : String(source.strategicInvestmentPct ?? ''),
     fieldNaturalPct: source.fieldNaturalPct === 0 ? '0' : String(source.fieldNaturalPct ?? ''),
     nationalGoodsUi: source.nationalGoodsUi === 0 ? '0' : String(source.nationalGoodsUi ?? ''),
+    nationalGoodsTotalUi:
+      source.nationalGoodsTotalUi === 0 ? '0' : String(source.nationalGoodsTotalUi ?? ''),
     nationalCivilWorksUi:
       source.nationalCivilWorksUi === 0 ? '0' : String(source.nationalCivilWorksUi ?? ''),
+    civilWorksMaterialsUi:
+      source.civilWorksMaterialsUi === 0 ? '0' : String(source.civilWorksMaterialsUi ?? ''),
+    miemEnergyInvestmentUi:
+      source.miemEnergyInvestmentUi === 0 ? '0' : String(source.miemEnergyInvestmentUi ?? ''),
+    miemHydrogenInvestmentUi:
+      source.miemHydrogenInvestmentUi === 0 ? '0' : String(source.miemHydrogenInvestmentUi ?? ''),
+    miemWasteInvestmentUi:
+      source.miemWasteInvestmentUi === 0 ? '0' : String(source.miemWasteInvestmentUi ?? ''),
+    miemBioInvestmentUi:
+      source.miemBioInvestmentUi === 0 ? '0' : String(source.miemBioInvestmentUi ?? ''),
+    miemPharmaInvestmentUi:
+      source.miemPharmaInvestmentUi === 0 ? '0' : String(source.miemPharmaInvestmentUi ?? ''),
+    miemAerospaceInvestmentUi:
+      source.miemAerospaceInvestmentUi === 0 ? '0' : String(source.miemAerospaceInvestmentUi ?? ''),
+    miemSatellitesInvestmentUi:
+      source.miemSatellitesInvestmentUi === 0 ? '0' : String(source.miemSatellitesInvestmentUi ?? ''),
   };
 
   departments.forEach((dept) => {
@@ -311,7 +396,7 @@ const BASE_STEPS = [
   },
   {
     id: 'impacto-ambiental',
-    label: 'Sostenibilidad mbiental',
+    label: 'Sostenibilidad ambiental',
     hint: 'Datos de Sostenibilidad ambiental.',
   },
   {
@@ -434,12 +519,14 @@ export default function App() {
         disabilityBase: parseNumericValue(numericValues.disabilityBase) ?? 0,
         dinaliBase: parseNumericValue(numericValues.dinaliBase) ?? 0,
         tusTransBase: parseNumericValue(numericValues.tusTransBase) ?? 0,
+        protectedProgramBase: parseNumericValue(numericValues.protectedProgramBase) ?? 0,
         othersIncrease: parseNumericValue(numericValues.othersIncrease) ?? 0,
         womenIncrease: parseNumericValue(numericValues.womenIncrease) ?? 0,
         youthIncrease: parseNumericValue(numericValues.youthIncrease) ?? 0,
         disabilityIncrease: parseNumericValue(numericValues.disabilityIncrease) ?? 0,
         dinaliIncrease: parseNumericValue(numericValues.dinaliIncrease) ?? 0,
         tusTransIncrease: parseNumericValue(numericValues.tusTransIncrease) ?? 0,
+        protectedProgramIncrease: parseNumericValue(numericValues.protectedProgramIncrease) ?? 0,
       }),
       decentralization: scoreDecentralization(scoringInputs),
       exports: scoreExports({
@@ -458,6 +545,8 @@ export default function App() {
     numericValues.dinaliBase,
     numericValues.othersIncrease,
     numericValues.othersBase,
+    numericValues.protectedProgramIncrease,
+    numericValues.protectedProgramBase,
     numericValues.tusTransIncrease,
     numericValues.tusTransBase,
     numericValues.womenIncrease,
@@ -851,9 +940,9 @@ export default function App() {
       <main className="layout">
         <div className="header-bar">
           <div>
-            <div className="proj-header">{'Simulador de Exoneración'}</div>
+            <div className="proj-header">{'COMAP - Simulador de Exoneración IRAE'}</div>
             <p className="muted">
-              {'Completa la Información paso a paso para simular el beneficio COMAP estimado.'}
+              {'Decreto 329/025'}
             </p>
           </div>
         </div>
@@ -1217,7 +1306,7 @@ export default function App() {
               </div>
 
               <div className="table-row">
-                <div className="table-cell">Jovenes</div>
+                <div className="table-cell">Jóvenes (15-29 años)</div>
                 <div className="table-cell">
                   <NumericField
                     label="Jovenes (situacion inicial)"
@@ -1243,7 +1332,7 @@ export default function App() {
               </div>
 
               <div className="table-row">
-                <div className="table-cell">Discapacitados</div>
+                <div className="table-cell">Personas con discapacidad</div>
                 <div className="table-cell">
                   <NumericField
                     label="Discapacitados (situacion inicial)"
@@ -1269,7 +1358,7 @@ export default function App() {
               </div>
 
               <div className="table-row">
-                <div className="table-cell">DINALI</div>
+                <div className="table-cell">Personas atendidas por DINALI</div>
                 <div className="table-cell">
                   <NumericField
                     label="DINALI (situacion inicial)"
@@ -1295,7 +1384,7 @@ export default function App() {
               </div>
 
               <div className="table-row">
-                <div className="table-cell">TUS/Trans</div>
+                <div className="table-cell">TUS Trans</div>
                 <div className="table-cell">
                   <NumericField
                     label="TUS/Trans (situacion inicial)"
@@ -1316,6 +1405,32 @@ export default function App() {
                     error={numericErrors.tusTransIncrease}
                     onChange={handleNumericChange('tusTransIncrease')}
                     onBlur={handleNumericBlur('tusTransIncrease')}
+                  />
+                </div>
+              </div>
+
+              <div className="table-row">
+                <div className="table-cell">Personas Programa Empleo Protegido</div>
+                <div className="table-cell">
+                  <NumericField
+                    label="Programa Empleo Protegido (situacion inicial)"
+                    name="protectedProgramBase"
+                    placeholder="Ej: 1"
+                    value={numericValues.protectedProgramBase ?? ''}
+                    error={numericErrors.protectedProgramBase}
+                    onChange={handleNumericChange('protectedProgramBase')}
+                    onBlur={handleNumericBlur('protectedProgramBase')}
+                  />
+                </div>
+                <div className="table-cell">
+                  <NumericField
+                    label="Programa Empleo Protegido (incremento)"
+                    name="protectedProgramIncrease"
+                    placeholder="Ej: 1"
+                    value={numericValues.protectedProgramIncrease ?? ''}
+                    error={numericErrors.protectedProgramIncrease}
+                    onChange={handleNumericChange('protectedProgramIncrease')}
+                    onBlur={handleNumericBlur('protectedProgramIncrease')}
                   />
                 </div>
               </div>
@@ -1599,7 +1714,7 @@ export default function App() {
           </section>
 
           <section className={`step${currentStep === stepIndexById.transformacion ? ' active' : ''}`}>
-            <div className="row iplus-row">
+            <div className="row impacto-ambiental-row">
               <NumericField
                 label="Monto inversión (UI)"
                 name="iPlusPct"
@@ -1622,64 +1737,16 @@ export default function App() {
                     setInputs((prev) => ({ ...prev, iPlusCategory: event.target.value }))
                   }
                 >
-                  <option value="at">Adecuación Tecnológica (AT) - 4</option>
-                  <option value="inn">Innovación (INN) - 7</option>
-                  <option value="id">Investigación y Desarrollo Experimental (I+D) - 10</option>
+                  <option value="at">Adecuación Tecnológica (AT)</option>
+                  <option value="inn">Innovación (INN)</option>
+                  <option value="id">Investigación y Desarrollo Experimental (I+D)</option>
                 </select>
               </div>
             </div>
           </section>
 
           <section className={`step${currentStep === stepIndexById.alineacion ? ' active' : ''}`}>
-            <div className="row row-narrow">
-              <div>
-                <label className="field-label" htmlFor="strategicLine">
-                  Línea estratégica
-                </label>
-                <select
-                  id="strategicLine"
-                  className="field-control"
-                  value={inputs.strategicLine}
-                  onChange={(event) =>
-                    setInputs((prev) => ({ ...prev, strategicLine: event.target.value }))
-                  }
-                >
-                  <option value="">Seleccionar...</option>
-                  <option value="riego">Riego</option>
-                  <option value="produccion-ganadera">Mejora de la Producción Ganadera</option>
-                  <option value="pesca-acuicultura">
-                    Desarrollo y modernización de la pesca y la acuicultura
-                  </option>
-                  <option value="infraestructura-turistica">Servicios e infraestructura turística</option>
-                  <option value="eficiencia-desfosilizacion">Eficiencia y Desfosilización</option>
-                  <option value="hidrogeno-verde">
-                    Cadena de valor del hidrógeno verde y sus derivados
-                  </option>
-                  <option value="residuos-reciclaje">valorización de residuos y reciclaje</option>
-                  <option value="bioinsumos">Producción de Bioinsumos</option>
-                  <option value="farmaceutica-ciencias">
-                    Industria farmacéutica y ciencias de la vida
-                  </option>
-                  <option value="cadena-aeroespacial">
-                    Desarrollo de una cadena industrial aeroespacial
-                  </option>
-                  <option value="plataformas-satelitales">
-                    Desarrollo y manufactura de plataformas satelitales
-                  </option>
-                  <option value="industria-nacional">Componente de Industria Nacional</option>
-                </select>
-              </div>
-              <NumericField
-                label="Monto inversión asociada (UI)"
-                name="strategicInvestmentPct"
-                placeholder="Ej: 200000"
-                value={numericValues.strategicInvestmentPct ?? ''}
-                error={numericErrors.strategicInvestmentPct}
-                onChange={handleNumericChange('strategicInvestmentPct')}
-                onBlur={handleNumericBlur('strategicInvestmentPct')}
-                className="narrow-field"
-              />
-            </div>
+            <div className="row row-narrow" />
 
             {inputs.evaluatingMinistry === 'mgap' ? (
               <div className="spacer-top">
@@ -1698,18 +1765,16 @@ export default function App() {
 
             {inputs.evaluatingMinistry === 'mintur' ? (
               <div className="spacer-top">
-                <label className="field-label">
-                  Localización Servicios e Infraestructura turística en zona turística
-                </label>
+                <label className="field-label">Servicios e Infraestructura Turística</label>
                 <div className="radio">
                   <label className="pill">
                     <input
                       type="radio"
-                      name="tourismZoneLocation"
+                      name="minturStrategicFlag"
                       value="si"
-                      checked={inputs.tourismZoneLocation === 'si'}
+                      checked={inputs.minturStrategicFlag === 'si'}
                       onChange={(event) =>
-                        setInputs((prev) => ({ ...prev, tourismZoneLocation: event.target.value }))
+                        setInputs((prev) => ({ ...prev, minturStrategicFlag: event.target.value }))
                       }
                     />
                     Si
@@ -1717,40 +1782,100 @@ export default function App() {
                   <label className="pill">
                     <input
                       type="radio"
-                      name="tourismZoneLocation"
+                      name="minturStrategicFlag"
                       value="no"
-                      checked={inputs.tourismZoneLocation === 'no'}
+                      checked={inputs.minturStrategicFlag !== 'si'}
                       onChange={(event) =>
-                        setInputs((prev) => ({ ...prev, tourismZoneLocation: event.target.value }))
+                        setInputs((prev) => ({ ...prev, minturStrategicFlag: event.target.value }))
                       }
                     />
                     No
                   </label>
                 </div>
+
+                {inputs.minturStrategicFlag === 'si' ? (
+                  <div className="row row-narrow spacer-top">
+                    <NumericField
+                      label="Inversión en zonas turísticas (UI)"
+                      name="minturInvestmentZoneUi"
+                      placeholder="Ej: 500000"
+                      value={numericValues.minturInvestmentZoneUi ?? ''}
+                      error={numericErrors.minturInvestmentZoneUi}
+                      onChange={handleNumericChange('minturInvestmentZoneUi')}
+                      onBlur={handleNumericBlur('minturInvestmentZoneUi')}
+                      className="narrow-field"
+                    />
+                    <NumericField
+                      label="Inversión fuera de zonas turísticas (UI)"
+                      name="minturInvestmentOutsideUi"
+                      placeholder="Ej: 200000"
+                      value={numericValues.minturInvestmentOutsideUi ?? ''}
+                      error={numericErrors.minturInvestmentOutsideUi}
+                      onChange={handleNumericChange('minturInvestmentOutsideUi')}
+                      onBlur={handleNumericBlur('minturInvestmentOutsideUi')}
+                      className="narrow-field"
+                    />
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
             {inputs.evaluatingMinistry === 'miem' ? (
               <div className="spacer-top">
-                <label className="field-label" htmlFor="mineralProcessingLevel">
-                  Industrialización a partir de minerales naturales
-                </label>
-                <select
-                  id="mineralProcessingLevel"
-                  className="field-control"
-                  value={inputs.mineralProcessingLevel}
-                  onChange={(event) =>
-                    setInputs((prev) => ({
-                      ...prev,
-                      mineralProcessingLevel: event.target.value,
-                    }))
-                  }
-                >
-                  <option value="">Seleccionar...</option>
-                  <option value="minima">Transformación Mínima</option>
-                  <option value="intermedia">Transformación Intermedia</option>
-                  <option value="maxima">Transformación Máxima</option>
-                </select>
+                <div className="section-subtitle">{'Indicadores estratégicos MIEM'}</div>
+                {MIEM_STRATEGIC_INDICATORS.map((indicator) => (
+                  <div key={indicator.id} className="row row-narrow">
+                    <div className="field-group">
+                      <label className="field-label">{indicator.label}</label>
+                      <div className="radio">
+                        <label className="pill">
+                          <input
+                            type="radio"
+                            name={indicator.flagKey}
+                            value="si"
+                            checked={inputs[indicator.flagKey] === 'si'}
+                            onChange={(event) =>
+                              setInputs((prev) => ({
+                                ...prev,
+                                [indicator.flagKey]: event.target.value,
+                              }))
+                            }
+                          />
+                          Si
+                        </label>
+                        <label className="pill">
+                          <input
+                            type="radio"
+                            name={indicator.flagKey}
+                            value="no"
+                            checked={inputs[indicator.flagKey] !== 'si'}
+                            onChange={(event) =>
+                              setInputs((prev) => ({
+                                ...prev,
+                                [indicator.flagKey]: event.target.value,
+                              }))
+                            }
+                          />
+                          No
+                        </label>
+                      </div>
+                    </div>
+                    {inputs[indicator.flagKey] === 'si' ? (
+                      <NumericField
+                        label="Inversión (UI)"
+                        name={indicator.amountKey}
+                        placeholder="Ej: 300000"
+                        value={numericValues[indicator.amountKey] ?? ''}
+                        error={numericErrors[indicator.amountKey]}
+                        onChange={handleNumericChange(indicator.amountKey)}
+                        onBlur={handleNumericBlur(indicator.amountKey)}
+                        className="narrow-field"
+                      />
+                    ) : (
+                      <div />
+                    )}
+                  </div>
+                ))}
               </div>
             ) : null}
 
@@ -1785,28 +1910,52 @@ export default function App() {
             </div>
 
             {inputs.nationalComponent === 'si' ? (
-              <div className="row row-narrow spacer-top">
-                <NumericField
-                  label="Bienes muebles Nacional (UI)"
-                  name="nationalGoodsUi"
-                  placeholder="Ej: 200000"
-                  value={numericValues.nationalGoodsUi ?? ''}
-                  error={numericErrors.nationalGoodsUi}
-                  onChange={handleNumericChange('nationalGoodsUi')}
-                  onBlur={handleNumericBlur('nationalGoodsUi')}
-                  className="narrow-field"
-                />
-                <NumericField
-                  label="Materiales Obra Civil Nacional (UI)"
-                  name="nationalCivilWorksUi"
-                  placeholder="Ej: 150000"
-                  value={numericValues.nationalCivilWorksUi ?? ''}
-                  error={numericErrors.nationalCivilWorksUi}
-                  onChange={handleNumericChange('nationalCivilWorksUi')}
-                  onBlur={handleNumericBlur('nationalCivilWorksUi')}
-                  className="narrow-field"
-                />
-              </div>
+              <>
+                <div className="row row-narrow spacer-top">
+                  <NumericField
+                    label="Bienes muebles Nacional (UI)"
+                    name="nationalGoodsUi"
+                    placeholder="Ej: 200000"
+                    value={numericValues.nationalGoodsUi ?? ''}
+                    error={numericErrors.nationalGoodsUi}
+                    onChange={handleNumericChange('nationalGoodsUi')}
+                    onBlur={handleNumericBlur('nationalGoodsUi')}
+                    className="narrow-field"
+                  />
+                  <NumericField
+                    label="Bienes muebles (UI)"
+                    name="nationalGoodsTotalUi"
+                    placeholder="Ej: 250000"
+                    value={numericValues.nationalGoodsTotalUi ?? ''}
+                    error={numericErrors.nationalGoodsTotalUi}
+                    onChange={handleNumericChange('nationalGoodsTotalUi')}
+                    onBlur={handleNumericBlur('nationalGoodsTotalUi')}
+                    className="narrow-field"
+                  />
+                </div>
+                <div className="row row-narrow">
+                  <NumericField
+                    label="Materiales Obra Civil Nacional (UI)"
+                    name="nationalCivilWorksUi"
+                    placeholder="Ej: 150000"
+                    value={numericValues.nationalCivilWorksUi ?? ''}
+                    error={numericErrors.nationalCivilWorksUi}
+                    onChange={handleNumericChange('nationalCivilWorksUi')}
+                    onBlur={handleNumericBlur('nationalCivilWorksUi')}
+                    className="narrow-field"
+                  />
+                  <NumericField
+                    label="Materiales Obra Civil (UI)"
+                    name="civilWorksMaterialsUi"
+                    placeholder="Ej: 120000"
+                    value={numericValues.civilWorksMaterialsUi ?? ''}
+                    error={numericErrors.civilWorksMaterialsUi}
+                    onChange={handleNumericChange('civilWorksMaterialsUi')}
+                    onBlur={handleNumericBlur('civilWorksMaterialsUi')}
+                    className="narrow-field"
+                  />
+                </div>
+              </>
             ) : null}
           </section>
 
@@ -1832,8 +1981,8 @@ export default function App() {
                 <div className="pdf-header">
                   <img className="pdf-logo" src="/mef-logo.png" alt="MEF" />
                   <div>
-                    <div className="pdf-title">Simulador COMAP</div>
-                    <div className="pdf-subtitle">Resumen de resultados</div>
+                    <div className="pdf-title">{'COMAP - Simulador de Exoneración IRAE'}</div>
+                    <div className="pdf-subtitle">{'Decreto 329/025'}</div>
                   </div>
                 </div>
               ) : null}
@@ -1859,6 +2008,12 @@ export default function App() {
                 </div>
                 <SummaryChart indicators={INDICATORS} scores={scores} />
               </div>
+
+              <p className="disclaimer">
+                {
+                  'Los resultados presentados constituyen una estimación basada en la información ingresada y en la normativa vigente, y tienen carácter meramente orientativo. No implican aprobación, no generan derecho alguno, ni garantizan el otorgamiento de beneficios fiscales, los cuales quedan sujetos a la evaluación técnica y resolución final de los organismos competentes.'
+                }
+              </p>
             </div>
 
             <div className="pdf-actions">
@@ -1885,8 +2040,3 @@ export default function App() {
     </div>
   );
 }
-
-
-
-
-

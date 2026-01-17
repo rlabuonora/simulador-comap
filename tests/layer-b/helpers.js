@@ -29,12 +29,14 @@ export const computeScenario = (scenario) => {
     disabilityBase: scenario.employment.base.disability,
     dinaliBase: scenario.employment.base.dinali,
     tusTransBase: scenario.employment.base.tus,
+    protectedProgramBase: scenario.employment.base.protectedProgram ?? 0,
     othersIncrease: scenario.employment.inc.noVulnerable,
     womenIncrease: scenario.employment.inc.women,
     youthIncrease: scenario.employment.inc.youth,
     disabilityIncrease: scenario.employment.inc.disability,
     dinaliIncrease: scenario.employment.inc.dinali,
     tusTransIncrease: scenario.employment.inc.tus,
+    protectedProgramIncrease: scenario.employment.inc.protectedProgram ?? 0,
   };
 
   const exportsInputs = {
@@ -69,6 +71,10 @@ export const computeScenario = (scenario) => {
 
   const strategicInputs = {
     strategicPriorities: scenario.strategic.priorities ?? 0,
+    evaluatingMinistry: scenario.project?.ministry ?? '',
+    minturStrategicFlag: scenario.strategic?.minturFlag ?? 'no',
+    minturInvestmentZoneUi: scenario.strategic?.minturInvestmentZoneUi ?? 0,
+    minturInvestmentOutsideUi: scenario.strategic?.minturInvestmentOutsideUi ?? 0,
   };
 
   const scores = {

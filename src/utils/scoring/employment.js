@@ -8,12 +8,14 @@ export function scoreEmployment({
   disabilityBase = 0,
   dinaliBase = 0,
   tusTransBase = 0,
+  protectedProgramBase = 0,
   othersIncrease = 0,
   womenIncrease = 0,
   youthIncrease = 0,
   disabilityIncrease = 0,
   dinaliIncrease = 0,
   tusTransIncrease = 0,
+  protectedProgramIncrease = 0,
 }) {
   const increaseTotal =
     othersIncrease +
@@ -21,7 +23,8 @@ export function scoreEmployment({
     youthIncrease +
     disabilityIncrease +
     dinaliIncrease +
-    tusTransIncrease;
+    tusTransIncrease +
+    protectedProgramIncrease;
   const deltaTotal = increaseTotal;
 
   let bonus = 0;
@@ -37,6 +40,12 @@ export function scoreEmployment({
       },
       { key: 'dinali', delta: dinaliIncrease, base: dinaliBase, type: 'protected' },
       { key: 'tusTrans', delta: tusTransIncrease, base: tusTransBase, type: 'protected' },
+      {
+        key: 'protectedProgram',
+        delta: protectedProgramIncrease,
+        base: protectedProgramBase,
+        type: 'protected',
+      },
       { key: 'others', delta: othersIncrease, base: othersBase, type: 'others' },
     ];
 

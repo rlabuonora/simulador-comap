@@ -252,6 +252,14 @@ a {
   align-items: start;
 }
 
+.col-span-2 {
+  grid-column: span 2;
+}
+
+.col-span-4 {
+  grid-column: span 4;
+}
+
 .row-4.mgap-row {
   grid-template-columns: 3.6667fr 3.6667fr 3.6667fr 1fr;
 }
@@ -282,7 +290,7 @@ a {
 }
 
 .iplus-row {
-  grid-template-columns: minmax(140px, 220px) 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
 }
 
@@ -309,6 +317,13 @@ a {
   font-weight: 600;
   color: var(--opp-dark-blue);
   margin-bottom: 10px;
+}
+
+.disclaimer {
+  margin-top: 16px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #5d6a7e;
 }
 
 .table {

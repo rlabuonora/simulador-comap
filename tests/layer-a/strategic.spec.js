@@ -3,6 +3,7 @@ import { scoreStrategic } from '../../src/utils/scoring.js';
 describe('Layer A: Strategic CIN scoring', () => {
   test('IME threshold mapping for machinery only', () => {
     const scoreLow = scoreStrategic({
+      evaluatingMinistry: 'mef',
       machineryUi: 100,
       nationalGoodsUi: 2,
       civilWorksMaterialsUi: 0,
@@ -10,6 +11,7 @@ describe('Layer A: Strategic CIN scoring', () => {
       strategicPriorities: 0,
     });
     const scoreMid = scoreStrategic({
+      evaluatingMinistry: 'mef',
       machineryUi: 100,
       nationalGoodsUi: 5,
       civilWorksMaterialsUi: 0,
@@ -17,6 +19,7 @@ describe('Layer A: Strategic CIN scoring', () => {
       strategicPriorities: 0,
     });
     const scoreHigh = scoreStrategic({
+      evaluatingMinistry: 'mef',
       machineryUi: 100,
       nationalGoodsUi: 9,
       civilWorksMaterialsUi: 0,
@@ -24,6 +27,7 @@ describe('Layer A: Strategic CIN scoring', () => {
       strategicPriorities: 0,
     });
     const scoreTop = scoreStrategic({
+      evaluatingMinistry: 'mef',
       machineryUi: 100,
       nationalGoodsUi: 13,
       civilWorksMaterialsUi: 0,
@@ -39,6 +43,7 @@ describe('Layer A: Strategic CIN scoring', () => {
 
   test('IMOC threshold mapping for civil works only', () => {
     const scoreLow = scoreStrategic({
+      evaluatingMinistry: 'mef',
       machineryUi: 0,
       nationalGoodsUi: 0,
       civilWorksMaterialsUi: 100,
@@ -46,6 +51,7 @@ describe('Layer A: Strategic CIN scoring', () => {
       strategicPriorities: 0,
     });
     const scoreMid = scoreStrategic({
+      evaluatingMinistry: 'mef',
       machineryUi: 0,
       nationalGoodsUi: 0,
       civilWorksMaterialsUi: 100,
@@ -53,6 +59,7 @@ describe('Layer A: Strategic CIN scoring', () => {
       strategicPriorities: 0,
     });
     const scoreHigh = scoreStrategic({
+      evaluatingMinistry: 'mef',
       machineryUi: 0,
       nationalGoodsUi: 0,
       civilWorksMaterialsUi: 100,
@@ -60,6 +67,7 @@ describe('Layer A: Strategic CIN scoring', () => {
       strategicPriorities: 0,
     });
     const scoreTop = scoreStrategic({
+      evaluatingMinistry: 'mef',
       machineryUi: 0,
       nationalGoodsUi: 0,
       civilWorksMaterialsUi: 100,
@@ -75,6 +83,7 @@ describe('Layer A: Strategic CIN scoring', () => {
 
   test('weighted average when both machinery and civil works present', () => {
     const score = scoreStrategic({
+      evaluatingMinistry: 'mef',
       machineryUi: 100,
       nationalGoodsUi: 20,
       civilWorksMaterialsUi: 100,
@@ -87,6 +96,7 @@ describe('Layer A: Strategic CIN scoring', () => {
 
   test('rounds to 2 decimals for mixed weights', () => {
     const score = scoreStrategic({
+      evaluatingMinistry: 'mef',
       machineryUi: 100,
       nationalGoodsUi: 9,
       civilWorksMaterialsUi: 333,
@@ -99,6 +109,7 @@ describe('Layer A: Strategic CIN scoring', () => {
 
   test('caps strategic score at 10 when adding base priorities', () => {
     const score = scoreStrategic({
+      evaluatingMinistry: 'mef',
       strategicPriorities: 3,
       machineryUi: 100,
       nationalGoodsUi: 13,

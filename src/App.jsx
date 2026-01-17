@@ -167,6 +167,11 @@ const defaultInputs = {
   fieldNaturalPct: 0,
   tourismZoneLocation: '',
   mineralProcessingLevel: '',
+  mgapRiegoFlag: 'no',
+  mgapRiegoInvestmentUi: 0,
+  mgapNaturalFieldFlag: 'no',
+  mgapPescaFlag: 'no',
+  mgapPescaInvestmentUi: 0,
   minturStrategicFlag: 'no',
   minturInvestmentZoneUi: 0,
   minturInvestmentOutsideUi: 0,
@@ -235,6 +240,36 @@ const formatNumberForDisplay = (value, minFractionDigits = 0) => {
   }).format(value);
 };
 
+const AMOUNT_FIELDS = new Set([
+  'annualBillingUi',
+  'investment',
+  'machineryUi',
+  'civilWorksUi',
+  'industrialParkInvestmentUi',
+  'mefRenewableInvestmentUi',
+  'mineralEligibleInvestmentUi',
+  'sustainabilityAmount',
+  'iPlusPct',
+  'strategicInvestmentPct',
+  'currentExports',
+  'exportIncrease',
+  'nationalGoodsUi',
+  'nationalGoodsTotalUi',
+  'nationalCivilWorksUi',
+  'civilWorksMaterialsUi',
+  'miemEnergyInvestmentUi',
+  'miemHydrogenInvestmentUi',
+  'miemWasteInvestmentUi',
+  'miemBioInvestmentUi',
+  'miemPharmaInvestmentUi',
+  'miemAerospaceInvestmentUi',
+  'miemSatellitesInvestmentUi',
+  'minturInvestmentZoneUi',
+  'minturInvestmentOutsideUi',
+  'mgapRiegoInvestmentUi',
+  'mgapPescaInvestmentUi',
+]);
+
 const buildNumericValues = (source) => {
   const base = {
     investment: source.investment ? String(source.investment) : '',
@@ -256,6 +291,10 @@ const buildNumericValues = (source) => {
       source.mineralEligibleInvestmentUi === 0
         ? '0'
         : String(source.mineralEligibleInvestmentUi ?? ''),
+    mgapRiegoInvestmentUi:
+      source.mgapRiegoInvestmentUi === 0 ? '0' : String(source.mgapRiegoInvestmentUi ?? ''),
+    mgapPescaInvestmentUi:
+      source.mgapPescaInvestmentUi === 0 ? '0' : String(source.mgapPescaInvestmentUi ?? ''),
     minturInvestmentZoneUi:
       source.minturInvestmentZoneUi === 0 ? '0' : String(source.minturInvestmentZoneUi ?? ''),
     minturInvestmentOutsideUi:
@@ -317,7 +356,7 @@ const buildNumericValues = (source) => {
     }
     const parsed = parseNumericValue(rawValue);
     if (parsed !== null) {
-      const decimals = getDecimalPlaces(rawValue);
+    const decimals = AMOUNT_FIELDS.has(key) ? 0 : getDecimalPlaces(rawValue);
       base[key] = formatNumberForDisplay(parsed, decimals);
     }
   });
@@ -326,6 +365,71 @@ const buildNumericValues = (source) => {
 };
 
 const ENABLE_VALIDATION = false;
+const DEBUG_DEFAULT_SCENARIO = 'mgap';
+
+const getDebugScenario = (key) => {
+  if (key === 'mintur') {
+    return {
+      inputs: {
+        evaluatingMinistry: 'mintur',
+        sector: 'turismo',
+        isNewCompany: 'no',
+        annualBillingUi: 22000000,
+        employees: 30,
+        machineryUi: 2000000,
+        installationsUi: 1500000,
+        civilWorksUi: 500000,
+        investment: 4000000,
+        minturStrategicFlag: 'si',
+        minturInvestmentZoneUi: 1500000,
+        minturInvestmentOutsideUi: 500000,
+        sustainabilityAmount: 800000,
+        certification: 'none',
+        iPlusCategory: 'id',
+        iPlusPct: 2000000,
+        exportIncrease: 100000,
+      },
+      deptAllocations: [{ id: 'rocha', amount: 4000000 }],
+    };
+  }
+
+  return {
+    inputs: {
+      evaluatingMinistry: 'mgap',
+      sector: 'agro',
+      isNewCompany: 'no',
+      annualBillingUi: 18000000,
+      employees: 40,
+      machineryUi: 1500000,
+      installationsUi: 1000000,
+      civilWorksUi: 500000,
+      investment: 3000000,
+      othersIncrease: 1,
+      womenIncrease: 2,
+      youthIncrease: 0,
+      disabilityIncrease: 1,
+      dinaliIncrease: 0,
+      tusTransIncrease: 1,
+      sustainabilityAmount: 300000,
+      certification: 'sello-b',
+      iPlusCategory: 'at',
+      iPlusPct: 900000,
+    },
+    deptAllocations: [
+      { id: 'tacuarembo', amount: 2000000 },
+      { id: 'montevideo', amount: 1000000 },
+    ],
+    indirectExports: [
+      {
+        id: 'semillas',
+        label: 'Semillas, frutos y forrajes',
+        pct: 75,
+        initial: 100000,
+        increase: 200000,
+      },
+    ],
+  };
+};
 
 const NumericField = ({
   label,
@@ -382,32 +486,32 @@ const BASE_STEPS = [
   {
     id: 'empleo',
     label: 'Generación de Empleo',
-    hint: 'Completa la Información de colectivos para Generación de empleo.',
+    hint: 'Impacto del proyecto en la creación de empleo, priorizando puestos formales, estables y la inclusión de grupos vulnerables.',
   },
   {
     id: 'exportaciones',
     label: 'Exportaciones',
-    hint: 'Reporta el nivel actual y futuro de exportaciones del proyecto.',
+    hint: 'Impacto del proyecto en el aumento de las exportaciones y la inserción internacional de la empresa.',
   },
   {
     id: 'descentralizacion',
     label: 'Descentralización',
-    hint: 'Distribuye el porcentaje de inversión por departamento.',
+    hint: 'Impacto del proyecto en el desarrollo del interior del país.',
   },
   {
     id: 'impacto-ambiental',
     label: 'Sostenibilidad ambiental',
-    hint: 'Datos de Sostenibilidad ambiental.',
+    hint: 'Impacto del proyecto en la sostenibilidad ambiental.',
   },
   {
     id: 'transformacion',
-    label: 'Adecuación Tecnológica, Innovación, Investigación y Desarrollo',
+    label: 'Impacto del proyecto en la incorporación de  innovación para mejorar la competitividad y el desarrollo tecnológico.',
     hint: 'Desarrollo tecnológico.',
   },
   {
     id: 'alineacion',
     label: 'Alineación estratégica',
-    hint: 'Cómo tu proyecto encaja en prioridades país.',
+    hint: 'Impacto en actividades estratégicas para los Ministerios que integran la COMAP',
   },
   {
     id: 'resultado',
@@ -432,6 +536,21 @@ export default function App() {
   const [mgapExportError, setMgapExportError] = useState('');
   const pdfRef = useRef(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const debugScenarioLoaded = useRef(false);
+
+  const debugParams = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return { enabled: false, scenario: DEBUG_DEFAULT_SCENARIO };
+    }
+    const params = new URLSearchParams(window.location.search);
+    const enabled = params.get('debug') === '1' || params.get('debug') === 'true';
+    return {
+      enabled,
+      scenario: params.get('scenario') || DEBUG_DEFAULT_SCENARIO,
+    };
+  }, []);
+
+  const enableValidation = ENABLE_VALIDATION && !debugParams.enabled;
 
   const steps = useMemo(() => {
     const nextSteps = [...BASE_STEPS];
@@ -456,6 +575,27 @@ export default function App() {
       return acc;
     }, {});
   }, [steps]);
+
+  useEffect(() => {
+    if (!debugParams.enabled || debugScenarioLoaded.current) {
+      return;
+    }
+    const scenario = getDebugScenario(debugParams.scenario);
+    if (!scenario) {
+      return;
+    }
+    debugScenarioLoaded.current = true;
+    const nextInputs = { ...defaultInputs, ...scenario.inputs };
+    setInputs(nextInputs);
+    setNumericValues(buildNumericValues(nextInputs));
+    setDeptAllocations(scenario.deptAllocations ?? []);
+    setIndirectExports(scenario.indirectExports ?? []);
+    setMgapExportSelection('');
+    setMgapExportInitial('');
+    setMgapExportIncrease('');
+    setMgapExportError('');
+    setNumericErrors({});
+  }, [debugParams.enabled, debugParams.scenario]);
 
   useEffect(() => {
     if (currentStep > steps.length - 1) {
@@ -675,7 +815,7 @@ export default function App() {
     if (numericErrors[key]) {
       setNumericErrors((prev) => ({ ...prev, [key]: '' }));
     }
-    if (!ENABLE_VALIDATION) {
+    if (!enableValidation) {
       const parsed = parseNumericValue(nextValue);
       if (parsed !== null) {
         setInputs((prev) => ({ ...prev, [key]: parsed }));
@@ -686,7 +826,7 @@ export default function App() {
   const handleNumericBlur = (key) => (event) => {
     const rawValue = event.target.value.trim();
 
-    if (!ENABLE_VALIDATION) {
+    if (!enableValidation) {
       const parsed = parseNumericValue(rawValue);
       if (parsed !== null) {
         setInputs((prev) => ({ ...prev, [key]: parsed }));
@@ -814,7 +954,7 @@ export default function App() {
   };
 
   const goNext = () => {
-    if (!ENABLE_VALIDATION) {
+    if (!enableValidation) {
       setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
       return;
     }
@@ -969,28 +1109,6 @@ export default function App() {
 
           <section className={`step${currentStep === stepIndexById.empresa ? ' active' : ''}`}>
             <div className="row row-narrow">
-              <NumericField
-                label="Facturación anual (UI)"
-                name="annualBillingUi"
-                placeholder="Ej: 25000000"
-                value={numericValues.annualBillingUi ?? ''}
-                error={numericErrors.annualBillingUi}
-                onChange={handleNumericChange('annualBillingUi')}
-                onBlur={handleNumericBlur('annualBillingUi')}
-              />
-            </div>
-
-            <div className="row row-narrow">
-              <NumericField
-                label="Cantidad de empleados"
-                name="employees"
-                placeholder="Ej: 85"
-                value={numericValues.employees ?? ''}
-                error={numericErrors.employees}
-                onChange={handleNumericChange('employees')}
-                onBlur={handleNumericBlur('employees')}
-              />
-
               <div className="field-group">
                 <label className="field-label" htmlFor="sector">
                   Sector
@@ -1008,20 +1126,7 @@ export default function App() {
                   <option value="turismo">Turismo</option>
                 </select>
               </div>
-            </div>
 
-            <div className="row row-narrow">
-              <div className="field-group">
-                <label className="field-label" htmlFor="companyCategory">
-                  Categoría de Empresa
-                </label>
-                <div id="companyCategory" className="field-control">
-                  {companyCategory || '-'}
-                </div>
-              </div>
-            </div>
-
-            <div className="row">
               <div className="field-group">
                 <label className="field-label">Empresa nueva</label>
                 <div className="radio">
@@ -1049,6 +1154,39 @@ export default function App() {
                     />
                     No
                   </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="row row-narrow">
+              <NumericField
+                label="Cantidad de empleados"
+                name="employees"
+                placeholder="Ej: 85"
+                value={numericValues.employees ?? ''}
+                error={numericErrors.employees}
+                onChange={handleNumericChange('employees')}
+                onBlur={handleNumericBlur('employees')}
+              />
+
+              <NumericField
+                label="Facturación anual (UI)"
+                name="annualBillingUi"
+                placeholder="Ej: 25000000"
+                value={numericValues.annualBillingUi ?? ''}
+                error={numericErrors.annualBillingUi}
+                onChange={handleNumericChange('annualBillingUi')}
+                onBlur={handleNumericBlur('annualBillingUi')}
+              />
+            </div>
+
+            <div className="row row-narrow">
+              <div className="field-group">
+                <label className="field-label" htmlFor="companyCategory">
+                  Categoría de Empresa
+                </label>
+                <div id="companyCategory" className="field-control">
+                  {companyCategory || '-'}
                 </div>
               </div>
             </div>
@@ -1239,7 +1377,7 @@ export default function App() {
                   inversión elegible total (USD)
                 </label>
                 <div id="investmentTotalUsd" className="field-control">
-                  {formatNumberForDisplay(investmentTotalUsd, 2)}
+                  {formatNumberForDisplay(investmentTotalUsd, 0)}
                 </div>
               </div>
             </div>
@@ -1682,7 +1820,6 @@ export default function App() {
                 error={numericErrors.sustainabilityAmount}
                 onChange={handleNumericChange('sustainabilityAmount')}
                 onBlur={handleNumericBlur('sustainabilityAmount')}
-                className="narrow-field"
               />
 
               <div>
@@ -1723,7 +1860,6 @@ export default function App() {
                 error={numericErrors.iPlusPct}
                 onChange={handleNumericChange('iPlusPct')}
                 onBlur={handleNumericBlur('iPlusPct')}
-                className="narrow-field"
               />
               <div>
                 <label className="field-label" htmlFor="iPlusCategory">
@@ -1750,16 +1886,133 @@ export default function App() {
 
             {inputs.evaluatingMinistry === 'mgap' ? (
               <div className="spacer-top">
-                <NumericField
-                  label="% Superficie Campo Natural"
-                  name="fieldNaturalPct"
-                  placeholder="Ej: 35"
-                  value={numericValues.fieldNaturalPct ?? ''}
-                  error={numericErrors.fieldNaturalPct}
-                  onChange={handleNumericChange('fieldNaturalPct')}
-                  onBlur={handleNumericBlur('fieldNaturalPct')}
-                  className="narrow-field"
-                />
+                <div className="spacer-top">
+                  <label className="field-label">Riego</label>
+                  <div className="radio">
+                    <label className="pill">
+                      <input
+                        type="radio"
+                        name="mgapRiegoFlag"
+                        value="si"
+                        checked={inputs.mgapRiegoFlag === 'si'}
+                        onChange={(event) =>
+                          setInputs((prev) => ({ ...prev, mgapRiegoFlag: event.target.value }))
+                        }
+                      />
+                      Si
+                    </label>
+                    <label className="pill">
+                      <input
+                        type="radio"
+                        name="mgapRiegoFlag"
+                        value="no"
+                        checked={inputs.mgapRiegoFlag !== 'si'}
+                        onChange={(event) =>
+                          setInputs((prev) => ({ ...prev, mgapRiegoFlag: event.target.value }))
+                        }
+                      />
+                      No
+                    </label>
+                  </div>
+                  {inputs.mgapRiegoFlag === 'si' ? (
+                    <div className="row row-narrow spacer-top">
+                      <NumericField
+                        label="Inversión en uso sostenible del riego (UI)"
+                        name="mgapRiegoInvestmentUi"
+                        placeholder="Ej: 200000"
+                        value={numericValues.mgapRiegoInvestmentUi ?? ''}
+                        error={numericErrors.mgapRiegoInvestmentUi}
+                        onChange={handleNumericChange('mgapRiegoInvestmentUi')}
+                        onBlur={handleNumericBlur('mgapRiegoInvestmentUi')}
+                        className="narrow-field"
+                      />
+                      <div />
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="spacer-top">
+                  <label className="field-label">
+                    Desarrollo y modernización de la pesca y la acuicultura
+                  </label>
+                  <div className="radio">
+                    <label className="pill">
+                      <input
+                        type="radio"
+                        name="mgapPescaFlag"
+                        value="si"
+                        checked={inputs.mgapPescaFlag === 'si'}
+                        onChange={(event) =>
+                          setInputs((prev) => ({ ...prev, mgapPescaFlag: event.target.value }))
+                        }
+                      />
+                      Si
+                    </label>
+                    <label className="pill">
+                      <input
+                        type="radio"
+                        name="mgapPescaFlag"
+                        value="no"
+                        checked={inputs.mgapPescaFlag !== 'si'}
+                        onChange={(event) =>
+                          setInputs((prev) => ({ ...prev, mgapPescaFlag: event.target.value }))
+                        }
+                      />
+                      No
+                    </label>
+                  </div>
+                  {inputs.mgapPescaFlag === 'si' ? (
+                    <div className="row row-narrow spacer-top">
+                      <NumericField
+                        label="INV pesca y acuicultura (UI)"
+                        name="mgapPescaInvestmentUi"
+                        placeholder="Ej: 200000"
+                        value={numericValues.mgapPescaInvestmentUi ?? ''}
+                        error={numericErrors.mgapPescaInvestmentUi}
+                        onChange={handleNumericChange('mgapPescaInvestmentUi')}
+                        onBlur={handleNumericBlur('mgapPescaInvestmentUi')}
+                        className="narrow-field"
+                      />
+                      <div />
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="spacer-top">
+                  <label className="field-label">Al menos 50% de superficie cubierta por campo natural</label>
+                  <div className="radio">
+                    <label className="pill">
+                      <input
+                        type="radio"
+                        name="mgapNaturalFieldFlag"
+                        value="si"
+                        checked={inputs.mgapNaturalFieldFlag === 'si'}
+                        onChange={(event) =>
+                          setInputs((prev) => ({
+                            ...prev,
+                            mgapNaturalFieldFlag: event.target.value,
+                          }))
+                        }
+                      />
+                      Si
+                    </label>
+                    <label className="pill">
+                      <input
+                        type="radio"
+                        name="mgapNaturalFieldFlag"
+                        value="no"
+                        checked={inputs.mgapNaturalFieldFlag !== 'si'}
+                        onChange={(event) =>
+                          setInputs((prev) => ({
+                            ...prev,
+                            mgapNaturalFieldFlag: event.target.value,
+                          }))
+                        }
+                      />
+                      No
+                    </label>
+                  </div>
+                </div>
               </div>
             ) : null}
 

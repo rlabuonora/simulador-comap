@@ -97,6 +97,7 @@ describe('Layer A: Global invariants', () => {
         },
         strategic: {
           priorities: 0,
+          minturFlag: 'no',
         },
         decentralization: {
           rocha: 0,

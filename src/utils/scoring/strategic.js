@@ -139,6 +139,22 @@ const scoreMinturStrategic = ({
   return factor * 10;
 };
 
+const scoreMgapInvestment = ({ investmentTotal, enabled, investmentUi = 0 }) => {
+  if (!enabled) {
+    return 0;
+  }
+  if (investmentTotal <= 0) {
+    return 0;
+  }
+  if (investmentUi < 0 || investmentUi > investmentTotal) {
+    return 0;
+  }
+
+  const share = investmentUi / investmentTotal;
+  const factor = Math.min(share / 0.5, 1);
+  return factor * 10;
+};
+
 export function scoreStrategic({
   strategicPriorities = 0,
   investment = 0,
@@ -150,6 +166,11 @@ export function scoreStrategic({
   nationalCivilWorksUi = 0,
   mineralProcessingLevel = '',
   mineralEligibleInvestmentUi = 0,
+  mgapRiegoFlag = 'no',
+  mgapRiegoInvestmentUi = 0,
+  mgapNaturalFieldFlag = 'no',
+  mgapPescaFlag = 'no',
+  mgapPescaInvestmentUi = 0,
   minturStrategicFlag = 'no',
   minturInvestmentZoneUi = 0,
   minturInvestmentOutsideUi = 0,
@@ -189,6 +210,21 @@ export function scoreStrategic({
       },
     });
     return roundTo2(miemScore);
+  }
+
+  if (evaluatingMinistry === 'mgap') {
+    const riegoScore = scoreMgapInvestment({
+      investmentTotal: investment,
+      enabled: mgapRiegoFlag === 'si',
+      investmentUi: mgapRiegoInvestmentUi,
+    });
+    const pescaScore = scoreMgapInvestment({
+      investmentTotal: investment,
+      enabled: mgapPescaFlag === 'si',
+      investmentUi: mgapPescaInvestmentUi,
+    });
+    const naturalFieldBonus = mgapNaturalFieldFlag === 'si' ? 1 : 0;
+    return roundTo2(Math.min(riegoScore + pescaScore + naturalFieldBonus, 10));
   }
 
   if (evaluatingMinistry === 'mintur') {

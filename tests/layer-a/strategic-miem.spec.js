@@ -35,11 +35,24 @@ describe('Layer A: MIEM strategic indicators', () => {
 
   test('non-MIEM does not use MIEM indicator sum', () => {
     const score = scoreStrategic({
-      evaluatingMinistry: 'mgap',
+      evaluatingMinistry: 'mef',
       investment: 100,
       miemEnergyFlag: 'si',
       miemEnergyInvestmentUi: 50,
       strategicPriorities: 0,
+    });
+    expect(score).toBe(0);
+  });
+
+  test('non-MGAP ignores MGAP indicators', () => {
+    const score = scoreStrategic({
+      evaluatingMinistry: 'mef',
+      investment: 100,
+      mgapRiegoFlag: 'si',
+      mgapRiegoInvestmentUi: 50,
+      mgapPescaFlag: 'si',
+      mgapPescaInvestmentUi: 50,
+      mgapNaturalFieldFlag: 'si',
     });
     expect(score).toBe(0);
   });

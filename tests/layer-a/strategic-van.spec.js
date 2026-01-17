@@ -3,6 +3,7 @@ import { scoreStrategic } from '../../src/utils/scoring.js';
 describe('Layer A: Strategic VAN scoring', () => {
   test('invalid investment total yields 0', () => {
     const score = scoreStrategic({
+      evaluatingMinistry: 'mef',
       investment: 0,
       mineralProcessingLevel: 'minima',
       mineralEligibleInvestmentUi: 100,
@@ -12,6 +13,7 @@ describe('Layer A: Strategic VAN scoring', () => {
 
   test('invalid VAN range yields 0', () => {
     const score = scoreStrategic({
+      evaluatingMinistry: 'mef',
       investment: 100,
       mineralProcessingLevel: 'minima',
       mineralEligibleInvestmentUi: 150,
@@ -21,6 +23,7 @@ describe('Layer A: Strategic VAN scoring', () => {
 
   test('minima level caps at 3 when share >= 50%', () => {
     const score = scoreStrategic({
+      evaluatingMinistry: 'mef',
       investment: 100,
       mineralProcessingLevel: 'minima',
       mineralEligibleInvestmentUi: 60,
@@ -30,6 +33,7 @@ describe('Layer A: Strategic VAN scoring', () => {
 
   test('intermedia level scales linearly', () => {
     const score = scoreStrategic({
+      evaluatingMinistry: 'mef',
       investment: 200,
       mineralProcessingLevel: 'intermedia',
       mineralEligibleInvestmentUi: 40,
@@ -39,6 +43,7 @@ describe('Layer A: Strategic VAN scoring', () => {
 
   test('maxima level caps at 10 when share >= 50%', () => {
     const score = scoreStrategic({
+      evaluatingMinistry: 'mef',
       investment: 100,
       mineralProcessingLevel: 'maxima',
       mineralEligibleInvestmentUi: 50,
@@ -48,6 +53,7 @@ describe('Layer A: Strategic VAN scoring', () => {
 
   test('invalid level yields 0', () => {
     const score = scoreStrategic({
+      evaluatingMinistry: 'mef',
       investment: 100,
       mineralProcessingLevel: 'unknown',
       mineralEligibleInvestmentUi: 20,
@@ -57,6 +63,7 @@ describe('Layer A: Strategic VAN scoring', () => {
 
   test('rounding to 2 decimals on output', () => {
     const score = scoreStrategic({
+      evaluatingMinistry: 'mef',
       investment: 123,
       mineralProcessingLevel: 'intermedia',
       mineralEligibleInvestmentUi: 17,

@@ -145,6 +145,8 @@ export const calculateScores = (fixture) => {
   const strategicInputs = {
     strategicPriorities: fixture.strategic.priorities,
     evaluatingMinistry: fixture.project?.ministry ?? '',
+    mgapRiegoFlag: fixture.strategic?.mgapRiegoFlag ?? 'no',
+    mgapRiegoInvestmentUi: fixture.strategic?.mgapRiegoInvestmentUi ?? 0,
     minturStrategicFlag: fixture.strategic.minturFlag ?? 'no',
     minturInvestmentZoneUi: fixture.strategic.minturInvestmentZoneUi ?? 0,
     minturInvestmentOutsideUi: fixture.strategic.minturInvestmentOutsideUi ?? 0,

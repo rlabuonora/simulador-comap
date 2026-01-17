@@ -72,6 +72,8 @@ export const computeScenario = (scenario) => {
   const strategicInputs = {
     strategicPriorities: scenario.strategic.priorities ?? 0,
     evaluatingMinistry: scenario.project?.ministry ?? '',
+    mgapRiegoFlag: scenario.strategic?.mgapRiegoFlag ?? 'no',
+    mgapRiegoInvestmentUi: scenario.strategic?.mgapRiegoInvestmentUi ?? 0,
     minturStrategicFlag: scenario.strategic?.minturFlag ?? 'no',
     minturInvestmentZoneUi: scenario.strategic?.minturInvestmentZoneUi ?? 0,
     minturInvestmentOutsideUi: scenario.strategic?.minturInvestmentOutsideUi ?? 0,

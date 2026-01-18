@@ -626,18 +626,6 @@ export default function App() {
     );
   }, [numericValues.civilWorksUi, numericValues.machineryUi]);
 
-  useEffect(() => {
-    if (currentStep !== stepIndexById.descentralizacion) {
-      return;
-    }
-    if (deptPctValue.trim()) {
-      return;
-    }
-    if (investmentTotal > 0) {
-      setDeptPctValue(formatNumberForDisplay(investmentTotal, 0, 0));
-    }
-  }, [currentStep, deptPctValue, investmentTotal, stepIndexById.descentralizacion]);
-
   const companyCategory = useMemo(() => {
     const revenue = parseNumericValue(numericValues.annualBillingUi) ?? 0;
     const employees = parseNumericValue(numericValues.employees) ?? 0;
@@ -833,6 +821,23 @@ export default function App() {
     return deptAllocations.reduce((sum, allocation) => sum + (allocation.amount ?? 0), 0);
   }, [deptAllocations]);
 
+  useEffect(() => {
+    if (currentStep !== stepIndexById.descentralizacion) {
+      return;
+    }
+    if (investmentTotal > 0) {
+      const remaining = Math.max(investmentTotal - totalDepartmentAmount, 0);
+      setDeptPctValue(formatNumberForDisplay(remaining, 0, 0));
+      return;
+    }
+    setDeptPctValue('0');
+  }, [
+    currentStep,
+    investmentTotal,
+    stepIndexById.descentralizacion,
+    totalDepartmentAmount,
+  ]);
+
   const totalInvestmentForDept = investmentTotal || totalDepartmentAmount;
   const minturCoefficient = 3.22;
   const minturWeightedIncrease = useMemo(() => {
@@ -992,6 +997,18 @@ export default function App() {
     if (!rawAmount || parsedAmount === null || parsedAmount < 0) {
       setAllocationError('Ingrese un monto válido.');
       return;
+    }
+
+    if (investmentTotal > 0) {
+      const currentTotal = deptAllocations.reduce(
+        (sum, allocation) => sum + (allocation.amount ?? 0),
+        0
+      );
+      const nextTotal = currentTotal + parsedAmount;
+      if (nextTotal > investmentTotal) {
+        setAllocationError('La suma no puede superar la inversión elegible total.');
+        return;
+      }
     }
 
     setDeptAllocations((prev) => {
@@ -1170,6 +1187,24 @@ export default function App() {
     setMgapExportIncrease('');
     setIndirectExports([]);
     setMgapExportError('');
+  };
+
+  const handleCopyDebugJson = async () => {
+    const payload = {
+      inputs,
+      numericValues,
+      deptAllocations,
+      indirectExports,
+      scores,
+      totalScore,
+      iraePct,
+      exonerationYears,
+    };
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+    } catch (error) {
+      console.error('Failed to copy debug payload', error);
+    }
   };
 
   return (
@@ -2471,6 +2506,11 @@ export default function App() {
               >
                 {isExportingPdf ? 'Generando PDF...' : 'Exportar a PDF'}
               </button>
+              {debugParams.enabled ? (
+                <button className="btn-secondary" type="button" onClick={handleCopyDebugJson}>
+                  Copiar JSON
+                </button>
+              ) : null}
             </div>
           </section>
           <div className="actions">

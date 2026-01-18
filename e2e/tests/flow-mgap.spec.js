@@ -63,7 +63,11 @@ test('flow: mgap agricultural project', async ({ page }) => {
     iPlusCategory: 'at',
   };
   const strategicInputs = {
-    strategicPriorities: 2,
+    evaluatingMinistry: 'mgap',
+    investment: totalInvestment,
+    mgapRiegoFlag: 'si',
+    mgapRiegoInvestmentUi: 1000000,
+    mgapNaturalFieldFlag: 'si',
   };
 
   const scores = {
@@ -183,13 +187,13 @@ test('flow: mgap agricultural project', async ({ page }) => {
   await goNext(page);
 
   const strategicStep = page.locator('.step.active');
-  const strategicLineSelect = page.locator('#strategicLine');
-  const strategicAmountInput = page.locator('#strategicInvestmentPct');
-  const fieldNaturalInput = page.locator('#fieldNaturalPct');
-  await goToLocator(page, strategicLineSelect);
-  await strategicLineSelect.selectOption('produccion-ganadera');
-  await strategicAmountInput.fill('120000');
-  await fieldNaturalInput.fill('35');
+  const mgapRiegoYes = page.locator('input[name="mgapRiegoFlag"][value="si"]');
+  const mgapRiegoInput = page.locator('#mgapRiegoInvestmentUi');
+  const mgapNaturalYes = page.locator('input[name="mgapNaturalFieldFlag"][value="si"]');
+  await goToLocator(page, mgapRiegoYes);
+  await mgapRiegoYes.check();
+  await mgapRiegoInput.fill(String(strategicInputs.mgapRiegoInvestmentUi));
+  await mgapNaturalYes.check();
   await expectStepScore(page, scores.strategic);
   await goNext(page);
 

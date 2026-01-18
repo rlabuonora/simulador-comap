@@ -363,7 +363,7 @@ const buildNumericValues = (source) => {
   return base;
 };
 
-const ENABLE_VALIDATION = false;
+const ENABLE_VALIDATION = true;
 const DEBUG_DEFAULT_SCENARIO = 'mgap';
 
 const getDebugScenario = (key) => {
@@ -619,13 +619,24 @@ export default function App() {
     setInputs((prev) => ({ ...prev, deptAllocations }));
   }, [deptAllocations]);
 
-
   const investmentTotal = useMemo(() => {
     const parseValue = (value) => parseNumericValue(value) ?? 0;
     return (
       parseValue(numericValues.machineryUi) + parseValue(numericValues.civilWorksUi)
     );
   }, [numericValues.civilWorksUi, numericValues.machineryUi]);
+
+  useEffect(() => {
+    if (currentStep !== stepIndexById.descentralizacion) {
+      return;
+    }
+    if (deptPctValue.trim()) {
+      return;
+    }
+    if (investmentTotal > 0) {
+      setDeptPctValue(formatNumberForDisplay(investmentTotal, 0, 0));
+    }
+  }, [currentStep, deptPctValue, investmentTotal, stepIndexById.descentralizacion]);
 
   const companyCategory = useMemo(() => {
     const revenue = parseNumericValue(numericValues.annualBillingUi) ?? 0;
@@ -909,11 +920,12 @@ export default function App() {
     if (!enableValidation) {
       const parsed = parseNumericValue(rawValue);
       if (parsed !== null) {
-        setInputs((prev) => ({ ...prev, [key]: parsed }));
-        const decimals = getDecimalPlaces(rawValue);
+        const normalized = parsed < 0 ? 0 : parsed;
+        setInputs((prev) => ({ ...prev, [key]: normalized }));
+        const decimals = normalized === 0 ? 0 : getDecimalPlaces(rawValue);
         setNumericValues((prev) => ({
           ...prev,
-          [key]: formatNumberForDisplay(parsed, decimals),
+          [key]: formatNumberForDisplay(normalized, decimals),
         }));
       }
       return;
@@ -927,6 +939,16 @@ export default function App() {
     const parsed = parseNumericValue(rawValue);
     if (parsed === null) {
       setNumericErrors((prev) => ({ ...prev, [key]: 'Ingrese un número válido.' }));
+      return;
+    }
+
+    if (parsed < 0) {
+      setNumericErrors((prev) => ({ ...prev, [key]: '' }));
+      setInputs((prev) => ({ ...prev, [key]: 0 }));
+      setNumericValues((prev) => ({
+        ...prev,
+        [key]: formatNumberForDisplay(0, 0),
+      }));
       return;
     }
 
@@ -948,6 +970,10 @@ export default function App() {
     const rawValue = event.target.value.trim();
     const parsed = parseNumericValue(rawValue);
     if (parsed === null) {
+      return;
+    }
+    if (parsed < 0) {
+      setter(formatNumberForDisplay(0, 0));
       return;
     }
     const decimals = getDecimalPlaces(rawValue);
@@ -1045,6 +1071,10 @@ export default function App() {
       const billingParsed = parseNumericValue(rawBilling);
       const rawEmployees = numericValues.employees?.trim();
       const employeesParsed = parseNumericValue(rawEmployees);
+
+      if (!inputs.evaluatingMinistry) {
+        nextErrors.evaluatingMinistry = 'Seleccione un ministerio evaluador.';
+      }
 
       if (!rawBilling || billingParsed === null || billingParsed <= 0) {
         nextErrors.annualBillingUi = 'Debe ingresar un valor mayor a 0.';
@@ -1370,11 +1400,15 @@ export default function App() {
                 </label>
                 <select
                   id="evaluatingMinistry"
-                  className="field-control"
+                  className={`field-control${numericErrors.evaluatingMinistry ? ' error' : ''}`}
                   value={inputs.evaluatingMinistry}
-                  onChange={(event) =>
-                    setInputs((prev) => ({ ...prev, evaluatingMinistry: event.target.value }))
-                  }
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setInputs((prev) => ({ ...prev, evaluatingMinistry: value }));
+                    if (numericErrors.evaluatingMinistry) {
+                      setNumericErrors((prev) => ({ ...prev, evaluatingMinistry: '' }));
+                    }
+                  }}
                 >
                   <option value="">Seleccionar...</option>
                   <option value="miem">MIEM</option>
@@ -1382,6 +1416,9 @@ export default function App() {
                   <option value="mgap">MGAP</option>
                   <option value="mintur">MINTUR</option>
                 </select>
+                {numericErrors.evaluatingMinistry ? (
+                  <div className="field-error">{numericErrors.evaluatingMinistry}</div>
+                ) : null}
               </div>
             </div>
           </section>
@@ -1683,11 +1720,11 @@ export default function App() {
 
             {inputs.evaluatingMinistry === 'mgap' ? (
               <>
-                <div className="section-subtitle">{'Rubro MGAP'}</div>
+                <div className="section-subtitle">{'Exportaciones Indirectas'}</div>
                 <div className="row row-4 mgap-row">
                   <div className="field-group">
                     <label className="field-label" htmlFor="mgapExportSelection">
-                      Rubro 
+                      Producto 
                     </label>
                     <select
                       id="mgapExportSelection"
@@ -1737,7 +1774,12 @@ export default function App() {
                   </div>
 
                   <div className="field-group mgap-actions">
-                    <button className="btn-secondary" type="button" onClick={handleAddMgapExport}>
+                    <button
+                      className="btn-secondary icon-btn"
+                      type="button"
+                      onClick={handleAddMgapExport}
+                      title="Agregar"
+                    >
                       +
                     </button>
                   </div>
@@ -1762,9 +1804,10 @@ export default function App() {
                           <div className="table-cell">{weighted.toFixed(2)}</div>
                           <div className="table-cell">
                             <button
-                              className="btn-secondary"
+                              className="btn-secondary icon-btn"
                               type="button"
                               onClick={() => handleRemoveMgapExport(index)}
+                              title="Eliminar"
                             >
                               X
                             </button>
@@ -1781,7 +1824,7 @@ export default function App() {
 
             {inputs.evaluatingMinistry === 'mintur' ? (
               <>
-                <div className="section-subtitle">{'Indicador MINTUR'}</div>
+                <div className="section-subtitle">{'Exportaciones Indirectas'}</div>
 
                 <div className="row row-narrow">
                   <div className="field-group">
@@ -1843,9 +1886,14 @@ export default function App() {
                 />
               </div>
 
-              <div className="field-group">
-                <span className="field-label">Acciones</span>
-                <button className="btn-secondary" type="button" onClick={handleAddDepartment}>
+              <div className="field-group dept-actions">
+                <span className="field-label" />
+                <button
+                  className="btn-secondary"
+                  type="button"
+                  onClick={handleAddDepartment}
+                  title="Agrear"
+                >
                   +
                 </button>
               </div>
@@ -1857,7 +1905,7 @@ export default function App() {
                   <div className="table-cell">Departamento</div>
                   <div className="table-cell">Monto (UI)</div>
                   <div className="table-cell">Puntaje ponderado</div>
-                  <div className="table-cell">Acciones</div>
+                  <div className="table-cell" />
                 </div>
                 {deptAllocations.map((allocation) => {
                   const dept = departments.find((item) => item.id === allocation.id);
@@ -1875,6 +1923,7 @@ export default function App() {
                           className="btn-secondary"
                           type="button"
                           onClick={() => handleRemoveDepartment(allocation.id)}
+                          title="Eliminar"
                         >
                           X
                         </button>

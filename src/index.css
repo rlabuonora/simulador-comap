@@ -388,6 +388,25 @@ a {
   background: #fff;
 }
 
+.dept-actions {
+  max-width: 90px;
+  justify-content: flex-end;
+}
+
+.dept-actions .btn-secondary {
+  width: 100%;
+}
+
+.btn-secondary.icon-btn {
+  width: 40px;
+  min-width: 40px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .field {
   display: flex;
   flex-direction: column;

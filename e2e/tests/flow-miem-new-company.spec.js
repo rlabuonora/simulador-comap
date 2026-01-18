@@ -59,7 +59,10 @@ test('flow: miem new exporting company', async ({ page }) => {
     iPlusCategory: 'inn',
   };
   const strategicInputs = {
-    strategicPriorities: 2,
+    evaluatingMinistry: 'miem',
+    investment: totalInvestment,
+    miemEnergyFlag: 'si',
+    miemEnergyInvestmentUi: 600000,
   };
 
   const scores = {
@@ -77,21 +80,21 @@ test('flow: miem new exporting company', async ({ page }) => {
   const billingInput = page.locator('#annualBillingUi');
   const employeesInput = page.locator('#employees');
   const sectorSelect = page.locator('#sector');
+  const ministrySelect = page.locator('#evaluatingMinistry');
   const newCompanyYes = page.locator('input[name="isNewCompany"][value="si"]');
   await goToLocator(page, billingInput);
   await billingInput.fill('25000000');
   await employeesInput.fill('25');
   await sectorSelect.selectOption('industria');
   await newCompanyYes.check();
+  await ministrySelect.selectOption('miem');
   await goNext(page);
 
   const projectStep = page.locator('.step.active');
-  const ministrySelect = page.locator('#evaluatingMinistry');
   const machineryInput = page.locator('#machineryUi');
   const civilWorksInput = page.locator('#civilWorksUi');
   const industrialParkInput = page.locator('#industrialParkInvestmentUi');
   await goToLocator(page, machineryInput);
-  await ministrySelect.selectOption('miem');
   await machineryInput.fill(String(investment.machineryUi));
   await civilWorksInput.fill(String(investment.civilWorksUi));
   await fillIfVisible(industrialParkInput, investment.industrialParkInvestmentUi);
@@ -167,13 +170,11 @@ test('flow: miem new exporting company', async ({ page }) => {
   await goNext(page);
 
   const strategicStep = page.locator('.step.active');
-  const strategicLineSelect = page.locator('#strategicLine');
-  const strategicAmountInput = page.locator('#strategicInvestmentPct');
-  const mineralSelect = page.locator('#mineralProcessingLevel');
-  await goToLocator(page, strategicLineSelect);
-  await strategicLineSelect.selectOption('riego');
-  await strategicAmountInput.fill('100000');
-  await mineralSelect.selectOption('minima');
+  const miemEnergyYes = page.locator('input[name="miemEnergyFlag"][value="si"]');
+  const miemEnergyInvestmentInput = page.locator('#miemEnergyInvestmentUi');
+  await goToLocator(page, miemEnergyYes);
+  await miemEnergyYes.check();
+  await miemEnergyInvestmentInput.fill(String(strategicInputs.miemEnergyInvestmentUi));
   await expectStepScore(page, scores.strategic);
   await goNext(page);
 

@@ -81,21 +81,21 @@ test('flow: mgap agricultural project', async ({ page }) => {
   const billingInput = page.locator('#annualBillingUi');
   const employeesInput = page.locator('#employees');
   const sectorSelect = page.locator('#sector');
+  const ministrySelect = page.locator('#evaluatingMinistry');
   const newCompanyNo = page.locator('input[name="isNewCompany"][value="no"]');
   await goToLocator(page, billingInput);
   await billingInput.fill('18000000');
   await employeesInput.fill('40');
   await sectorSelect.selectOption('agro');
   await newCompanyNo.check();
+  await ministrySelect.selectOption('mgap');
   await goNext(page);
 
   const projectStep = page.locator('.step.active');
-  const ministrySelect = page.locator('#evaluatingMinistry');
   const machineryInput = page.locator('#machineryUi');
   const civilWorksInput = page.locator('#civilWorksUi');
   const industrialParkInput = page.locator('#industrialParkInvestmentUi');
   await goToLocator(page, machineryInput);
-  await ministrySelect.selectOption('mgap');
   await machineryInput.fill(String(investment.machineryUi));
   await civilWorksInput.fill(String(investment.civilWorksUi));
   await fillIfVisible(industrialParkInput, investment.industrialParkInvestmentUi);

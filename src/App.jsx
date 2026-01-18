@@ -1335,7 +1335,7 @@ export default function App() {
             </div>
 
             {inputs.isIndustrialParkUser === 'si' ? (
-              <div className="row">
+              <div className="row row-narrow">
                 <div className="field-group">
                   <label className="field-label" htmlFor="industrialParkActivity">
                     Actividad en parque industrial
@@ -1374,12 +1374,6 @@ export default function App() {
                     </option>
                   </select>
                 </div>
-                <div />
-              </div>
-            ) : null}
-
-            {inputs.isIndustrialParkUser === 'si' ? (
-              <div className="row row-narrow">
                 <NumericField
                   label="Monto inversión dentro del parque industrial (UI)"
                   name="industrialParkInvestmentUi"
@@ -1389,7 +1383,6 @@ export default function App() {
                   onChange={handleNumericChange('industrialParkInvestmentUi')}
                   onBlur={handleNumericBlur('industrialParkInvestmentUi')}
                 />
-                <div />
               </div>
             ) : null}
 

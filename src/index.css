@@ -321,6 +321,7 @@ a {
 
 .disclaimer {
   margin-top: 16px;
+  padding: 0 24px;
   font-size: 12px;
   line-height: 1.4;
   color: #5d6a7e;

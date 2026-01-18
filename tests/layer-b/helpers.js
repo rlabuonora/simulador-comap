@@ -105,12 +105,20 @@ export const computeScenario = (scenario) => {
     filedDate: scenario.project.filedDate,
     firmSize,
     coreScoreSum,
+    industrialParkUser: scenario.company?.isIndustrialParkUser,
+    industrialParkActivity: scenario.company?.industrialParkActivity,
+    industrialParkInvestment: scenario.project?.industrialParkUi ?? 0,
+    employees: scenario.company?.employees,
   });
   const years = computeIraeYears({
     investmentTotal: investment,
     weightedScore: total,
     coreScoreSum,
     firmSize,
+    industrialParkUser: scenario.company?.isIndustrialParkUser,
+    industrialParkActivity: scenario.company?.industrialParkActivity,
+    industrialParkInvestment: scenario.project?.industrialParkUi ?? 0,
+    employees: scenario.company?.employees,
   });
 
   return {

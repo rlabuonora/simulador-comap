@@ -1,5 +1,4 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
-import SummaryChart from './components/SummaryChart.jsx';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import {
@@ -230,13 +229,13 @@ const parseNumericValue = (value) => {
   return Number.isNaN(parsed) ? null : parsed;
 };
 
-const formatNumberForDisplay = (value, minFractionDigits = 0) => {
+const formatNumberForDisplay = (value, minFractionDigits = 0, maxFractionDigits = 2) => {
   if (value === null || value === undefined || value === '') {
     return '';
   }
   return new Intl.NumberFormat('es-UY', {
     minimumFractionDigits: minFractionDigits,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: maxFractionDigits,
   }).format(value);
 };
 
@@ -374,22 +373,27 @@ const getDebugScenario = (key) => {
         evaluatingMinistry: 'mintur',
         sector: 'turismo',
         isNewCompany: 'no',
-        annualBillingUi: 22000000,
-        employees: 30,
-        machineryUi: 2000000,
-        installationsUi: 1500000,
-        civilWorksUi: 500000,
-        investment: 4000000,
+        annualBillingUi: 60000000,
+        employees: 40,
+        machineryUi: 3000000,
+        civilWorksUi: 4000000,
+        othersBase: 40,
+        womenBase: 15,
+        youthBase: 10,
+        othersIncrease: 4,
+        womenIncrease: 2,
+        youthIncrease: 2,
         minturStrategicFlag: 'si',
-        minturInvestmentZoneUi: 1500000,
-        minturInvestmentOutsideUi: 500000,
-        sustainabilityAmount: 800000,
+        minturInvestmentZoneUi: 500000,
+        minturInvestmentOutsideUi: 0,
+        sustainabilityAmount: 400000,
         certification: 'none',
-        iPlusCategory: 'id',
-        iPlusPct: 2000000,
-        exportIncrease: 100000,
+        iPlusCategory: 'at',
+        iPlusPct: 0,
+        currentExports: 1500000,
+        exportIncrease: 600000,
       },
-      deptAllocations: [{ id: 'rocha', amount: 4000000 }],
+      deptAllocations: [{ id: 'rocha', amount: 7000000 }],
     };
   }
 
@@ -519,6 +523,14 @@ const BASE_STEPS = [
     hint: 'Este es el impacto estimado de tu proyecto.',
   },
 ];
+
+const INDUSTRIAL_PARK_ELIGIBLE = new Set([
+  'actividades-industriales',
+  'servicios-logisticos',
+  'energia-solar',
+  'valorizacion-residuos',
+  'servicios-tic-biotecnologia',
+]);
 
 export default function App() {
   const [inputs, setInputs] = useState(defaultInputs);
@@ -715,8 +727,21 @@ export default function App() {
         filedDate: inputs.filedDate,
         firmSize: companyCategory || undefined,
         coreScoreSum,
+        industrialParkUser: inputs.isIndustrialParkUser,
+        industrialParkActivity: inputs.industrialParkActivity,
+        industrialParkInvestment: parseNumericValue(numericValues.industrialParkInvestmentUi) ?? 0,
+        employees: parseNumericValue(numericValues.employees) ?? undefined,
       }),
-    [companyCategory, coreScoreSum, inputs.filedDate, investmentTotal, scores, totalScore]
+    [
+      companyCategory,
+      coreScoreSum,
+      inputs.filedDate,
+      inputs.industrialParkActivity,
+      inputs.isIndustrialParkUser,
+      investmentTotal,
+      scores,
+      totalScore,
+    ]
   );
   const exonerationYears = useMemo(
     () =>
@@ -725,9 +750,64 @@ export default function App() {
         weightedScore: totalScore,
         coreScoreSum,
         firmSize: companyCategory || undefined,
+        industrialParkUser: inputs.isIndustrialParkUser,
+        industrialParkActivity: inputs.industrialParkActivity,
+        industrialParkInvestment: parseNumericValue(numericValues.industrialParkInvestmentUi) ?? 0,
+        employees: parseNumericValue(numericValues.employees) ?? undefined,
       }),
-    [companyCategory, coreScoreSum, investmentTotal, totalScore]
+    [
+      companyCategory,
+      coreScoreSum,
+      inputs.industrialParkActivity,
+      inputs.isIndustrialParkUser,
+      investmentTotal,
+      totalScore,
+    ]
   );
+
+  const indicatorRows = useMemo(() => {
+    return INDICATORS.map((indicator) => {
+      const score = scores[indicator.id] ?? 0;
+      const weight = WEIGHTS[indicator.id] ?? 0;
+      return {
+        id: indicator.id,
+        label: indicator.label,
+        score,
+        weightedScore: score * weight,
+      };
+    });
+  }, [scores]);
+
+  const pymesBonusDetail = useMemo(() => {
+    if (companyCategory === 'MICRO' || companyCategory === 'PEQUEÑA') {
+      return { rate: 0.15, years: 2 };
+    }
+    if (companyCategory === 'MEDIANA') {
+      const employees = parseNumericValue(numericValues.employees);
+      if (employees === null || employees <= 50) {
+        return { rate: 0.1, years: 1 };
+      }
+    }
+    return { rate: 0, years: 0 };
+  }, [companyCategory, numericValues.employees]);
+
+  const industrialParkBonusDetail = useMemo(() => {
+    if (inputs.isIndustrialParkUser !== 'si') {
+      return { incrementRate: 0, share: 0 };
+    }
+    const incrementRate = INDUSTRIAL_PARK_ELIGIBLE.has(inputs.industrialParkActivity) ? 0.15 : 0.05;
+    const parkInvestment = parseNumericValue(numericValues.industrialParkInvestmentUi) ?? 0;
+    if (!investmentTotal || investmentTotal <= 0) {
+      return { incrementRate, share: 0 };
+    }
+    const boundedInvestment = Math.min(Math.max(parkInvestment, 0), investmentTotal);
+    return { incrementRate, share: boundedInvestment / investmentTotal };
+  }, [
+    inputs.industrialParkActivity,
+    inputs.isIndustrialParkUser,
+    investmentTotal,
+    numericValues.industrialParkInvestmentUi,
+  ]);
 
   const investmentTotalUsd = useMemo(() => {
     const uiRate = parseNumericValue(numericValues.uiRate);
@@ -1268,6 +1348,21 @@ export default function App() {
               </div>
             ) : null}
 
+            {inputs.isIndustrialParkUser === 'si' ? (
+              <div className="row row-narrow">
+                <NumericField
+                  label="Monto inversión dentro del parque industrial (UI)"
+                  name="industrialParkInvestmentUi"
+                  placeholder="Ej: 1500000"
+                  value={numericValues.industrialParkInvestmentUi ?? ''}
+                  error={numericErrors.industrialParkInvestmentUi}
+                  onChange={handleNumericChange('industrialParkInvestmentUi')}
+                  onBlur={handleNumericBlur('industrialParkInvestmentUi')}
+                />
+                <div />
+              </div>
+            ) : null}
+
             <div className="row">
               <div className="field-group">
                 <label className="field-label" htmlFor="evaluatingMinistry">
@@ -1349,17 +1444,6 @@ export default function App() {
                 onChange={handleNumericChange('civilWorksUi')}
                 onBlur={handleNumericBlur('civilWorksUi')}
               />
-              {inputs.isIndustrialParkUser === 'si' ? (
-                <NumericField
-                  label="inversión dentro de parque industrial (UI)"
-                  name="industrialParkInvestmentUi"
-                  placeholder="Ej: 1500000"
-                  value={numericValues.industrialParkInvestmentUi ?? ''}
-                  error={numericErrors.industrialParkInvestmentUi}
-                  onChange={handleNumericChange('industrialParkInvestmentUi')}
-                  onBlur={handleNumericBlur('industrialParkInvestmentUi')}
-                />
-              ) : null}
             </div>
 
             <div className="row row-narrow">
@@ -1377,7 +1461,7 @@ export default function App() {
                   inversión elegible total (USD)
                 </label>
                 <div id="investmentTotalUsd" className="field-control">
-                  {formatNumberForDisplay(investmentTotalUsd, 0)}
+                  {formatNumberForDisplay(investmentTotalUsd, 0, 0)}
                 </div>
               </div>
             </div>
@@ -1713,7 +1797,7 @@ export default function App() {
                       Incremento aplicando coeficiente
                     </label>
                     <div id="minturWeighted" className="field-control">
-                      {formatNumberForDisplay(minturWeightedIncrease, 2)}
+                      {formatNumberForDisplay(minturWeightedIncrease, 0, 0)}
                     </div>
                   </div>
                 </div>
@@ -2241,7 +2325,7 @@ export default function App() {
               ) : null}
               <div className="metric-grid">
                 <div className="metric-card">
-                  <p className="metric-title">Puntaje total</p>
+                  <p className="metric-title">Puntaje total ponderado</p>
                   <p className="metric-value">{totalScore.toFixed(2)}</p>
                 </div>
                 <div className="metric-card">
@@ -2259,12 +2343,77 @@ export default function App() {
                   <h3>Indicadores</h3>
                   <span>Escala 0-10</span>
                 </div>
-                <SummaryChart indicators={INDICATORS} scores={scores} />
+                <div className="table four-col">
+                  <div className="table-row table-header">
+                    <div className="table-cell">Indicador</div>
+                    <div className="table-cell">Puntaje</div>
+                    <div className="table-cell">Peso</div>
+                    <div className="table-cell">Puntaje ponderado</div>
+                  </div>
+                  {indicatorRows.map((row) => (
+                    <div className="table-row" key={row.id}>
+                      <div className="table-cell">{row.label}</div>
+                      <div className="table-cell">{row.score.toFixed(2)}</div>
+                      <div className="table-cell">{(WEIGHTS[row.id] * 100).toFixed(0)}%</div>
+                      <div className="table-cell">{row.weightedScore.toFixed(2)}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="card summary-card card-plain">
+                <div className="card-header">
+                  <h3>Exoneraciones adicionales</h3>
+                  <span>Aplican sobre IRAE y plazo base</span>
+                </div>
+                <div className="table three-col">
+                  <div className="table-row table-header">
+                    <div className="table-cell">Tipo</div>
+                    <div className="table-cell">Tasa IRAE</div>
+                    <div className="table-cell">Plazo</div>
+                  </div>
+                  <div className="table-row">
+                    <div className="table-cell">PYMES</div>
+                    <div className="table-cell">
+                      {pymesBonusDetail.rate > 0
+                        ? `+${(pymesBonusDetail.rate * 100).toFixed(0)} pp`
+                        : 'No aplica'}
+                    </div>
+                    <div className="table-cell">
+                      {pymesBonusDetail.years > 0
+                        ? `+${pymesBonusDetail.years} años`
+                        : 'No aplica'}
+                    </div>
+                  </div>
+                  <div className="table-row">
+                    <div className="table-cell">Parque industrial</div>
+                    <div className="table-cell">
+                      {industrialParkBonusDetail.incrementRate > 0 &&
+                      industrialParkBonusDetail.share > 0
+                        ? `+${(
+                            industrialParkBonusDetail.incrementRate *
+                            industrialParkBonusDetail.share *
+                            100
+                          ).toFixed(1)}%`
+                        : 'No aplica'}
+                    </div>
+                    <div className="table-cell">
+                      {industrialParkBonusDetail.incrementRate > 0 &&
+                      industrialParkBonusDetail.share > 0
+                        ? `x${(
+                            1 +
+                            industrialParkBonusDetail.incrementRate *
+                              industrialParkBonusDetail.share
+                          ).toFixed(3)}`
+                        : 'No aplica'}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <p className="disclaimer">
                 {
-                  'Los resultados presentados constituyen una estimación basada en la información ingresada y en la normativa vigente, y tienen carácter meramente orientativo. No implican aprobación, no generan derecho alguno, ni garantizan el otorgamiento de beneficios fiscales, los cuales quedan sujetos a la evaluación técnica y resolución final de los organismos competentes.'
+                  'Los resultados presentados constituyen una estimación basada en la información ingresada y en la normativa vigente, y tienen carácter meramente orientativo. No implican aprobación, no generan derecho alguno, ni garantizan el otorgamiento de beneficios fiscales, los cuales quedan sujetos a la evaluación técnica y resolución final de COMAP.'
                 }
               </p>
             </div>

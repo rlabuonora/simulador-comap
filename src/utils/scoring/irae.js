@@ -1,7 +1,46 @@
 import { isOnOrBefore } from './helpers.js';
 
+const INDUSTRIAL_PARK_ELIGIBLE = new Set([
+  'actividades-industriales',
+  'servicios-logisticos',
+  'energia-solar',
+  'valorizacion-residuos',
+  'servicios-tic-biotecnologia',
+]);
+
+const getIndustrialParkMultiplier = ({
+  industrialParkUser,
+  industrialParkActivity,
+  investmentTotal,
+  industrialParkInvestment,
+}) => {
+  if (industrialParkUser !== 'si') {
+    return 1;
+  }
+
+  const incrementRate = INDUSTRIAL_PARK_ELIGIBLE.has(industrialParkActivity) ? 0.15 : 0.05;
+
+  if (!investmentTotal || investmentTotal <= 0) {
+    return 1;
+  }
+
+  const boundedParkInvestment = Math.min(Math.max(industrialParkInvestment ?? 0, 0), investmentTotal);
+  const share = boundedParkInvestment / investmentTotal;
+  return 1 + incrementRate * share;
+};
+
 export function computeIraePct(finalScoreValue, options = {}) {
-  const { scores, investmentTotal, filedDate, firmSize, coreScoreSum } = options;
+  const {
+    scores,
+    investmentTotal,
+    filedDate,
+    firmSize,
+    coreScoreSum,
+    industrialParkUser,
+    industrialParkActivity,
+    industrialParkInvestment,
+    employees,
+  } = options;
   const hasOverrideInputs =
     scores && typeof investmentTotal === 'number' && Number.isFinite(investmentTotal) && filedDate;
 
@@ -34,14 +73,30 @@ export function computeIraePct(finalScoreValue, options = {}) {
 
   if (firmSize === 'MICRO' || firmSize === 'PEQUEÑA') {
     bonus = 0.15;
-  } else if (firmSize === 'MEDIANA') {
+  } else if (firmSize === 'MEDIANA' && (employees === undefined || employees <= 50)) {
     bonus = 0.1;
   }
 
-  return Math.min(baseRate + bonus, 1);
+  const baseRateWithBonus = baseRate + bonus;
+  const multiplier = getIndustrialParkMultiplier({
+    industrialParkUser,
+    industrialParkActivity,
+    investmentTotal,
+    industrialParkInvestment,
+  });
+  return Math.min(baseRateWithBonus * multiplier, 1);
 }
 
-export function computeIraeYears({ investmentTotal, weightedScore, coreScoreSum, firmSize }) {
+export function computeIraeYears({
+  investmentTotal,
+  weightedScore,
+  coreScoreSum,
+  firmSize,
+  industrialParkUser,
+  industrialParkActivity,
+  industrialParkInvestment,
+  employees,
+}) {
   if (coreScoreSum < 1) {
     return 0;
   }
@@ -76,9 +131,15 @@ export function computeIraeYears({ investmentTotal, weightedScore, coreScoreSum,
 
   if (firmSize === 'MICRO' || firmSize === 'PEQUEÑA') {
     years += 2;
-  } else if (firmSize === 'MEDIANA') {
+  } else if (firmSize === 'MEDIANA' && (employees === undefined || employees <= 50)) {
     years += 1;
   }
 
-  return Math.round(years);
+  const multiplier = getIndustrialParkMultiplier({
+    industrialParkUser,
+    industrialParkActivity,
+    investmentTotal,
+    industrialParkInvestment,
+  });
+  return Math.round(years * multiplier);
 }

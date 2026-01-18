@@ -1,4 +1,4 @@
-import { computeIraePct } from '../../src/utils/scoring.js';
+import { computeIraePct, computeIraeYears } from '../../src/utils/scoring.js';
 import { baselineFixture } from './fixture.js';
 
 const cases = [
@@ -74,5 +74,89 @@ describe('Layer A: IRAE scaling', () => {
     // Rule: MEDIANA bonus is lower than micro/pequena.
     const irae = computeIraePct(1, { firmSize: 'MEDIANA' });
     expect(irae).toBeCloseTo(0.4, 8);
+  });
+
+  test('IRAE-09: MEDIANA bonus excluded when employees > 50', () => {
+    // Rule: MEDIANA bonus only applies up to 50 employees.
+    const irae = computeIraePct(1, { firmSize: 'MEDIANA', employees: 51 });
+    expect(irae).toBeCloseTo(0.3, 8);
+  });
+
+  test('IRAE-10: industrial park eligible activity gets proportional 15% boost', () => {
+    // Rule: apply 15% increment proportionally to investment inside the park.
+    const irae = computeIraePct(1, {
+      firmSize: 'GRAN EMPRESA',
+      investmentTotal: 100,
+      industrialParkUser: 'si',
+      industrialParkActivity: 'actividades-industriales',
+      industrialParkInvestment: 50,
+    });
+    expect(irae).toBeCloseTo(0.3225, 6);
+  });
+
+  test('IRAE-11: industrial park other activity gets proportional 5% boost', () => {
+    // Rule: apply 5% increment proportionally to investment inside the park.
+    const irae = computeIraePct(1, {
+      firmSize: 'GRAN EMPRESA',
+      investmentTotal: 100,
+      industrialParkUser: 'si',
+      industrialParkActivity: 'otra',
+      industrialParkInvestment: 50,
+    });
+    expect(irae).toBeCloseTo(0.3075, 6);
+  });
+
+  test('IRAE-12: no park user -> no increment applied', () => {
+    // Rule: park increment only applies to park users.
+    const irae = computeIraePct(1, {
+      firmSize: 'GRAN EMPRESA',
+      investmentTotal: 100,
+      industrialParkUser: 'no',
+      industrialParkActivity: 'actividades-industriales',
+      industrialParkInvestment: 100,
+    });
+    expect(irae).toBeCloseTo(0.3, 8);
+  });
+
+  test('IRAE-13: park investment is capped at total', () => {
+    // Rule: park share cannot exceed total investment.
+    const irae = computeIraePct(1, {
+      firmSize: 'GRAN EMPRESA',
+      investmentTotal: 100,
+      industrialParkUser: 'si',
+      industrialParkActivity: 'actividades-industriales',
+      industrialParkInvestment: 200,
+    });
+    expect(irae).toBeCloseTo(0.345, 6);
+  });
+});
+
+describe('Layer A: IRAE years scaling', () => {
+  test('IRAE-Y-01: industrial park boost scales years proportionally', () => {
+    // Rule: years increase proportionally to park investment share.
+    const years = computeIraeYears({
+      investmentTotal: 3_000_000,
+      weightedScore: 5,
+      coreScoreSum: 2,
+      firmSize: 'GRAN EMPRESA',
+      industrialParkUser: 'si',
+      industrialParkActivity: 'actividades-industriales',
+      industrialParkInvestment: 1_500_000,
+    });
+    expect(years).toBe(10);
+  });
+
+  test('IRAE-Y-02: no park user -> years unchanged', () => {
+    // Rule: years only increase for park users.
+    const years = computeIraeYears({
+      investmentTotal: 3_000_000,
+      weightedScore: 5,
+      coreScoreSum: 2,
+      firmSize: 'GRAN EMPRESA',
+      industrialParkUser: 'no',
+      industrialParkActivity: 'actividades-industriales',
+      industrialParkInvestment: 1_500_000,
+    });
+    expect(years).toBe(9);
   });
 });

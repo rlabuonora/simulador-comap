@@ -178,6 +178,7 @@ export const calculateScores = (fixture) => {
     filedDate: fixture.project?.filedDate,
     firmSize,
     coreScoreSum,
+    employees: fixture.company?.employees,
   });
 
   return {

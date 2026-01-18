@@ -16,34 +16,35 @@ import {
 
 test('flow: mintur tourism project', async ({ page }) => {
   const investment = {
-    machineryUi: 2000000,
-    civilWorksUi: 500000,
+    machineryUi: 3000000,
+    // installationsUi is not collected in the UI; fold it into civil works.
+    civilWorksUi: 4000000,
     industrialParkInvestmentUi: 0,
   };
   const totalInvestment = investment.machineryUi + investment.civilWorksUi;
 
   const employmentInputs = {
     investmentUi: totalInvestment,
-    othersBase: 0,
-    womenBase: 0,
-    youthBase: 0,
+    othersBase: 40,
+    womenBase: 15,
+    youthBase: 10,
     disabilityBase: 0,
     dinaliBase: 0,
     tusTransBase: 0,
-    othersIncrease: 0,
-    womenIncrease: 1,
-    youthIncrease: 1,
-    disabilityIncrease: 1,
-    dinaliIncrease: 1,
+    othersIncrease: 4,
+    womenIncrease: 2,
+    youthIncrease: 2,
+    disabilityIncrease: 0,
+    dinaliIncrease: 0,
     tusTransIncrease: 0,
   };
   const exportInputs = {
     evaluatingMinistry: 'mintur',
     isNewCompany: 'no',
-    currentExports: 2000000,
-    exportIncrease: 100000,
+    currentExports: 1500000,
+    exportIncrease: 600000,
     totalInvestment,
-    indirectExports: [{ pct: 100, increase: 100000 }],
+    indirectExports: [{ pct: 100, increase: 600000 }],
   };
   const decentralizationInputs = {
     investment: totalInvestment,
@@ -51,16 +52,20 @@ test('flow: mintur tourism project', async ({ page }) => {
   };
   const sustainabilityInputs = {
     investment: totalInvestment,
-    sustainabilityAmount: 800000,
+    sustainabilityAmount: 400000,
     certification: 'none',
   };
   const iPlusInputs = {
     investment: totalInvestment,
-    iPlusPct: 2000000,
-    iPlusCategory: 'id',
+    iPlusPct: 0,
+    iPlusCategory: 'at',
   };
   const strategicInputs = {
-    strategicPriorities: 2,
+    evaluatingMinistry: 'mintur',
+    investment: totalInvestment,
+    minturStrategicFlag: 'si',
+    minturInvestmentZoneUi: 500000,
+    minturInvestmentOutsideUi: 0,
   };
 
   const scores = {
@@ -80,8 +85,8 @@ test('flow: mintur tourism project', async ({ page }) => {
   const sectorSelect = page.locator('#sector');
   const newCompanyNo = page.locator('input[name="isNewCompany"][value="no"]');
   await goToLocator(page, billingInput);
-  await billingInput.fill('22000000');
-  await employeesInput.fill('30');
+  await billingInput.fill('60000000');
+  await employeesInput.fill('40');
   await sectorSelect.selectOption('turismo');
   await newCompanyNo.check();
   await goNext(page);
@@ -174,13 +179,13 @@ test('flow: mintur tourism project', async ({ page }) => {
   await goNext(page);
 
   const strategicStep = page.locator('.step.active');
-  const strategicLineSelect = page.locator('#strategicLine');
-  const strategicAmountInput = page.locator('#strategicInvestmentPct');
-  const tourismZoneYes = page.locator('input[name="tourismZoneLocation"][value="si"]');
-  await goToLocator(page, strategicLineSelect);
-  await strategicLineSelect.selectOption('infraestructura-turistica');
-  await strategicAmountInput.fill('160000');
-  await tourismZoneYes.check();
+  const minturStrategicYes = page.locator('input[name="minturStrategicFlag"][value="si"]');
+  const minturZoneInput = page.locator('#minturInvestmentZoneUi');
+  const minturOutsideInput = page.locator('#minturInvestmentOutsideUi');
+  await goToLocator(page, minturStrategicYes);
+  await minturStrategicYes.check();
+  await minturZoneInput.fill(String(strategicInputs.minturInvestmentZoneUi));
+  await minturOutsideInput.fill(String(strategicInputs.minturInvestmentOutsideUi));
   await expectStepScore(page, scores.strategic);
   await goNext(page);
 

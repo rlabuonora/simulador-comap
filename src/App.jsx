@@ -2430,7 +2430,9 @@ export default function App() {
                     </div>
                     <div className="table-cell">
                       {pymesBonusDetail.years > 0
-                        ? `+${pymesBonusDetail.years} años`
+                        ? `+${pymesBonusDetail.years} ${
+                            pymesBonusDetail.years === 1 ? 'año' : 'años'
+                          }`
                         : 'No aplica'}
                     </div>
                   </div>
@@ -2474,7 +2476,7 @@ export default function App() {
                 onClick={handleExportPdf}
                 disabled={isExportingPdf}
               >
-                {isExportingPdf ? 'Generando PDF...' : 'Descargar PDF'}
+                {isExportingPdf ? 'Generando PDF...' : 'Exportar a PDF'}
               </button>
             </div>
           </section>

@@ -473,7 +473,7 @@ const ScoreBadge = ({ label, value }) => {
 const BASE_STEPS = [
   {
     id: 'empresa',
-    label: 'Datos de la empresa',
+    label: 'Datos de las empresas',
     hint: 'Información general de la empresa solicitante.',
   },
   {

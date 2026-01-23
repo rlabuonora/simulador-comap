@@ -259,12 +259,23 @@ a {
   align-items: start;
 }
 
+.row-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
 .col-span-2 {
   grid-column: span 2;
 }
 
 .col-span-4 {
   grid-column: span 4;
+}
+
+.col-span-5 {
+  grid-column: span 5;
 }
 
 .row-4.mgap-row {

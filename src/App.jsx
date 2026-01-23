@@ -411,8 +411,7 @@ const buildNumericValues = (source) => {
     }
     const parsed = parseNumericValue(rawValue);
     if (parsed !== null) {
-    const decimals = AMOUNT_FIELDS.has(key) ? 0 : getDecimalPlaces(rawValue);
-      base[key] = formatNumberForDisplay(parsed, decimals);
+      base[key] = formatNumberForDisplay(parsed, 0, 0);
     }
   });
 
@@ -727,9 +726,7 @@ export default function App() {
     const merged = { ...inputs };
     Object.entries(numericValues).forEach(([key, value]) => {
       const parsed = parseNumericValue(value);
-      if (parsed !== null) {
-        merged[key] = parsed;
-      }
+      merged[key] = parsed ?? 0;
     });
     if (investmentTotal > 0) {
       merged.investment = investmentTotal;
@@ -1017,10 +1014,9 @@ export default function App() {
       if (parsed !== null) {
         const normalized = parsed < 0 ? 0 : parsed;
         setInputs((prev) => ({ ...prev, [key]: normalized }));
-        const decimals = normalized === 0 ? 0 : getDecimalPlaces(rawValue);
         setNumericValues((prev) => ({
           ...prev,
-          [key]: formatNumberForDisplay(normalized, decimals),
+          [key]: formatNumberForDisplay(normalized, 0, 0),
         }));
       }
       return;
@@ -1059,6 +1055,28 @@ export default function App() {
 
     setNumericErrors((prev) => ({ ...prev, [key]: '' }));
     setInputs((prev) => ({ ...prev, [key]: parsed }));
+    setNumericValues((prev) => ({
+      ...prev,
+      [key]: formatNumberForDisplay(parsed, 0, 0),
+    }));
+  };
+
+  const resetNumericFields = (keys) => {
+    if (!keys.length) {
+      return;
+    }
+    const numericReset = keys.reduce((acc, key) => {
+      acc[key] = formatNumberForDisplay(0, 0, 0);
+      return acc;
+    }, {});
+    setInputs((prev) => ({
+      ...prev,
+      ...keys.reduce((acc, key) => {
+        acc[key] = 0;
+        return acc;
+      }, {}),
+    }));
+    setNumericValues((prev) => ({ ...prev, ...numericReset }));
   };
 
   const handleAmountBlur = (setter) => (event) => {
@@ -1071,8 +1089,7 @@ export default function App() {
       setter(formatNumberForDisplay(0, 0));
       return;
     }
-    const decimals = getDecimalPlaces(rawValue);
-    setter(formatNumberForDisplay(parsed, decimals));
+    setter(formatNumberForDisplay(parsed, 0, 0));
   };
 
   const handleAddDepartment = () => {
@@ -1431,30 +1448,31 @@ export default function App() {
                 <label className="field-label">Usuaria de parque industrial</label>
                 <div className="radio">
                   <label className="pill">
-                    <input
-                      type="radio"
-                      name="isIndustrialParkUser"
-                      value="si"
-                      checked={inputs.isIndustrialParkUser === 'si'}
-                      onChange={(event) =>
-                        setInputs((prev) => ({ ...prev, isIndustrialParkUser: event.target.value }))
-                      }
-                    />
-                    Si
-                  </label>
-                  <label className="pill">
-                    <input
-                      type="radio"
-                      name="isIndustrialParkUser"
-                      value="no"
-                      checked={inputs.isIndustrialParkUser === 'no'}
-                      onChange={(event) =>
-                        setInputs((prev) => ({ ...prev, isIndustrialParkUser: event.target.value }))
-                      }
-                    />
-                    No
-                  </label>
-                </div>
+                  <input
+                    type="radio"
+                    name="isIndustrialParkUser"
+                    value="si"
+                    checked={inputs.isIndustrialParkUser === 'si'}
+                    onChange={(event) =>
+                      setInputs((prev) => ({ ...prev, isIndustrialParkUser: event.target.value }))
+                    }
+                  />
+                  Si
+                </label>
+                <label className="pill">
+                  <input
+                    type="radio"
+                    name="isIndustrialParkUser"
+                    value="no"
+                    checked={inputs.isIndustrialParkUser === 'no'}
+                    onChange={(event) => {
+                      setInputs((prev) => ({ ...prev, isIndustrialParkUser: event.target.value }));
+                      resetNumericFields(['industrialParkInvestmentUi']);
+                    }}
+                  />
+                  No
+                </label>
+              </div>
               </div>
               <div />
             </div>
@@ -2108,9 +2126,10 @@ export default function App() {
                         name="mgapRiegoFlag"
                         value="no"
                         checked={inputs.mgapRiegoFlag !== 'si'}
-                        onChange={(event) =>
-                          setInputs((prev) => ({ ...prev, mgapRiegoFlag: event.target.value }))
-                        }
+                        onChange={(event) => {
+                          setInputs((prev) => ({ ...prev, mgapRiegoFlag: event.target.value }));
+                          resetNumericFields(['mgapRiegoInvestmentUi']);
+                        }}
                       />
                       No
                     </label>
@@ -2155,9 +2174,10 @@ export default function App() {
                         name="mgapPescaFlag"
                         value="no"
                         checked={inputs.mgapPescaFlag !== 'si'}
-                        onChange={(event) =>
-                          setInputs((prev) => ({ ...prev, mgapPescaFlag: event.target.value }))
-                        }
+                        onChange={(event) => {
+                          setInputs((prev) => ({ ...prev, mgapPescaFlag: event.target.value }));
+                          resetNumericFields(['mgapPescaInvestmentUi']);
+                        }}
                       />
                       No
                     </label>
@@ -2200,9 +2220,10 @@ export default function App() {
                         name="mgapBioFlag"
                         value="no"
                         checked={inputs.mgapBioFlag !== 'si'}
-                        onChange={(event) =>
-                          setInputs((prev) => ({ ...prev, mgapBioFlag: event.target.value }))
-                        }
+                        onChange={(event) => {
+                          setInputs((prev) => ({ ...prev, mgapBioFlag: event.target.value }));
+                          resetNumericFields(['mgapBioInvestmentUi']);
+                        }}
                       />
                       No
                     </label>
@@ -2232,12 +2253,26 @@ export default function App() {
                     id="mgapLivestockImprovement"
                     className="field-control"
                     value={inputs.mgapLivestockImprovement}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
                       setInputs((prev) => ({
                         ...prev,
-                        mgapLivestockImprovement: event.target.value,
-                      }))
-                    }
+                        mgapLivestockImprovement: nextValue,
+                      }));
+                      if (nextValue === 'no') {
+                        resetNumericFields([
+                          'mgapLivestockBirthsA',
+                          'mgapLivestockBreedingAvgB',
+                          'mgapLivestockIncreasePoints',
+                          'mgapLivestockHerdFinalA',
+                          'mgapLivestockHerdAvgB',
+                          'mgapLivestockHerdIncreasePct',
+                          'mgapLivestockFlockFinalA',
+                          'mgapLivestockFlockAvgB',
+                          'mgapLivestockFlockIncreasePct',
+                        ]);
+                      }
+                    }}
                   >
                     <option value="no">No</option>
                     <option value="birth-rate">Aumento en la tasa de nacimientos</option>
@@ -2247,7 +2282,7 @@ export default function App() {
 
                 {inputs.mgapLivestockImprovement === 'birth-rate' ? (
                   <div className="spacer-top">
-                    <div className="row row-narrow">
+                    <div className="row-12">
                       <NumericField
                         label="Cantidad de teneros/as nacidos vivos en el establecimiento (A) en el ejercicio"
                         name="mgapLivestockBirthsA"
@@ -2256,11 +2291,8 @@ export default function App() {
                         error={numericErrors.mgapLivestockBirthsA}
                         onChange={handleNumericChange('mgapLivestockBirthsA')}
                         onBlur={handleNumericBlur('mgapLivestockBirthsA')}
-                        className="narrow-field"
+                        className="col-span-5"
                       />
-                      <div />
-                    </div>
-                    <div className="row row-narrow spacer-top">
                       <NumericField
                         label="Promedio rodeo de cría de los últimos 2 ejercicios (B)"
                         name="mgapLivestockBreedingAvgB"
@@ -2269,15 +2301,13 @@ export default function App() {
                         error={numericErrors.mgapLivestockBreedingAvgB}
                         onChange={handleNumericChange('mgapLivestockBreedingAvgB')}
                         onBlur={handleNumericBlur('mgapLivestockBreedingAvgB')}
-                        className="narrow-field"
+                        className="col-span-5"
                       />
-                      <div />
-                    </div>
-
-                    <div className="row row-narrow spacer-top">
-                      <div className="field-group">
+                      <div className="field-group col-span-2">
                         <label className="field-label" htmlFor="mgapLivestockBirthRatio">
-                          Relación (A/B)
+                          Relación
+                          <br />
+                          (A/B)
                         </label>
                         <div id="mgapLivestockBirthRatio" className="field-control">
                           {mgapBirthRatio === null
@@ -2285,7 +2315,6 @@ export default function App() {
                             : formatNumberForDisplay(mgapBirthRatio, 4, 4)}
                         </div>
                       </div>
-                      <div />
                     </div>
 
                     <div className="row row-narrow spacer-top">
@@ -2480,9 +2509,10 @@ export default function App() {
                       name="minturStrategicFlag"
                       value="no"
                       checked={inputs.minturStrategicFlag !== 'si'}
-                      onChange={(event) =>
-                        setInputs((prev) => ({ ...prev, minturStrategicFlag: event.target.value }))
-                      }
+                      onChange={(event) => {
+                        setInputs((prev) => ({ ...prev, minturStrategicFlag: event.target.value }));
+                        resetNumericFields(['minturInvestmentZoneUi', 'minturInvestmentOutsideUi']);
+                      }}
                     />
                     No
                   </label>
@@ -2547,12 +2577,17 @@ export default function App() {
                                   name={indicator.flagKey}
                                   value="no"
                                   checked={inputs[indicator.flagKey] !== 'si'}
-                                  onChange={(event) =>
+                                  onChange={(event) => {
                                     setInputs((prev) => ({
                                       ...prev,
                                       [indicator.flagKey]: event.target.value,
-                                    }))
-                                  }
+                                    }));
+                                    resetNumericFields([
+                                      'miemWasteTransformMinUi',
+                                      'miemWasteTransformMedUi',
+                                      'miemWasteTransformMaxUi',
+                                    ]);
+                                  }}
                                 />
                                 No
                               </label>
@@ -2624,12 +2659,13 @@ export default function App() {
                               name={indicator.flagKey}
                               value="no"
                               checked={inputs[indicator.flagKey] !== 'si'}
-                              onChange={(event) =>
+                              onChange={(event) => {
                                 setInputs((prev) => ({
                                   ...prev,
                                   [indicator.flagKey]: event.target.value,
-                                }))
-                              }
+                                }));
+                                resetNumericFields([indicator.amountKey]);
+                              }}
                             />
                             No
                           </label>
@@ -2655,80 +2691,87 @@ export default function App() {
               </div>
             ) : null}
 
-            <div className="spacer-top">
-              <div className="row row-narrow spacer-top">
-                <div className="field-group">
-                  <label className="field-label">Industrialización a partir de minerales nacionales</label>
-                  <div className="radio">
-                    <label className="pill">
-                      <input
-                        type="radio"
-                        name="mineralTransformFlag"
-                        value="si"
-                        checked={inputs.mineralTransformFlag === 'si'}
-                        onChange={(event) =>
-                          setInputs((prev) => ({
-                            ...prev,
-                            mineralTransformFlag: event.target.value,
-                          }))
-                        }
-                      />
-                      Si
-                    </label>
-                    <label className="pill">
-                      <input
-                        type="radio"
-                        name="mineralTransformFlag"
-                        value="no"
-                        checked={inputs.mineralTransformFlag !== 'si'}
-                        onChange={(event) =>
-                          setInputs((prev) => ({
-                            ...prev,
-                            mineralTransformFlag: event.target.value,
-                          }))
-                        }
-                      />
-                      No
-                    </label>
+            {inputs.evaluatingMinistry === 'miem' ? (
+              <div className="spacer-top">
+                <div className="row row-narrow spacer-top">
+                  <div className="field-group">
+                    <label className="field-label">Industrialización a partir de minerales nacionales</label>
+                    <div className="radio">
+                      <label className="pill">
+                        <input
+                          type="radio"
+                          name="mineralTransformFlag"
+                          value="si"
+                          checked={inputs.mineralTransformFlag === 'si'}
+                          onChange={(event) =>
+                            setInputs((prev) => ({
+                              ...prev,
+                              mineralTransformFlag: event.target.value,
+                            }))
+                          }
+                        />
+                        Si
+                      </label>
+                      <label className="pill">
+                        <input
+                          type="radio"
+                          name="mineralTransformFlag"
+                          value="no"
+                          checked={inputs.mineralTransformFlag !== 'si'}
+                          onChange={(event) => {
+                            setInputs((prev) => ({
+                              ...prev,
+                              mineralTransformFlag: event.target.value,
+                            }));
+                            resetNumericFields([
+                              'mineralTransformMinUi',
+                              'mineralTransformMedUi',
+                              'mineralTransformMaxUi',
+                            ]);
+                          }}
+                        />
+                        No
+                      </label>
+                    </div>
                   </div>
+                  <div />
                 </div>
-                <div />
+                {inputs.mineralTransformFlag === 'si' ? (
+                  <div className="row-3 spacer-top">
+                    <NumericField
+                      label="Inversiones Transformación mínima (UI)"
+                      name="mineralTransformMinUi"
+                      placeholder="Ej: 200000"
+                      value={numericValues.mineralTransformMinUi ?? ''}
+                      error={numericErrors.mineralTransformMinUi}
+                      onChange={handleNumericChange('mineralTransformMinUi')}
+                      onBlur={handleNumericBlur('mineralTransformMinUi')}
+                      className="narrow-field"
+                    />
+                    <NumericField
+                      label="Inversiones Transformación intermedia (UI)"
+                      name="mineralTransformMedUi"
+                      placeholder="Ej: 200000"
+                      value={numericValues.mineralTransformMedUi ?? ''}
+                      error={numericErrors.mineralTransformMedUi}
+                      onChange={handleNumericChange('mineralTransformMedUi')}
+                      onBlur={handleNumericBlur('mineralTransformMedUi')}
+                      className="narrow-field"
+                    />
+                    <NumericField
+                      label="Inversiones Transformación máxima (UI)"
+                      name="mineralTransformMaxUi"
+                      placeholder="Ej: 200000"
+                      value={numericValues.mineralTransformMaxUi ?? ''}
+                      error={numericErrors.mineralTransformMaxUi}
+                      onChange={handleNumericChange('mineralTransformMaxUi')}
+                      onBlur={handleNumericBlur('mineralTransformMaxUi')}
+                      className="narrow-field"
+                    />
+                  </div>
+                ) : null}
               </div>
-              {inputs.mineralTransformFlag === 'si' ? (
-                <div className="row-3 spacer-top">
-                  <NumericField
-                    label="Inversiones Transformación mínima (UI)"
-                    name="mineralTransformMinUi"
-                    placeholder="Ej: 200000"
-                    value={numericValues.mineralTransformMinUi ?? ''}
-                    error={numericErrors.mineralTransformMinUi}
-                    onChange={handleNumericChange('mineralTransformMinUi')}
-                    onBlur={handleNumericBlur('mineralTransformMinUi')}
-                    className="narrow-field"
-                  />
-                  <NumericField
-                    label="Inversiones Transformación intermedia (UI)"
-                    name="mineralTransformMedUi"
-                    placeholder="Ej: 200000"
-                    value={numericValues.mineralTransformMedUi ?? ''}
-                    error={numericErrors.mineralTransformMedUi}
-                    onChange={handleNumericChange('mineralTransformMedUi')}
-                    onBlur={handleNumericBlur('mineralTransformMedUi')}
-                    className="narrow-field"
-                  />
-                  <NumericField
-                    label="Inversiones Transformación máxima (UI)"
-                    name="mineralTransformMaxUi"
-                    placeholder="Ej: 200000"
-                    value={numericValues.mineralTransformMaxUi ?? ''}
-                    error={numericErrors.mineralTransformMaxUi}
-                    onChange={handleNumericChange('mineralTransformMaxUi')}
-                    onBlur={handleNumericBlur('mineralTransformMaxUi')}
-                    className="narrow-field"
-                  />
-                </div>
-              ) : null}
-            </div>
+            ) : null}
 
             <div className="spacer-top">
               <label className="field-label">Componente Nacional</label>
@@ -2751,9 +2794,15 @@ export default function App() {
                     name="nationalComponent"
                     value="no"
                     checked={inputs.nationalComponent === 'no'}
-                    onChange={(event) =>
-                      setInputs((prev) => ({ ...prev, nationalComponent: event.target.value }))
-                    }
+                    onChange={(event) => {
+                      setInputs((prev) => ({ ...prev, nationalComponent: event.target.value }));
+                      resetNumericFields([
+                        'nationalGoodsUi',
+                        'nationalGoodsTotalUi',
+                        'nationalCivilWorksUi',
+                        'civilWorksMaterialsUi',
+                      ]);
+                    }}
                   />
                   No
                 </label>

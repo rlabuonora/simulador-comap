@@ -192,6 +192,10 @@ export function scoreStrategic({
   mineralTransformMaxUi = 0,
   mgapRiegoFlag = 'no',
   mgapRiegoInvestmentUi = 0,
+  mgapLivestockImprovement = 'no',
+  mgapLivestockBirthsA = 0,
+  mgapLivestockBreedingAvgB = 0,
+  mgapLivestockIncreasePoints = 0,
   mgapNaturalFieldFlag = 'no',
   mgapPescaFlag = 'no',
   mgapPescaInvestmentUi = 0,
@@ -215,6 +219,20 @@ export function scoreStrategic({
   miemSatellitesFlag = 'no',
   miemSatellitesInvestmentUi = 0,
 }) {
+  const mineralTransformScore =
+    mineralTransformFlag === 'si'
+      ? scoreTransformInvestments({
+          investmentTotal: investment,
+          minUi: mineralTransformMinUi,
+          medUi: mineralTransformMedUi,
+          maxUi: mineralTransformMaxUi,
+        })
+      : scoreVan({
+          level: mineralProcessingLevel,
+          investmentTotal: investment,
+          invVan: mineralEligibleInvestmentUi,
+        });
+
   if (evaluatingMinistry === 'miem') {
     const miemScore = scoreMiemIndicators({
       investmentTotal: investment,
@@ -242,7 +260,7 @@ export function scoreStrategic({
             maxUi: miemWasteTransformMaxUi,
           })
         : 0;
-    return roundTo2(Math.min(miemScore + miemWasteScore, 10));
+    return roundTo2(Math.min(miemScore + miemWasteScore + mineralTransformScore, 10));
   }
 
   if (evaluatingMinistry === 'mgap') {
@@ -257,7 +275,28 @@ export function scoreStrategic({
       investmentUi: mgapPescaInvestmentUi,
     });
     const naturalFieldBonus = mgapNaturalFieldFlag === 'si' ? 1 : 0;
-    return roundTo2(Math.min(riegoScore + pescaScore + naturalFieldBonus, 10));
+    let livestockScore = 0;
+    if (mgapLivestockImprovement === 'birth-rate') {
+      const births = Math.max(mgapLivestockBirthsA, 0);
+      const breedingAvg = Math.max(mgapLivestockBreedingAvgB, 0);
+      const increase = Math.max(mgapLivestockIncreasePoints, 0);
+      if (breedingAvg > 0 && increase > 0) {
+        const ratio = births / breedingAvg;
+        let divisor = 4;
+        if (ratio >= 0.6 && ratio <= 0.75) {
+          divisor = 3;
+        } else if (ratio > 0.75) {
+          divisor = 2;
+        }
+        livestockScore = clamp((increase / divisor) * 2, 0, 10);
+      }
+    }
+    return roundTo2(
+      Math.min(
+        riegoScore + pescaScore + naturalFieldBonus + mineralTransformScore + livestockScore,
+        10
+      )
+    );
   }
 
   if (evaluatingMinistry === 'mintur') {
@@ -267,7 +306,7 @@ export function scoreStrategic({
       investmentZoneUi: minturInvestmentZoneUi,
       investmentOutsideUi: minturInvestmentOutsideUi,
     });
-    return roundTo2(minturScore);
+    return roundTo2(Math.min(minturScore + mineralTransformScore, 10));
   }
 
   const baseScore = clamp(strategicPriorities * 3.5);
@@ -278,19 +317,6 @@ export function scoreStrategic({
     civilWorksMaterialsUi,
     nationalCivilWorksUi,
   });
-  const mineralTransformScore =
-    mineralTransformFlag === 'si'
-      ? scoreTransformInvestments({
-          investmentTotal: investment,
-          minUi: mineralTransformMinUi,
-          medUi: mineralTransformMedUi,
-          maxUi: mineralTransformMaxUi,
-        })
-      : scoreVan({
-          level: mineralProcessingLevel,
-          investmentTotal: investment,
-          invVan: mineralEligibleInvestmentUi,
-        });
   const total = Math.min(baseScore + cinScore + mineralTransformScore, 10);
   return roundTo2(total);
 }

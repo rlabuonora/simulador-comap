@@ -17,7 +17,7 @@ import { DEPARTMENT_SCORES } from './utils/scoring.js';
 import { INDICATORS, WEIGHTS } from './utils/constants.js';
 
 const departments = [
-  { id: 'artigas', label: 'ArtigaZ' },
+  { id: 'artigas', label: 'Artigas' },
   { id: 'canelones', label: 'Canelones' },
   { id: 'cerroLargo', label: 'Cerro Largo' },
   { id: 'colonia', label: 'Colonia' },

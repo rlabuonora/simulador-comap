@@ -252,6 +252,13 @@ a {
   align-items: start;
 }
 
+.row-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
 .col-span-2 {
   grid-column: span 2;
 }

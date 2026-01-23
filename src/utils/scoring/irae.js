@@ -78,6 +78,7 @@ export function computeIraePct(finalScoreValue, options = {}) {
   }
 
   const baseRateWithBonus = baseRate + bonus;
+
   const multiplier = getIndustrialParkMultiplier({
     industrialParkUser,
     industrialParkActivity,
@@ -96,6 +97,7 @@ export function computeIraeYears({
   industrialParkActivity,
   industrialParkInvestment,
   employees,
+  iPlusScore,
 }) {
   if (coreScoreSum < 1) {
     return 0;

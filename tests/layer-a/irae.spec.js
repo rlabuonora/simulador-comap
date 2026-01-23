@@ -159,4 +159,19 @@ describe('Layer A: IRAE years scaling', () => {
     });
     expect(years).toBe(9);
   });
+
+  test('IRAE-Y-03: I+ >= 2 adds 2 years capped by tramo', () => {
+    // Rule: I+ bonus adds 2 years without exceeding max for the tramo.
+    const years = computeIraeYears({
+      investmentTotal: 3_000_000,
+      weightedScore: 5,
+      coreScoreSum: 2,
+      firmSize: 'GRAN EMPRESA',
+      industrialParkUser: 'no',
+      industrialParkActivity: 'actividades-industriales',
+      industrialParkInvestment: 0,
+      iPlusScore: 2,
+    });
+    expect(years).toBe(11);
+  });
 });

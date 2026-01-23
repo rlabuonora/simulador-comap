@@ -91,12 +91,32 @@ const scoreVan = ({ level, investmentTotal, invVan }) => {
 const MIEM_INDICATOR_KEYS = [
   { flag: 'miemEnergyFlag', amount: 'miemEnergyInvestmentUi' },
   { flag: 'miemHydrogenFlag', amount: 'miemHydrogenInvestmentUi' },
-  { flag: 'miemWasteFlag', amount: 'miemWasteInvestmentUi' },
   { flag: 'miemBioFlag', amount: 'miemBioInvestmentUi' },
   { flag: 'miemPharmaFlag', amount: 'miemPharmaInvestmentUi' },
   { flag: 'miemAerospaceFlag', amount: 'miemAerospaceInvestmentUi' },
   { flag: 'miemSatellitesFlag', amount: 'miemSatellitesInvestmentUi' },
 ];
+
+const scoreTransformInvestments = ({
+  investmentTotal,
+  minUi = 0,
+  medUi = 0,
+  maxUi = 0,
+}) => {
+  if (investmentTotal <= 0) {
+    return 0;
+  }
+
+  const calc = (amount, maxPoints) => {
+    const investment = Math.max(amount ?? 0, 0);
+    const share = investment / investmentTotal;
+    const factor = Math.min(share / 0.5, 1);
+    return factor * maxPoints;
+  };
+
+  const total = calc(minUi, 3) + calc(medUi, 5) + calc(maxUi, 10);
+  return Math.min(total, 10);
+};
 
 const scoreMiemIndicators = ({ investmentTotal, values }) => {
   if (investmentTotal <= 0) {
@@ -166,6 +186,10 @@ export function scoreStrategic({
   nationalCivilWorksUi = 0,
   mineralProcessingLevel = '',
   mineralEligibleInvestmentUi = 0,
+  mineralTransformFlag = 'no',
+  mineralTransformMinUi = 0,
+  mineralTransformMedUi = 0,
+  mineralTransformMaxUi = 0,
   mgapRiegoFlag = 'no',
   mgapRiegoInvestmentUi = 0,
   mgapNaturalFieldFlag = 'no',
@@ -179,7 +203,9 @@ export function scoreStrategic({
   miemHydrogenFlag = 'no',
   miemHydrogenInvestmentUi = 0,
   miemWasteFlag = 'no',
-  miemWasteInvestmentUi = 0,
+  miemWasteTransformMinUi = 0,
+  miemWasteTransformMedUi = 0,
+  miemWasteTransformMaxUi = 0,
   miemBioFlag = 'no',
   miemBioInvestmentUi = 0,
   miemPharmaFlag = 'no',
@@ -197,8 +223,6 @@ export function scoreStrategic({
         miemEnergyInvestmentUi,
         miemHydrogenFlag,
         miemHydrogenInvestmentUi,
-        miemWasteFlag,
-        miemWasteInvestmentUi,
         miemBioFlag,
         miemBioInvestmentUi,
         miemPharmaFlag,
@@ -209,7 +233,16 @@ export function scoreStrategic({
         miemSatellitesInvestmentUi,
       },
     });
-    return roundTo2(miemScore);
+    const miemWasteScore =
+      miemWasteFlag === 'si'
+        ? scoreTransformInvestments({
+            investmentTotal: investment,
+            minUi: miemWasteTransformMinUi,
+            medUi: miemWasteTransformMedUi,
+            maxUi: miemWasteTransformMaxUi,
+          })
+        : 0;
+    return roundTo2(Math.min(miemScore + miemWasteScore, 10));
   }
 
   if (evaluatingMinistry === 'mgap') {
@@ -245,11 +278,19 @@ export function scoreStrategic({
     civilWorksMaterialsUi,
     nationalCivilWorksUi,
   });
-  const vanScore = scoreVan({
-    level: mineralProcessingLevel,
-    investmentTotal: investment,
-    invVan: mineralEligibleInvestmentUi,
-  });
-  const total = Math.min(baseScore + cinScore + vanScore, 10);
+  const mineralTransformScore =
+    mineralTransformFlag === 'si'
+      ? scoreTransformInvestments({
+          investmentTotal: investment,
+          minUi: mineralTransformMinUi,
+          medUi: mineralTransformMedUi,
+          maxUi: mineralTransformMaxUi,
+        })
+      : scoreVan({
+          level: mineralProcessingLevel,
+          investmentTotal: investment,
+          invVan: mineralEligibleInvestmentUi,
+        });
+  const total = Math.min(baseScore + cinScore + mineralTransformScore, 10);
   return roundTo2(total);
 }

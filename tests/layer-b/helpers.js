@@ -109,6 +109,7 @@ export const computeScenario = (scenario) => {
     industrialParkActivity: scenario.company?.industrialParkActivity,
     industrialParkInvestment: scenario.project?.industrialParkUi ?? 0,
     employees: scenario.company?.employees,
+    iPlusScore: scores.iPlus,
   });
 
   return {

@@ -22,21 +22,11 @@ export const computeScenario = (scenario) => {
     (scenario.project.industrialParkUi ?? 0);
 
   const employmentInputs = {
-    investmentUi: investment,
-    othersBase: scenario.employment.base.noVulnerable,
-    womenBase: scenario.employment.base.women,
-    youthBase: scenario.employment.base.youth,
-    disabilityBase: scenario.employment.base.disability,
-    dinaliBase: scenario.employment.base.dinali,
-    tusTransBase: scenario.employment.base.tus,
-    protectedProgramBase: scenario.employment.base.protectedProgram ?? 0,
-    othersIncrease: scenario.employment.inc.noVulnerable,
-    womenIncrease: scenario.employment.inc.women,
-    youthIncrease: scenario.employment.inc.youth,
-    disabilityIncrease: scenario.employment.inc.disability,
-    dinaliIncrease: scenario.employment.inc.dinali,
-    tusTransIncrease: scenario.employment.inc.tus,
-    protectedProgramIncrease: scenario.employment.inc.protectedProgram ?? 0,
+    totalPersonnelIncrease: scenario.employment.inc.total ?? 0,
+    othersIncrease: scenario.employment.inc.others ?? 0,
+    womenIncrease: scenario.employment.inc.women ?? 0,
+    youthIncrease: scenario.employment.inc.youth ?? 0,
+    disabilityIncrease: scenario.employment.inc.disability ?? 0,
   };
 
   const exportsInputs = {

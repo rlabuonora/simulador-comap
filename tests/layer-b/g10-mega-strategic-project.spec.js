@@ -11,8 +11,8 @@ const scenario = {
     filedDate: '2028-12-31',
   },
   employment: {
-    base: { noVulnerable: 300, women: 80, youth: 40, disability: 5, dinali: 2, tus: 1 },
-    inc: { noVulnerable: 3000, women: 400, youth: 200, disability: 50, dinali: 20, tus: 0 },
+    base: { women: 80, youth: 40, disability: 5, others: 3 },
+    inc: { total: 3670, women: 400, youth: 200, disability: 50, others: 20 },
   },
   exports: { miemInitial: 50000000, miemIncrease: 20000000 },
   decentralization: { rioNegro: 380000000 },

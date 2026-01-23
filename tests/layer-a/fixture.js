@@ -27,20 +27,17 @@ export const baselineFixture = {
   },
   employment: {
     base: {
-      noVulnerable: 0,
       women: 0,
       youth: 0,
       disability: 0,
-      dinali: 0,
-      tus: 0,
+      others: 0,
     },
     inc: {
-      noVulnerable: 0,
+      total: 0,
       women: 1,
       youth: 1,
       disability: 1,
-      dinali: 1,
-      tus: 0,
+      others: 0,
     },
   },
   exports: {
@@ -95,21 +92,11 @@ export const calculateScores = (fixture) => {
     fixture.project.industrialParkUi;
 
   const employmentInputs = {
-    investmentUi: totalInvestment,
-    othersBase: fixture.employment.base.noVulnerable,
-    womenBase: fixture.employment.base.women,
-    youthBase: fixture.employment.base.youth,
-    disabilityBase: fixture.employment.base.disability,
-    dinaliBase: fixture.employment.base.dinali,
-    tusTransBase: fixture.employment.base.tus,
-    protectedProgramBase: fixture.employment.base.protectedProgram ?? 0,
-    othersIncrease: fixture.employment.inc.noVulnerable,
-    womenIncrease: fixture.employment.inc.women,
-    youthIncrease: fixture.employment.inc.youth,
-    disabilityIncrease: fixture.employment.inc.disability,
-    dinaliIncrease: fixture.employment.inc.dinali,
-    tusTransIncrease: fixture.employment.inc.tus,
-    protectedProgramIncrease: fixture.employment.inc.protectedProgram ?? 0,
+    totalPersonnelIncrease: fixture.employment.inc.total ?? 0,
+    othersIncrease: fixture.employment.inc.others ?? 0,
+    womenIncrease: fixture.employment.inc.women ?? 0,
+    youthIncrease: fixture.employment.inc.youth ?? 0,
+    disabilityIncrease: fixture.employment.inc.disability ?? 0,
   };
 
   const exportInputs = {

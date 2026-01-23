@@ -13,6 +13,7 @@ describe('Layer A: Global invariants', () => {
       withMutation({
         employment: {
           inc: {
+            total: baselineFixture.employment.inc.total + 2,
             women: baselineFixture.employment.inc.women + 2,
           },
         },
@@ -76,12 +77,11 @@ describe('Layer A: Global invariants', () => {
       withMutation({
         employment: {
           inc: {
-            noVulnerable: 0,
+            total: 0,
             women: 0,
             youth: 0,
             disability: 0,
-            dinali: 0,
-            tus: 0,
+            others: 0,
           },
         },
         exports: {

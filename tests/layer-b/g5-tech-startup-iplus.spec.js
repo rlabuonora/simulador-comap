@@ -10,8 +10,8 @@ const scenario = {
     industrialParkUi: 0,
   },
   employment: {
-    base: { noVulnerable: 0, women: 0, youth: 0, disability: 0, dinali: 0, tus: 0 },
-    inc: { noVulnerable: 4, women: 2, youth: 2, disability: 0, dinali: 0, tus: 0 },
+    base: { women: 0, youth: 0, disability: 0, others: 0 },
+    inc: { total: 8, women: 2, youth: 2, disability: 0, others: 0 },
   },
   exports: { miemInitial: 0, miemIncrease: 100000 },
   decentralization: { montevideo: 350000 },

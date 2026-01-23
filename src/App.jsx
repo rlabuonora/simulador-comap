@@ -137,18 +137,14 @@ const defaultInputs = {
   strategicPriorities: 0,
   regionTier: 'interior',
   sector: '',
+  totalPersonnelBase: 0,
+  totalPersonnelIncrease: 0,
   womenBase: 0,
   womenIncrease: 0,
   youthBase: 0,
   youthIncrease: 0,
   disabilityBase: 0,
   disabilityIncrease: 0,
-  dinaliBase: 0,
-  dinaliIncrease: 0,
-  tusTransBase: 0,
-  tusTransIncrease: 0,
-  protectedProgramBase: 0,
-  protectedProgramIncrease: 0,
   othersBase: 0,
   othersIncrease: 0,
   currentExports: 0,
@@ -298,18 +294,14 @@ const buildNumericValues = (source) => {
       source.minturInvestmentZoneUi === 0 ? '0' : String(source.minturInvestmentZoneUi ?? ''),
     minturInvestmentOutsideUi:
       source.minturInvestmentOutsideUi === 0 ? '0' : String(source.minturInvestmentOutsideUi ?? ''),
+    totalPersonnelBase: String(source.totalPersonnelBase ?? ''),
+    totalPersonnelIncrease: String(source.totalPersonnelIncrease ?? ''),
     womenBase: String(source.womenBase ?? ''),
     womenIncrease: String(source.womenIncrease ?? ''),
     youthBase: String(source.youthBase ?? ''),
     youthIncrease: String(source.youthIncrease ?? ''),
     disabilityBase: String(source.disabilityBase ?? ''),
     disabilityIncrease: String(source.disabilityIncrease ?? ''),
-    dinaliBase: String(source.dinaliBase ?? ''),
-    dinaliIncrease: String(source.dinaliIncrease ?? ''),
-    tusTransBase: String(source.tusTransBase ?? ''),
-    tusTransIncrease: String(source.tusTransIncrease ?? ''),
-    protectedProgramBase: String(source.protectedProgramBase ?? ''),
-    protectedProgramIncrease: String(source.protectedProgramIncrease ?? ''),
     othersBase: String(source.othersBase ?? ''),
     othersIncrease: String(source.othersIncrease ?? ''),
     currentExports: String(source.currentExports ?? ''),
@@ -377,12 +369,15 @@ const getDebugScenario = (key) => {
         employees: 40,
         machineryUi: 3000000,
         civilWorksUi: 4000000,
+        totalPersonnelIncrease: 6,
         othersBase: 40,
         womenBase: 15,
         youthBase: 10,
+        disabilityBase: 2,
         othersIncrease: 4,
         womenIncrease: 2,
         youthIncrease: 2,
+        disabilityIncrease: 0,
         minturStrategicFlag: 'si',
         minturInvestmentZoneUi: 500000,
         minturInvestmentOutsideUi: 0,
@@ -408,12 +403,11 @@ const getDebugScenario = (key) => {
       installationsUi: 1000000,
       civilWorksUi: 500000,
       investment: 3000000,
+      totalPersonnelIncrease: 4,
       othersIncrease: 1,
       womenIncrease: 2,
       youthIncrease: 0,
       disabilityIncrease: 1,
-      dinaliIncrease: 0,
-      tusTransIncrease: 1,
       sustainabilityAmount: 300000,
       certification: 'sello-b',
       iPlusCategory: 'at',
@@ -663,21 +657,11 @@ export default function App() {
   const scores = useMemo(() => {
     return {
       employment: scoreEmployment({
-        investmentUi: investmentTotal,
-        othersBase: parseNumericValue(numericValues.othersBase) ?? 0,
-        womenBase: parseNumericValue(numericValues.womenBase) ?? 0,
-        youthBase: parseNumericValue(numericValues.youthBase) ?? 0,
-        disabilityBase: parseNumericValue(numericValues.disabilityBase) ?? 0,
-        dinaliBase: parseNumericValue(numericValues.dinaliBase) ?? 0,
-        tusTransBase: parseNumericValue(numericValues.tusTransBase) ?? 0,
-        protectedProgramBase: parseNumericValue(numericValues.protectedProgramBase) ?? 0,
+        totalPersonnelIncrease: parseNumericValue(numericValues.totalPersonnelIncrease) ?? 0,
         othersIncrease: parseNumericValue(numericValues.othersIncrease) ?? 0,
         womenIncrease: parseNumericValue(numericValues.womenIncrease) ?? 0,
         youthIncrease: parseNumericValue(numericValues.youthIncrease) ?? 0,
         disabilityIncrease: parseNumericValue(numericValues.disabilityIncrease) ?? 0,
-        dinaliIncrease: parseNumericValue(numericValues.dinaliIncrease) ?? 0,
-        tusTransIncrease: parseNumericValue(numericValues.tusTransIncrease) ?? 0,
-        protectedProgramIncrease: parseNumericValue(numericValues.protectedProgramIncrease) ?? 0,
       }),
       decentralization: scoreDecentralization(scoringInputs),
       exports: scoreExports({
@@ -691,19 +675,10 @@ export default function App() {
     };
   }, [
     numericValues.disabilityIncrease,
-    numericValues.disabilityBase,
-    numericValues.dinaliIncrease,
-    numericValues.dinaliBase,
     numericValues.othersIncrease,
-    numericValues.othersBase,
-    numericValues.protectedProgramIncrease,
-    numericValues.protectedProgramBase,
-    numericValues.tusTransIncrease,
-    numericValues.tusTransBase,
+    numericValues.totalPersonnelIncrease,
     numericValues.womenIncrease,
-    numericValues.womenBase,
     numericValues.youthIncrease,
-    numericValues.youthBase,
     indirectExportsForScore,
     investmentTotal,
     scoringInputs,
@@ -1541,30 +1516,32 @@ export default function App() {
               </div>
 
               <div className="table-row">
-                <div className="table-cell">Colectivos No Vulnerables</div>
+                <div className="table-cell">Total personal ocupado</div>
                 <div className="table-cell">
                   <NumericField
-                    label="Colectivos No Vulnerables (situacion inicial)"
-                    name="othersBase"
+                    label="Total personal ocupado (situacion inicial)"
+                    name="totalPersonnelBase"
                     placeholder="Ej: 1"
-                    value={numericValues.othersBase ?? ''}
-                    error={numericErrors.othersBase}
-                    onChange={handleNumericChange('othersBase')}
-                    onBlur={handleNumericBlur('othersBase')}
+                    value={numericValues.totalPersonnelBase ?? ''}
+                    error={numericErrors.totalPersonnelBase}
+                    onChange={handleNumericChange('totalPersonnelBase')}
+                    onBlur={handleNumericBlur('totalPersonnelBase')}
                   />
                 </div>
                 <div className="table-cell">
                   <NumericField
-                    label="Colectivos No Vulnerables (incremento)"
-                    name="othersIncrease"
+                    label="Total personal ocupado (promedio incremental)"
+                    name="totalPersonnelIncrease"
                     placeholder="Ej: 1"
-                    value={numericValues.othersIncrease ?? ''}
-                    error={numericErrors.othersIncrease}
-                    onChange={handleNumericChange('othersIncrease')}
-                    onBlur={handleNumericBlur('othersIncrease')}
+                    value={numericValues.totalPersonnelIncrease ?? ''}
+                    error={numericErrors.totalPersonnelIncrease}
+                    onChange={handleNumericChange('totalPersonnelIncrease')}
+                    onBlur={handleNumericBlur('totalPersonnelIncrease')}
                   />
                 </div>
               </div>
+
+              <div className="section-subtitle">{'Grupos de población específicos'}</div>
 
               <div className="table-row">
                 <div className="table-cell">Mujeres</div>
@@ -1593,7 +1570,7 @@ export default function App() {
               </div>
 
               <div className="table-row">
-                <div className="table-cell">Jóvenes (15-29 años)</div>
+                <div className="table-cell">Jóvenes entre 15 y 29 años</div>
                 <div className="table-cell">
                   <NumericField
                     label="Jovenes (situacion inicial)"
@@ -1645,79 +1622,27 @@ export default function App() {
               </div>
 
               <div className="table-row">
-                <div className="table-cell">Personas atendidas por DINALI</div>
+                <div className="table-cell">Otros grupos de población</div>
                 <div className="table-cell">
                   <NumericField
-                    label="DINALI (situacion inicial)"
-                    name="dinaliBase"
+                    label="Otros grupos de población (situacion inicial)"
+                    name="othersBase"
                     placeholder="Ej: 1"
-                    value={numericValues.dinaliBase ?? ''}
-                    error={numericErrors.dinaliBase}
-                    onChange={handleNumericChange('dinaliBase')}
-                    onBlur={handleNumericBlur('dinaliBase')}
+                    value={numericValues.othersBase ?? ''}
+                    error={numericErrors.othersBase}
+                    onChange={handleNumericChange('othersBase')}
+                    onBlur={handleNumericBlur('othersBase')}
                   />
                 </div>
                 <div className="table-cell">
                   <NumericField
-                    label="DINALI (incremento)"
-                    name="dinaliIncrease"
+                    label="Otros grupos de población (incremento)"
+                    name="othersIncrease"
                     placeholder="Ej: 1"
-                    value={numericValues.dinaliIncrease ?? ''}
-                    error={numericErrors.dinaliIncrease}
-                    onChange={handleNumericChange('dinaliIncrease')}
-                    onBlur={handleNumericBlur('dinaliIncrease')}
-                  />
-                </div>
-              </div>
-
-              <div className="table-row">
-                <div className="table-cell">TUS Trans</div>
-                <div className="table-cell">
-                  <NumericField
-                    label="TUS/Trans (situacion inicial)"
-                    name="tusTransBase"
-                    placeholder="Ej: 1"
-                    value={numericValues.tusTransBase ?? ''}
-                    error={numericErrors.tusTransBase}
-                    onChange={handleNumericChange('tusTransBase')}
-                    onBlur={handleNumericBlur('tusTransBase')}
-                  />
-                </div>
-                <div className="table-cell">
-                  <NumericField
-                    label="TUS/Trans (incremento)"
-                    name="tusTransIncrease"
-                    placeholder="Ej: 1"
-                    value={numericValues.tusTransIncrease ?? ''}
-                    error={numericErrors.tusTransIncrease}
-                    onChange={handleNumericChange('tusTransIncrease')}
-                    onBlur={handleNumericBlur('tusTransIncrease')}
-                  />
-                </div>
-              </div>
-
-              <div className="table-row">
-                <div className="table-cell">Personas Programa Empleo Protegido</div>
-                <div className="table-cell">
-                  <NumericField
-                    label="Programa Empleo Protegido (situacion inicial)"
-                    name="protectedProgramBase"
-                    placeholder="Ej: 1"
-                    value={numericValues.protectedProgramBase ?? ''}
-                    error={numericErrors.protectedProgramBase}
-                    onChange={handleNumericChange('protectedProgramBase')}
-                    onBlur={handleNumericBlur('protectedProgramBase')}
-                  />
-                </div>
-                <div className="table-cell">
-                  <NumericField
-                    label="Programa Empleo Protegido (incremento)"
-                    name="protectedProgramIncrease"
-                    placeholder="Ej: 1"
-                    value={numericValues.protectedProgramIncrease ?? ''}
-                    error={numericErrors.protectedProgramIncrease}
-                    onChange={handleNumericChange('protectedProgramIncrease')}
-                    onBlur={handleNumericBlur('protectedProgramIncrease')}
+                    value={numericValues.othersIncrease ?? ''}
+                    error={numericErrors.othersIncrease}
+                    onChange={handleNumericChange('othersIncrease')}
+                    onBlur={handleNumericBlur('othersIncrease')}
                   />
                 </div>
               </div>

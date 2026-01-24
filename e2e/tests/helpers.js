@@ -62,6 +62,43 @@ export const expectMetricValue = async (page, labelText, expectedValue) => {
 
 export const DEFAULT_USD_RATE = 38.5;
 export const DEFAULT_UI_RATE = 6.5;
+export const parseLocaleNumber = (value) => {
+  const raw = String(value ?? '').trim();
+  if (!raw) {
+    return null;
+  }
+
+  const normalized = raw.replace(/\s/g, '');
+  const lastComma = normalized.lastIndexOf(',');
+  const lastDot = normalized.lastIndexOf('.');
+  const decimalIndex = Math.max(lastComma, lastDot);
+
+  let numberString = normalized;
+  if (decimalIndex >= 0) {
+    const integerPart = normalized.slice(0, decimalIndex).replace(/[.,]/g, '');
+    const decimalPart = normalized.slice(decimalIndex + 1).replace(/[.,]/g, '');
+    numberString = `${integerPart}.${decimalPart}`;
+  } else {
+    numberString = normalized.replace(/[.,]/g, '');
+  }
+
+  if (lastComma === -1 && lastDot > -1 && normalized.match(/\.\d{3}$/)) {
+    numberString = normalized.replace(/[.,]/g, '');
+  }
+
+  const parsed = Number(numberString);
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
+export const readRateInputs = async (page) => {
+  const usdRateValue = await page.locator('#usdRate').inputValue();
+  const uiRateValue = await page.locator('#uiRate').inputValue();
+  return {
+    usdRate: parseLocaleNumber(usdRateValue) ?? DEFAULT_USD_RATE,
+    uiRate: parseLocaleNumber(uiRateValue) ?? DEFAULT_UI_RATE,
+  };
+};
+
 export const toUsdInvestment = (
   uiInvestment,
   uiRate = DEFAULT_UI_RATE,

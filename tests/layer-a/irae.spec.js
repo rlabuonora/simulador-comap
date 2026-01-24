@@ -174,4 +174,32 @@ describe('Layer A: IRAE years scaling', () => {
     });
     expect(years).toBe(11);
   });
+
+  test('IRAE-Y-04: I+ bonus does not exceed tramo max', () => {
+    const years = computeIraeYears({
+      investmentTotal: 3_000_000,
+      weightedScore: 10,
+      coreScoreSum: 2,
+      firmSize: 'GRAN EMPRESA',
+      industrialParkUser: 'no',
+      industrialParkActivity: 'actividades-industriales',
+      industrialParkInvestment: 0,
+      iPlusScore: 2,
+    });
+    expect(years).toBe(16);
+  });
+
+  test('IRAE-Y-05: cap applies before industrial park multiplier', () => {
+    const years = computeIraeYears({
+      investmentTotal: 3_000_000,
+      weightedScore: 10,
+      coreScoreSum: 2,
+      firmSize: 'GRAN EMPRESA',
+      industrialParkUser: 'si',
+      industrialParkActivity: 'actividades-industriales',
+      industrialParkInvestment: 3_000_000,
+      iPlusScore: 2,
+    });
+    expect(years).toBe(18);
+  });
 });

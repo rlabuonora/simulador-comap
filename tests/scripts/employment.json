@@ -1,7 +1,12 @@
 [
   {
     "name": "Puntos por colectivos",
-    "input": { "investmentUi": 1, "othersIncrease": 5, "womenIncrease": 2 },
+    "input": {
+      "investmentUi": 1,
+      "totalPersonnelIncrease": 9,
+      "othersIncrease": 5,
+      "womenIncrease": 2
+    },
     "expected": 10
   }
 ]

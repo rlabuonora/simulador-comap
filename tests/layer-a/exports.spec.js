@@ -118,17 +118,17 @@ const cases = [
   },
   {
     id: 'EXP-08',
-    name: 'mintur uses coefficient and ignores direct inputs',
+    name: 'mintur combines direct and indirect with coefficient',
     mutation: {
       project: { ministry: 'mintur' },
       exports: {
         currentExports: 500000,
-        exportIncrease: 1000000,
-        indirectExports: [{ pct: 100, increase: 100000 }],
+        exportIncrease: 150000,
+        indirectExports: [{ pct: 100, increase: 50000 }],
       },
     },
     assert: ({ scores }) => {
-      expect(scores.exports).toBeCloseTo(2.65, 2);
+      expect(scores.exports).toBeCloseTo(2.52, 2);
     },
   },
   {

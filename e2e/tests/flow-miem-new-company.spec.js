@@ -6,6 +6,7 @@ import {
   fillIfVisible,
   goNext,
   goToLocator,
+  readRateInputs,
   scoreDecentralization,
   scoreEmployment,
   scoreExports,
@@ -72,6 +73,7 @@ test('flow: miem new exporting company', async ({ page }) => {
     iPlus: scoreIPlus(iPlusInputs),
     strategic: scoreStrategic(strategicInputs),
   };
+  let expectedExportsScore = scores.exports;
 
   await page.goto('/');
 
@@ -97,6 +99,12 @@ test('flow: miem new exporting company', async ({ page }) => {
   await machineryInput.fill(String(investment.machineryUi));
   await civilWorksInput.fill(String(investment.civilWorksUi));
   await fillIfVisible(industrialParkInput, investment.industrialParkInvestmentUi);
+  const { uiRate, usdRate } = await readRateInputs(page);
+  expectedExportsScore = scoreExports({
+    ...exportInputs,
+    totalInvestment: toUsdInvestment(totalInvestment, uiRate, usdRate),
+  });
+  scores.exports = expectedExportsScore;
   await goNext(page);
 
   const employmentStep = page.locator('.step.active');
@@ -130,7 +138,7 @@ test('flow: miem new exporting company', async ({ page }) => {
   await goToLocator(page, currentExportsInput);
   await currentExportsInput.fill(String(exportInputs.currentExports));
   await exportIncreaseInput.fill(String(exportInputs.exportIncrease));
-  await expectStepScore(page, scores.exports);
+  await expectStepScore(page, expectedExportsScore);
   await goNext(page);
 
   const decentralizationStep = page.locator('.step.active');

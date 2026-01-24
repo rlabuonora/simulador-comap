@@ -15,8 +15,8 @@ describe('Layer A: MIEM strategic indicators', () => {
     const score = scoreStrategic({
       evaluatingMinistry: 'miem',
       investment: 100,
-      miemWasteFlag: 'si',
-      miemWasteInvestmentUi: 25,
+      miemEnergyFlag: 'si',
+      miemEnergyInvestmentUi: 25,
     });
     expect(score).toBeCloseTo(5, 2);
   });

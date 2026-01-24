@@ -137,6 +137,12 @@ export function computeIraeYears({
     years += 1;
   }
 
+  if (iPlusScore >= 2) {
+    years += 2;
+  }
+
+  years = Math.min(years, maxYears);
+
   const multiplier = getIndustrialParkMultiplier({
     industrialParkUser,
     industrialParkActivity,

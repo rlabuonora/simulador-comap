@@ -12,6 +12,7 @@ import {
   scoreIPlus,
   scoreStrategic,
   scoreSustainability,
+  toUsdInvestment,
 } from './helpers.js';
 
 test('flow: mgap agricultural project', async ({ page }) => {
@@ -21,6 +22,7 @@ test('flow: mgap agricultural project', async ({ page }) => {
     industrialParkInvestmentUi: 0,
   };
   const totalInvestment = investment.machineryUi + investment.civilWorksUi;
+  const totalInvestmentUsd = toUsdInvestment(totalInvestment);
 
   const employmentInputs = {
     totalPersonnelBase: 0,
@@ -39,7 +41,7 @@ test('flow: mgap agricultural project', async ({ page }) => {
     isNewCompany: 'no',
     currentExports: 800000,
     exportIncrease: 1000000,
-    totalInvestment,
+    totalInvestment: totalInvestmentUsd,
     indirectExports: [{ pct: 75, increase: 200000 }],
   };
   const decentralizationInputs = {

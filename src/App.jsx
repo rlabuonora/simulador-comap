@@ -532,23 +532,41 @@ const NumericField = ({
   onChange,
   onBlur,
   className,
+  suffix,
 }) => {
   return (
     <div className={`field-group${className ? ` ${className}` : ''}`}>
       <label className="field-label" htmlFor={name} title={labelTitle}>
         {label}
       </label>
-      <input
-        id={name}
-        className={`field-control${error ? ' error' : ''}`}
-        type="text"
-        inputMode="decimal"
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-        placeholder={placeholder}
-        aria-invalid={Boolean(error)}
-      />
+      {suffix ? (
+        <div className="field-row">
+          <input
+            id={name}
+            className={`field-control${error ? ' error' : ''}`}
+            type="text"
+            inputMode="decimal"
+            value={value}
+            onChange={onChange}
+            onBlur={onBlur}
+            placeholder={placeholder}
+            aria-invalid={Boolean(error)}
+          />
+          <span className="field-suffix">{suffix}</span>
+        </div>
+      ) : (
+        <input
+          id={name}
+          className={`field-control${error ? ' error' : ''}`}
+          type="text"
+          inputMode="decimal"
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          placeholder={placeholder}
+          aria-invalid={Boolean(error)}
+        />
+      )}
       {error ? <div className="field-error">{error}</div> : null}
     </div>
   );
@@ -735,15 +753,8 @@ export default function App() {
   }, [inputs, investmentTotal, numericValues]);
 
   const indirectExportsForScore = useMemo(() => {
-    if (inputs.evaluatingMinistry !== 'mintur') {
-      return indirectExports;
-    }
-    const parsedIncrease = parseNumericValue(numericValues.exportIncrease);
-    if (!parsedIncrease || parsedIncrease <= 0) {
-      return [];
-    }
-    return [{ pct: 100, increase: parsedIncrease }];
-  }, [indirectExports, inputs.evaluatingMinistry, numericValues.exportIncrease]);
+    return indirectExports;
+  }, [indirectExports]);
 
   const mgapBirthsA = parseNumericValue(numericValues.mgapLivestockBirthsA);
   const mgapBreedingAvgB = parseNumericValue(numericValues.mgapLivestockBreedingAvgB);
@@ -764,6 +775,15 @@ export default function App() {
       ? mgapFlockFinalA / mgapFlockAvgB
       : null;
 
+  const investmentTotalUsd = useMemo(() => {
+    const uiRate = parseNumericValue(numericValues.uiRate);
+    const usdRate = parseNumericValue(numericValues.usdRate);
+    if (!uiRate || !usdRate) {
+      return 0;
+    }
+    return (investmentTotal * uiRate) / usdRate;
+  }, [investmentTotal, numericValues.uiRate, numericValues.usdRate]);
+
   const scores = useMemo(() => {
     return {
       employment: scoreEmployment({
@@ -776,7 +796,7 @@ export default function App() {
       decentralization: scoreDecentralization(scoringInputs),
       exports: scoreExports({
         ...scoringInputs,
-        totalInvestment: investmentTotal,
+        totalInvestment: investmentTotalUsd,
         indirectExports: indirectExportsForScore,
       }),
       sustainability: scoreSustainability(scoringInputs),
@@ -791,6 +811,7 @@ export default function App() {
     numericValues.youthIncrease,
     indirectExportsForScore,
     investmentTotal,
+    investmentTotalUsd,
     scoringInputs,
   ]);
 
@@ -895,15 +916,6 @@ export default function App() {
     numericValues.industrialParkInvestmentUi,
   ]);
 
-  const investmentTotalUsd = useMemo(() => {
-    const uiRate = parseNumericValue(numericValues.uiRate);
-    const usdRate = parseNumericValue(numericValues.usdRate);
-    if (!uiRate || !usdRate) {
-      return 0;
-    }
-    return (investmentTotal * uiRate) / usdRate;
-  }, [investmentTotal, numericValues.uiRate, numericValues.usdRate]);
-
   const totalDepartmentAmount = useMemo(() => {
     return deptAllocations.reduce((sum, allocation) => sum + (allocation.amount ?? 0), 0);
   }, [deptAllocations]);
@@ -928,12 +940,8 @@ export default function App() {
   const totalInvestmentForDept = investmentTotal || totalDepartmentAmount;
   const minturCoefficient = 3.22;
   const minturWeightedIncrease = useMemo(() => {
-    const parsed = parseNumericValue(numericValues.exportIncrease);
-    if (parsed === null) {
-      return 0;
-    }
-    return minturCoefficient * parsed;
-  }, [minturCoefficient, numericValues.exportIncrease]);
+    return indirectExports.reduce((sum, item) => sum + (item.pct / 100) * item.increase, 0);
+  }, [indirectExports]);
 
   const scoreByStepId = useMemo(() => {
     return {
@@ -1804,7 +1812,7 @@ export default function App() {
                 />
               </div>
 
-            {inputs.evaluatingMinistry === 'mgap' ? (
+            {inputs.evaluatingMinistry === 'mgap' || inputs.evaluatingMinistry === 'mintur' ? (
               <>
                 <div className="section-subtitle">{'Exportaciones Indirectas'}</div>
                 <div className="row row-4 mgap-row">
@@ -1910,8 +1918,7 @@ export default function App() {
 
             {inputs.evaluatingMinistry === 'mintur' ? (
               <>
-                <div className="section-subtitle">{'Exportaciones Indirectas'}</div>
-
+                <div className="section-subtitle">{'Resumen coeficiente'}</div>
                 <div className="row row-narrow">
                   <div className="field-group">
                     <label className="field-label" htmlFor="minturCoefficient">
@@ -1926,7 +1933,7 @@ export default function App() {
                       Incremento aplicando coeficiente
                     </label>
                     <div id="minturWeighted" className="field-control">
-                      {formatNumberForDisplay(minturWeightedIncrease, 0, 0)}
+                      {formatNumberForDisplay(minturCoefficient * minturWeightedIncrease, 0, 0)}
                     </div>
                   </div>
                 </div>
@@ -2282,7 +2289,7 @@ export default function App() {
 
                 {inputs.mgapLivestockImprovement === 'birth-rate' ? (
                   <div className="spacer-top">
-                    <div className="row-12">
+                    <div className="row-12 mgap-labels">
                       <NumericField
                         label="Cantidad de teneros/as nacidos vivos en el establecimiento (A) en el ejercicio"
                         name="mgapLivestockBirthsA"
@@ -2312,7 +2319,7 @@ export default function App() {
                         <div id="mgapLivestockBirthRatio" className="field-control">
                           {mgapBirthRatio === null
                             ? '-'
-                            : formatNumberForDisplay(mgapBirthRatio, 4, 4)}
+                            : `${formatNumberForDisplay(mgapBirthRatio * 100, 2, 2)} %`}
                         </div>
                       </div>
                     </div>
@@ -2336,7 +2343,7 @@ export default function App() {
                 {inputs.mgapLivestockImprovement === 'herd-growth' ? (
                   <div className="spacer-top">
                     <div className="section-subtitle">{'Indicador II (bovinos)'}</div>
-                    <div className="row row-narrow">
+                    <div className="row-12 mgap-labels">
                       <NumericField
                         label="Stock final rodeo de cría (bovinos) (A)"
                         name="mgapLivestockHerdFinalA"
@@ -2345,11 +2352,8 @@ export default function App() {
                         error={numericErrors.mgapLivestockHerdFinalA}
                         onChange={handleNumericChange('mgapLivestockHerdFinalA')}
                         onBlur={handleNumericBlur('mgapLivestockHerdFinalA')}
-                        className="narrow-field"
+                        className="col-span-5"
                       />
-                      <div />
-                    </div>
-                    <div className="row row-narrow spacer-top">
                       <NumericField
                         label="Promedio rodeo de cría de los últimos 2 ejercicios (bovinos) (B)"
                         name="mgapLivestockHerdAvgB"
@@ -2358,23 +2362,18 @@ export default function App() {
                         error={numericErrors.mgapLivestockHerdAvgB}
                         onChange={handleNumericChange('mgapLivestockHerdAvgB')}
                         onBlur={handleNumericBlur('mgapLivestockHerdAvgB')}
-                        className="narrow-field"
+                        className="col-span-5"
                       />
-                      <div />
-                    </div>
-
-                    <div className="row row-narrow spacer-top">
-                      <div className="field-group">
+                      <div className="field-group col-span-2">
                         <label className="field-label" htmlFor="mgapLivestockHerdRatio">
                           Indicador rodeo de cría (A/B)
                         </label>
                         <div id="mgapLivestockHerdRatio" className="field-control">
                           {mgapHerdRatio === null
                             ? '-'
-                            : formatNumberForDisplay(mgapHerdRatio, 4, 4)}
+                            : `${formatNumberForDisplay(mgapHerdRatio * 100, 2, 2)} %`}
                         </div>
                       </div>
-                      <div />
                     </div>
 
                     <div className="row row-narrow spacer-top">
@@ -2392,7 +2391,7 @@ export default function App() {
                     </div>
 
                     <div className="section-subtitle spacer-top">{'Indicador II (ovinos)'}</div>
-                    <div className="row row-narrow">
+                    <div className="row-12 mgap-labels">
                       <NumericField
                         label="Stock final majada de cría (ovinos) (A)"
                         name="mgapLivestockFlockFinalA"
@@ -2401,11 +2400,8 @@ export default function App() {
                         error={numericErrors.mgapLivestockFlockFinalA}
                         onChange={handleNumericChange('mgapLivestockFlockFinalA')}
                         onBlur={handleNumericBlur('mgapLivestockFlockFinalA')}
-                        className="narrow-field"
+                        className="col-span-5"
                       />
-                      <div />
-                    </div>
-                    <div className="row row-narrow spacer-top">
                       <NumericField
                         label="Promedio majada de cría de los últimos 2 ejercicios (ovinos) (B)"
                         name="mgapLivestockFlockAvgB"
@@ -2414,23 +2410,18 @@ export default function App() {
                         error={numericErrors.mgapLivestockFlockAvgB}
                         onChange={handleNumericChange('mgapLivestockFlockAvgB')}
                         onBlur={handleNumericBlur('mgapLivestockFlockAvgB')}
-                        className="narrow-field"
+                        className="col-span-5"
                       />
-                      <div />
-                    </div>
-
-                    <div className="row row-narrow spacer-top">
-                      <div className="field-group">
+                      <div className="field-group col-span-2">
                         <label className="field-label" htmlFor="mgapLivestockFlockRatio">
                           Indicador majada de cría (A/B)
                         </label>
                         <div id="mgapLivestockFlockRatio" className="field-control">
                           {mgapFlockRatio === null
                             ? '-'
-                            : formatNumberForDisplay(mgapFlockRatio, 4, 4)}
+                            : `${formatNumberForDisplay(mgapFlockRatio * 100, 2, 2)} %`}
                         </div>
                       </div>
-                      <div />
                     </div>
 
                     <div className="row row-narrow spacer-top">

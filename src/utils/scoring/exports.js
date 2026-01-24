@@ -17,7 +17,7 @@ const calcExportIncrement = ({ evaluatingMinistry, exportIncrease = 0, indirectE
   }
 
   if (evaluatingMinistry === 'mintur') {
-    return MINTUR_COEFFICIENT * calcMgapIncrement(indirectExports);
+    return parseNumber(exportIncrease) + MINTUR_COEFFICIENT * calcMgapIncrement(indirectExports);
   }
 
   return parseNumber(exportIncrease);

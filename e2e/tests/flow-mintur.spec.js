@@ -12,6 +12,7 @@ import {
   scoreIPlus,
   scoreStrategic,
   scoreSustainability,
+  toUsdInvestment,
 } from './helpers.js';
 
 test('flow: mintur tourism project', async ({ page }) => {
@@ -22,6 +23,7 @@ test('flow: mintur tourism project', async ({ page }) => {
     industrialParkInvestmentUi: 0,
   };
   const totalInvestment = investment.machineryUi + investment.civilWorksUi;
+  const totalInvestmentUsd = toUsdInvestment(totalInvestment);
 
   const employmentInputs = {
     totalPersonnelBase: 40,
@@ -40,8 +42,8 @@ test('flow: mintur tourism project', async ({ page }) => {
     isNewCompany: 'no',
     currentExports: 1500000,
     exportIncrease: 600000,
-    totalInvestment,
-    indirectExports: [{ pct: 100, increase: 600000 }],
+    totalInvestment: totalInvestmentUsd,
+    indirectExports: [],
   };
   const decentralizationInputs = {
     investment: totalInvestment,

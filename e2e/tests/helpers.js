@@ -60,6 +60,19 @@ export const expectMetricValue = async (page, labelText, expectedValue) => {
   await expect(card.locator('.metric-value')).toHaveText(expectedText);
 };
 
+export const DEFAULT_USD_RATE = 38.5;
+export const DEFAULT_UI_RATE = 6.5;
+export const toUsdInvestment = (
+  uiInvestment,
+  uiRate = DEFAULT_UI_RATE,
+  usdRate = DEFAULT_USD_RATE
+) => {
+  if (!uiRate || !usdRate) {
+    return 0;
+  }
+  return (uiInvestment * uiRate) / usdRate;
+};
+
 export {
   finalScore,
   scoreDecentralization,

@@ -175,6 +175,26 @@ const scoreMgapInvestment = ({ investmentTotal, enabled, investmentUi = 0 }) => 
   return factor * 10;
 };
 
+const scoreMgapIncreaseByRatio = ({ numerator = 0, denominator = 0, increase = 0 }) => {
+  const safeNumerator = Math.max(numerator, 0);
+  const safeDenominator = Math.max(denominator, 0);
+  const safeIncrease = Math.max(increase, 0);
+
+  if (safeDenominator <= 0 || safeIncrease <= 0) {
+    return 0;
+  }
+
+  const ratio = safeNumerator / safeDenominator;
+  let divisor = 4;
+  if (ratio >= 0.6 && ratio <= 0.75) {
+    divisor = 3;
+  } else if (ratio > 0.75) {
+    divisor = 2;
+  }
+
+  return clamp((safeIncrease / divisor) * 2, 0, 10);
+};
+
 export function scoreStrategic({
   strategicPriorities = 0,
   investment = 0,
@@ -196,6 +216,12 @@ export function scoreStrategic({
   mgapLivestockBirthsA = 0,
   mgapLivestockBreedingAvgB = 0,
   mgapLivestockIncreasePoints = 0,
+  mgapLivestockHerdFinalA = 0,
+  mgapLivestockHerdAvgB = 0,
+  mgapLivestockHerdIncreasePct = 0,
+  mgapLivestockFlockFinalA = 0,
+  mgapLivestockFlockAvgB = 0,
+  mgapLivestockFlockIncreasePct = 0,
   mgapNaturalFieldFlag = 'no',
   mgapPescaFlag = 'no',
   mgapPescaInvestmentUi = 0,
@@ -277,19 +303,17 @@ export function scoreStrategic({
     const naturalFieldBonus = mgapNaturalFieldFlag === 'si' ? 1 : 0;
     let livestockScore = 0;
     if (mgapLivestockImprovement === 'birth-rate') {
-      const births = Math.max(mgapLivestockBirthsA, 0);
-      const breedingAvg = Math.max(mgapLivestockBreedingAvgB, 0);
-      const increase = Math.max(mgapLivestockIncreasePoints, 0);
-      if (breedingAvg > 0 && increase > 0) {
-        const ratio = births / breedingAvg;
-        let divisor = 4;
-        if (ratio >= 0.6 && ratio <= 0.75) {
-          divisor = 3;
-        } else if (ratio > 0.75) {
-          divisor = 2;
-        }
-        livestockScore = clamp((increase / divisor) * 2, 0, 10);
-      }
+      livestockScore = scoreMgapIncreaseByRatio({
+        numerator: mgapLivestockBirthsA,
+        denominator: mgapLivestockBreedingAvgB,
+        increase: mgapLivestockIncreasePoints,
+      });
+    } else if (mgapLivestockImprovement === 'herd-growth') {
+      const herdIncrease = Math.max(mgapLivestockHerdIncreasePct, 0);
+      const flockIncrease = Math.max(mgapLivestockFlockIncreasePct, 0);
+      const herdScore = clamp(herdIncrease / 10, 0, 10);
+      const flockScore = clamp((flockIncrease / 15) * 2, 0, 10);
+      livestockScore = clamp(herdScore + flockScore, 0, 10);
     }
     return roundTo2(
       Math.min(

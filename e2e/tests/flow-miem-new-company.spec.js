@@ -12,6 +12,7 @@ import {
   scoreIPlus,
   scoreStrategic,
   scoreSustainability,
+  toUsdInvestment,
 } from './helpers.js';
 
 test('flow: miem new exporting company', async ({ page }) => {
@@ -21,6 +22,7 @@ test('flow: miem new exporting company', async ({ page }) => {
     industrialParkInvestmentUi: 0,
   };
   const totalInvestment = investment.machineryUi + investment.civilWorksUi;
+  const totalInvestmentUsd = toUsdInvestment(totalInvestment);
 
   const employmentInputs = {
     totalPersonnelBase: 0,
@@ -39,7 +41,7 @@ test('flow: miem new exporting company', async ({ page }) => {
     isNewCompany: 'si',
     currentExports: 0,
     exportIncrease: 500000,
-    totalInvestment,
+    totalInvestment: totalInvestmentUsd,
   };
   const decentralizationInputs = {
     investment: totalInvestment,

@@ -259,6 +259,14 @@ export function scoreStrategic({
           invVan: mineralEligibleInvestmentUi,
         });
 
+  const cinScore = scoreNationalComponent({
+    machineryUi,
+    nationalGoodsTotalUi,
+    nationalGoodsUi,
+    civilWorksMaterialsUi,
+    nationalCivilWorksUi,
+  });
+
   if (evaluatingMinistry === 'miem') {
     const miemScore = scoreMiemIndicators({
       investmentTotal: investment,
@@ -286,7 +294,9 @@ export function scoreStrategic({
             maxUi: miemWasteTransformMaxUi,
           })
         : 0;
-    return roundTo2(Math.min(miemScore + miemWasteScore + mineralTransformScore, 10));
+    return roundTo2(
+      Math.min(miemScore + miemWasteScore + mineralTransformScore + cinScore, 10)
+    );
   }
 
   if (evaluatingMinistry === 'mgap') {
@@ -317,7 +327,12 @@ export function scoreStrategic({
     }
     return roundTo2(
       Math.min(
-        riegoScore + pescaScore + naturalFieldBonus + mineralTransformScore + livestockScore,
+        riegoScore +
+          pescaScore +
+          naturalFieldBonus +
+          mineralTransformScore +
+          livestockScore +
+          cinScore,
         10
       )
     );
@@ -330,17 +345,10 @@ export function scoreStrategic({
       investmentZoneUi: minturInvestmentZoneUi,
       investmentOutsideUi: minturInvestmentOutsideUi,
     });
-    return roundTo2(Math.min(minturScore + mineralTransformScore, 10));
+    return roundTo2(Math.min(minturScore + mineralTransformScore + cinScore, 10));
   }
 
   const baseScore = clamp(strategicPriorities * 3.5);
-  const cinScore = scoreNationalComponent({
-    machineryUi,
-    nationalGoodsTotalUi,
-    nationalGoodsUi,
-    civilWorksMaterialsUi,
-    nationalCivilWorksUi,
-  });
   const total = Math.min(baseScore + cinScore + mineralTransformScore, 10);
   return roundTo2(total);
 }

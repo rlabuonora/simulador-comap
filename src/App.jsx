@@ -651,6 +651,9 @@ export default function App() {
   const [mgapExportIncrease, setMgapExportIncrease] = useState('');
   const [indirectExports, setIndirectExports] = useState([]);
   const [mgapExportError, setMgapExportError] = useState('');
+  const [minturIndirectInitial, setMinturIndirectInitial] = useState('');
+  const [minturIndirectIncrease, setMinturIndirectIncrease] = useState('');
+  const [minturExportError, setMinturExportError] = useState('');
   const pdfRef = useRef(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const debugScenarioLoaded = useRef(false);
@@ -711,6 +714,9 @@ export default function App() {
     setMgapExportInitial('');
     setMgapExportIncrease('');
     setMgapExportError('');
+    setMinturIndirectInitial('');
+    setMinturIndirectIncrease('');
+    setMinturExportError('');
     setNumericErrors({});
   }, [debugParams.enabled, debugParams.scenario]);
 
@@ -753,8 +759,27 @@ export default function App() {
   }, [inputs, investmentTotal, numericValues]);
 
   const indirectExportsForScore = useMemo(() => {
+    if (inputs.evaluatingMinistry === 'mintur') {
+      const initialParsed = parseNumericValue(minturIndirectInitial);
+      const increaseParsed = parseNumericValue(minturIndirectIncrease);
+      if (!increaseParsed || increaseParsed <= 0) {
+        return [];
+      }
+      return [
+        {
+          pct: 100,
+          initial: initialParsed ?? 0,
+          increase: increaseParsed,
+        },
+      ];
+    }
     return indirectExports;
-  }, [indirectExports]);
+  }, [
+    indirectExports,
+    inputs.evaluatingMinistry,
+    minturIndirectIncrease,
+    minturIndirectInitial,
+  ]);
 
   const mgapBirthsA = parseNumericValue(numericValues.mgapLivestockBirthsA);
   const mgapBreedingAvgB = parseNumericValue(numericValues.mgapLivestockBreedingAvgB);
@@ -872,6 +897,13 @@ export default function App() {
     ]
   );
 
+  const exonerationAmount = useMemo(() => {
+    if (!investmentTotal || !iraePct) {
+      return 0;
+    }
+    return investmentTotal * iraePct;
+  }, [investmentTotal, iraePct]);
+
   const indicatorRows = useMemo(() => {
     return INDICATORS.map((indicator) => {
       const score = scores[indicator.id] ?? 0;
@@ -897,6 +929,19 @@ export default function App() {
     }
     return { rate: 0, years: 0 };
   }, [companyCategory, numericValues.employees]);
+
+  const pymesLabel = useMemo(() => {
+    if (!(pymesBonusDetail.rate > 0 || pymesBonusDetail.years > 0)) {
+      return '-';
+    }
+    const labels = {
+      MICRO: 'Micro',
+      PEQUEÑA: 'Pequeña',
+      MEDIANA: 'Mediana',
+      'GRAN EMPRESA': 'Gran empresa',
+    };
+    return labels[companyCategory] ?? (companyCategory || '-');
+  }, [companyCategory, pymesBonusDetail.rate, pymesBonusDetail.years]);
 
   const industrialParkBonusDetail = useMemo(() => {
     if (inputs.isIndustrialParkUser !== 'si') {
@@ -940,8 +985,12 @@ export default function App() {
   const totalInvestmentForDept = investmentTotal || totalDepartmentAmount;
   const minturCoefficient = 3.22;
   const minturWeightedIncrease = useMemo(() => {
-    return indirectExports.reduce((sum, item) => sum + (item.pct / 100) * item.increase, 0);
-  }, [indirectExports]);
+    const parsed = parseNumericValue(minturIndirectIncrease);
+    if (parsed === null) {
+      return 0;
+    }
+    return parsed;
+  }, [minturIndirectIncrease]);
 
   const scoreByStepId = useMemo(() => {
     return {
@@ -1185,10 +1234,43 @@ export default function App() {
     setMgapExportInitial('');
     setMgapExportIncrease('');
     setMgapExportError('');
+    setMinturIndirectInitial('');
+    setMinturIndirectIncrease('');
+    setMinturExportError('');
   };
 
   const handleRemoveMgapExport = (indexToRemove) => {
     setIndirectExports((prev) => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  const syncMinturIndirectExports = () => {
+    const initialRaw = minturIndirectInitial.trim();
+    const increaseRaw = minturIndirectIncrease.trim();
+    const initialParsed = parseNumericValue(initialRaw);
+    const increaseParsed = parseNumericValue(increaseRaw);
+
+    if (!initialRaw || initialParsed === null || initialParsed < 0) {
+      setMinturExportError('Ingrese un valor inicial válido.');
+      setIndirectExports([]);
+      return;
+    }
+
+    if (!increaseRaw || increaseParsed === null || increaseParsed < 0) {
+      setMinturExportError('Ingrese un incremento válido.');
+      setIndirectExports([]);
+      return;
+    }
+
+    setIndirectExports([
+      {
+        id: 'mintur-indirect',
+        label: 'Incremento indirecto',
+        pct: 100,
+        initial: initialParsed,
+        increase: increaseParsed,
+      },
+    ]);
+    setMinturExportError('');
   };
 
   const goNext = () => {
@@ -1306,8 +1388,7 @@ export default function App() {
 
   const handleCopyDebugJson = async () => {
     const payload = {
-      inputs,
-      numericValues,
+      ...scoringInputs,
       deptAllocations,
       indirectExports,
       scores,
@@ -1791,6 +1872,7 @@ export default function App() {
           </section>
 
           <section className={`step${currentStep === stepIndexById.exportaciones ? ' active' : ''}`}>
+            <div className="section-subtitle">{'Exportaciones Directas'}</div>
             <div className="row">
                 <NumericField
                   label="Exportaciones actuales (USD/Año)"
@@ -1812,7 +1894,7 @@ export default function App() {
                 />
               </div>
 
-            {inputs.evaluatingMinistry === 'mgap' || inputs.evaluatingMinistry === 'mintur' ? (
+            {inputs.evaluatingMinistry === 'mgap' ? (
               <>
                 <div className="section-subtitle">{'Exportaciones Indirectas'}</div>
                 <div className="row row-4 mgap-row">
@@ -1892,10 +1974,16 @@ export default function App() {
                       const weighted = (item.pct / 100) * item.increase;
                       return (
                         <div className="table-row" key={`${item.id}-${index}`}>
-                          <div className="table-cell">{item.initial}</div>
+                          <div className="table-cell">
+                            {formatNumberForDisplay(item.initial, 0, 0)}
+                          </div>
                           <div className="table-cell">{item.pct}%</div>
-                          <div className="table-cell">{item.increase}</div>
-                          <div className="table-cell">{weighted.toFixed(2)}</div>
+                          <div className="table-cell">
+                            {formatNumberForDisplay(item.increase, 0, 0)}
+                          </div>
+                          <div className="table-cell">
+                            {formatNumberForDisplay(weighted, 2, 2)}
+                          </div>
                           <div className="table-cell">
                             <button
                               className="btn-secondary icon-btn"
@@ -1918,25 +2006,52 @@ export default function App() {
 
             {inputs.evaluatingMinistry === 'mintur' ? (
               <>
-                <div className="section-subtitle">{'Resumen coeficiente'}</div>
-                <div className="row row-narrow">
-                  <div className="field-group">
-                    <label className="field-label" htmlFor="minturCoefficient">
-                      Coeficiente fijo
-                    </label>
-                    <div id="minturCoefficient" className="field-control">
-                      {minturCoefficient.toFixed(2)}
-                    </div>
-                  </div>
+                <div className="section-subtitle">{'Exportaciones Indirectas'}</div>
+                <div className="row row-3 mintur-export-row">
+                  <NumericField
+                    label="Situación inicial (USD/Año)"
+                    name="minturIndirectInitial"
+                    placeholder="Ej: 100000"
+                    value={minturIndirectInitial}
+                    error={minturExportError}
+                    onChange={(event) => {
+                      setMinturIndirectInitial(event.target.value);
+                      if (minturExportError) {
+                        setMinturExportError('');
+                      }
+                    }}
+                    onBlur={() => {
+                      handleAmountBlur(setMinturIndirectInitial)();
+                      syncMinturIndirectExports();
+                    }}
+                  />
+                  <NumericField
+                    label="Incremento (USD/Año)"
+                    name="minturIndirectIncrease"
+                    placeholder="Ej: 20000"
+                    value={minturIndirectIncrease}
+                    error={minturExportError}
+                    onChange={(event) => {
+                      setMinturIndirectIncrease(event.target.value);
+                      if (minturExportError) {
+                        setMinturExportError('');
+                      }
+                    }}
+                    onBlur={() => {
+                      handleAmountBlur(setMinturIndirectIncrease)();
+                      syncMinturIndirectExports();
+                    }}
+                  />
                   <div className="field-group">
                     <label className="field-label" htmlFor="minturWeighted">
-                      Incremento aplicando coeficiente
+                      Incremento aplicando coeficiente (3.22)
                     </label>
                     <div id="minturWeighted" className="field-control">
                       {formatNumberForDisplay(minturCoefficient * minturWeightedIncrease, 0, 0)}
                     </div>
                   </div>
                 </div>
+                {minturExportError ? <div className="field-error">{minturExportError}</div> : null}
               </>
             ) : null}
           </section>
@@ -2804,7 +2919,7 @@ export default function App() {
               <>
                 <div className="row row-narrow spacer-top">
                   <NumericField
-                    label="Bienes muebles Nacional (UI)"
+                    label="Inversión Bienes muebles Nacional (UI)"
                     name="nationalGoodsUi"
                     placeholder="Ej: 200000"
                     value={numericValues.nationalGoodsUi ?? ''}
@@ -2814,7 +2929,7 @@ export default function App() {
                     className="narrow-field"
                   />
                   <NumericField
-                    label="Bienes muebles (UI)"
+                    label="Inversión Total Bienes muebles (UI)"
                     name="nationalGoodsTotalUi"
                     placeholder="Ej: 250000"
                     value={numericValues.nationalGoodsTotalUi ?? ''}
@@ -2826,7 +2941,7 @@ export default function App() {
                 </div>
                 <div className="row row-narrow">
                   <NumericField
-                    label="Materiales Obra Civil Nacional (UI)"
+                    label="Inversión Materiales Obra Civil Nacional (UI)"
                     name="nationalCivilWorksUi"
                     placeholder="Ej: 150000"
                     value={numericValues.nationalCivilWorksUi ?? ''}
@@ -2836,7 +2951,7 @@ export default function App() {
                     className="narrow-field"
                   />
                   <NumericField
-                    label="Materiales Obra Civil (UI)"
+                    label="Inversión total Materiales Obra Civil (UI)"
                     name="civilWorksMaterialsUi"
                     placeholder="Ej: 120000"
                     value={numericValues.civilWorksMaterialsUi ?? ''}
@@ -2877,15 +2992,17 @@ export default function App() {
                   </div>
                 </div>
               ) : null}
-              <div className="metric-grid">
-                <div className="metric-card">
-                  <p className="metric-title">Puntaje total ponderado</p>
-                  <p className="metric-value">{totalScore.toFixed(2)}</p>
-                </div>
-                <div className="metric-card">
-                  <p className="metric-title">Exoneración IRAE</p>
-                  <p className="metric-value">{(iraePct * 100).toFixed(1)}%</p>
-                </div>
+      <div className="metric-grid">
+        <div className="metric-card">
+          <p className="metric-title">Exoneración IRAE</p>
+          <p className="metric-value">
+            {formatNumberForDisplay(exonerationAmount, 0, 0)} UI
+          </p>
+        </div>
+        <div className="metric-card">
+          <p className="metric-title">Exoneración IRAE</p>
+          <p className="metric-value">{(iraePct * 100).toFixed(1)}%</p>
+        </div>
                 <div className="metric-card">
                   <p className="metric-title">Años de Exoneración</p>
                   <p className="metric-value">{exonerationYears}</p>
@@ -2895,7 +3012,6 @@ export default function App() {
               <div className="card summary-card card-plain">
                 <div className="card-header">
                   <h3>Indicadores</h3>
-                  <span>Escala 0-10</span>
                 </div>
                 <div className="table four-col">
                   <div className="table-row table-header">
@@ -2912,6 +3028,16 @@ export default function App() {
                       <div className="table-cell">{row.weightedScore.toFixed(2)}</div>
                     </div>
                   ))}
+                  <div className="table-row">
+                    <div className="table-cell">Total</div>
+                    <div className="table-cell"></div>
+                    <div className="table-cell"></div>
+                    <div className="table-cell">
+                      {indicatorRows
+                        .reduce((sum, row) => sum + row.weightedScore, 0)
+                        .toFixed(2)}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -2926,44 +3052,41 @@ export default function App() {
                     <div className="table-cell">Tasa IRAE</div>
                     <div className="table-cell">Plazo</div>
                   </div>
-                  <div className="table-row">
-                    <div className="table-cell">PYMES</div>
-                    <div className="table-cell">
-                      {pymesBonusDetail.rate > 0
-                        ? `+${(pymesBonusDetail.rate * 100).toFixed(0)} pp`
-                        : 'No aplica'}
+                  {pymesBonusDetail.rate > 0 || pymesBonusDetail.years > 0 ? (
+                    <div className="table-row">
+                      <div className="table-cell">{pymesLabel}</div>
+                      <div className="table-cell">
+                        +{(pymesBonusDetail.rate * 100).toFixed(0)} pp
+                      </div>
+                      <div className="table-cell">
+                        +{pymesBonusDetail.years}{' '}
+                        {pymesBonusDetail.years === 1 ? 'año' : 'años'}
+                      </div>
                     </div>
-                    <div className="table-cell">
-                      {pymesBonusDetail.years > 0
-                        ? `+${pymesBonusDetail.years} ${
-                            pymesBonusDetail.years === 1 ? 'año' : 'años'
-                          }`
-                        : 'No aplica'}
+                  ) : null}
+                  {industrialParkBonusDetail.incrementRate > 0 &&
+                  industrialParkBonusDetail.share > 0 ? (
+                    <div className="table-row">
+                      <div className="table-cell">Parque industrial</div>
+                      <div className="table-cell">
+                        +
+                        {(
+                          industrialParkBonusDetail.incrementRate *
+                          industrialParkBonusDetail.share *
+                          100
+                        ).toFixed(1)}
+                        %
+                      </div>
+                      <div className="table-cell">
+                        x
+                        {(
+                          1 +
+                          industrialParkBonusDetail.incrementRate *
+                            industrialParkBonusDetail.share
+                        ).toFixed(3)}
+                      </div>
                     </div>
-                  </div>
-                  <div className="table-row">
-                    <div className="table-cell">Parque industrial</div>
-                    <div className="table-cell">
-                      {industrialParkBonusDetail.incrementRate > 0 &&
-                      industrialParkBonusDetail.share > 0
-                        ? `+${(
-                            industrialParkBonusDetail.incrementRate *
-                            industrialParkBonusDetail.share *
-                            100
-                          ).toFixed(1)}%`
-                        : 'No aplica'}
-                    </div>
-                    <div className="table-cell">
-                      {industrialParkBonusDetail.incrementRate > 0 &&
-                      industrialParkBonusDetail.share > 0
-                        ? `x${(
-                            1 +
-                            industrialParkBonusDetail.incrementRate *
-                              industrialParkBonusDetail.share
-                          ).toFixed(3)}`
-                        : 'No aplica'}
-                    </div>
-                  </div>
+                  ) : null}
                 </div>
               </div>
 

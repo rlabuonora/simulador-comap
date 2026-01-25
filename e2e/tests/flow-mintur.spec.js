@@ -44,7 +44,7 @@ test('flow: mintur tourism project', async ({ page }) => {
     currentExports: 1500000,
     exportIncrease: 600000,
     totalInvestment: totalInvestmentUsd,
-    indirectExports: [],
+    indirectExports: [{ pct: 100, increase: 600000 }],
   };
   const decentralizationInputs = {
     investment: totalInvestment,
@@ -138,9 +138,14 @@ test('flow: mintur tourism project', async ({ page }) => {
   const exportsStep = page.locator('.step.active');
   const currentExportsInput = page.locator('#currentExports');
   const exportIncreaseInput = page.locator('#exportIncrease');
+  const minturIndirectInitialInput = page.locator('#minturIndirectInitial');
+  const minturIndirectIncreaseInput = page.locator('#minturIndirectIncrease');
   await goToLocator(page, currentExportsInput);
   await currentExportsInput.fill(String(exportInputs.currentExports));
   await exportIncreaseInput.fill(String(exportInputs.exportIncrease));
+  await minturIndirectInitialInput.fill('100000');
+  await minturIndirectIncreaseInput.fill('600000');
+  await minturIndirectIncreaseInput.press('Tab');
   await expectStepScore(page, expectedExportsScore);
   await goNext(page);
 

@@ -11,6 +11,14 @@ const calcMgapIncrement = (items = []) => {
   }, 0);
 };
 
+const calcIndirectBaseline = (items = []) => {
+  return items.reduce((sum, item) => {
+    const pct = parseNumber(item.pct) / 100;
+    const initial = parseNumber(item.initial);
+    return sum + pct * initial;
+  }, 0);
+};
+
 const calcExportIncrement = ({ evaluatingMinistry, exportIncrease = 0, indirectExports = [] }) => {
   if (evaluatingMinistry === 'mgap') {
     return parseNumber(exportIncrease) + calcMgapIncrement(indirectExports);
@@ -38,6 +46,11 @@ export function scoreExports({
   });
 
   const baselineExports = parseNumber(currentExports);
+  const indirectBaseline = calcIndirectBaseline(indirectExports);
+  const totalExports =
+    evaluatingMinistry === 'mintur'
+      ? baselineExports + MINTUR_COEFFICIENT * indirectBaseline
+      : baselineExports + indirectBaseline;
 
   if (evaluatingMinistry !== 'mintur' && exportIncrement <= 0) {
     return 0;
@@ -56,8 +69,8 @@ export function scoreExports({
   if (isNewCompany === 'si') {
     adjustmentFactor = 2;
   } else {
-    const safeBaseline = Math.max(baselineExports, 0.001);
-    const growthRatio = exportIncrement / safeBaseline;
+    const safeTotalExports = Math.max(totalExports, 0.001);
+    const growthRatio = exportIncrement / safeTotalExports;
     const growthBonus = Math.min(growthRatio, 1);
     adjustmentFactor = 1 + growthBonus;
   }

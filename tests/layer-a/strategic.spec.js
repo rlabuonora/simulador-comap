@@ -1,6 +1,15 @@
 import { scoreStrategic } from '../../src/utils/scoring.js';
 
 describe('Layer A: Strategic CIN scoring', () => {
+  const compareAcrossMinistries = (inputs) => {
+    const ministries = ['mef', 'mgap', 'mintur', 'miem'];
+    const expected = scoreStrategic({ evaluatingMinistry: 'mef', ...inputs });
+    ministries.forEach((evaluatingMinistry) => {
+      const score = scoreStrategic({ evaluatingMinistry, ...inputs });
+      expect(score).toBe(expected);
+    });
+  };
+
   test('IME threshold mapping for machinery only', () => {
     const scoreLow = scoreStrategic({
       evaluatingMinistry: 'mef',
@@ -118,5 +127,63 @@ describe('Layer A: Strategic CIN scoring', () => {
     });
 
     expect(score).toBe(10);
+  });
+
+  test('CIN yields same results across ministries for IME thresholds', () => {
+    compareAcrossMinistries({
+      machineryUi: 100,
+      nationalGoodsUi: 5,
+      civilWorksMaterialsUi: 0,
+      nationalCivilWorksUi: 0,
+      strategicPriorities: 0,
+    });
+    compareAcrossMinistries({
+      machineryUi: 100,
+      nationalGoodsUi: 9,
+      civilWorksMaterialsUi: 0,
+      nationalCivilWorksUi: 0,
+      strategicPriorities: 0,
+    });
+    compareAcrossMinistries({
+      machineryUi: 100,
+      nationalGoodsUi: 13,
+      civilWorksMaterialsUi: 0,
+      nationalCivilWorksUi: 0,
+      strategicPriorities: 0,
+    });
+  });
+
+  test('CIN yields same results across ministries for IMOC thresholds', () => {
+    compareAcrossMinistries({
+      machineryUi: 0,
+      nationalGoodsUi: 0,
+      civilWorksMaterialsUi: 100,
+      nationalCivilWorksUi: 20,
+      strategicPriorities: 0,
+    });
+    compareAcrossMinistries({
+      machineryUi: 0,
+      nationalGoodsUi: 0,
+      civilWorksMaterialsUi: 100,
+      nationalCivilWorksUi: 40,
+      strategicPriorities: 0,
+    });
+    compareAcrossMinistries({
+      machineryUi: 0,
+      nationalGoodsUi: 0,
+      civilWorksMaterialsUi: 100,
+      nationalCivilWorksUi: 60,
+      strategicPriorities: 0,
+    });
+  });
+
+  test('CIN yields same results across ministries for mixed weights', () => {
+    compareAcrossMinistries({
+      machineryUi: 100,
+      nationalGoodsUi: 20,
+      civilWorksMaterialsUi: 100,
+      nationalCivilWorksUi: 40,
+      strategicPriorities: 0,
+    });
   });
 });

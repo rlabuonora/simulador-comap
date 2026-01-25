@@ -468,6 +468,12 @@ a {
   min-height: 3.6em;
 }
 
+.mintur-export-row .field-label {
+  display: flex;
+  align-items: flex-start;
+  min-height: 2.4em;
+}
+
 .field-row {
   display: flex;
   align-items: center;

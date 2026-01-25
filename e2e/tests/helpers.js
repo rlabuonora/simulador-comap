@@ -1,5 +1,7 @@
 import { expect } from '@playwright/test';
 import {
+  classifyCompany,
+  computeIraePct,
   finalScore,
   scoreDecentralization,
   scoreEmployment,
@@ -8,6 +10,7 @@ import {
   scoreStrategic,
   scoreSustainability,
 } from '../../src/utils/scoring.js';
+import { WEIGHTS } from '../../src/utils/constants.js';
 
 export const clickNextTimes = async (page, count) => {
   for (let i = 0; i < count; i += 1) {
@@ -53,15 +56,17 @@ export const expectStepScore = async (page, expectedValue) => {
   await expect(page.locator('.score-pill strong')).toHaveText(expectedText);
 };
 
-export const expectMetricValue = async (page, labelText, expectedValue) => {
+export const expectMetricValue = async (page, labelText, expectedValue, options = {}) => {
   const expectedText =
     typeof expectedValue === 'number' ? expectedValue.toFixed(2) : String(expectedValue);
   const card = page.locator('.metric-card').filter({ hasText: labelText });
-  await expect(card.locator('.metric-value')).toHaveText(expectedText);
+  const targetCard =
+    Number.isInteger(options.index) && options.index >= 0 ? card.nth(options.index) : card;
+  await expect(targetCard.locator('.metric-value')).toHaveText(expectedText);
 };
 
-export const DEFAULT_USD_RATE = 38.5;
-export const DEFAULT_UI_RATE = 6.5;
+export const DEFAULT_USD_RATE = 37.454;
+export const DEFAULT_UI_RATE = 6.4215;
 export const parseLocaleNumber = (value) => {
   const raw = String(value ?? '').trim();
   if (!raw) {
@@ -110,7 +115,50 @@ export const toUsdInvestment = (
   return (uiInvestment * uiRate) / usdRate;
 };
 
+export const formatNumberForDisplay = (value, minFractionDigits = 0, maxFractionDigits = 2) => {
+  if (value === null || value === undefined || value === '') {
+    return '';
+  }
+  return new Intl.NumberFormat('es-UY', {
+    minimumFractionDigits: minFractionDigits,
+    maximumFractionDigits: maxFractionDigits,
+  }).format(value);
+};
+
+export const coreScoreSum = (scores) =>
+  Object.entries(scores).reduce((sum, [key, value]) => {
+    if (key === 'decentralization') {
+      return sum;
+    }
+    return sum + (value ?? 0) * (WEIGHTS[key] ?? 0);
+  }, 0);
+
+export const computeExonerationAmount = ({
+  scores,
+  investmentTotal,
+  annualBillingUi,
+  employees,
+  industrialParkUser = 'no',
+  industrialParkActivity = '',
+  industrialParkInvestmentUi = 0,
+}) => {
+  const firmSize = classifyCompany(annualBillingUi, employees);
+  const iraePct = computeIraePct(finalScore(scores), {
+    scores,
+    investmentTotal,
+    firmSize,
+    coreScoreSum: coreScoreSum(scores),
+    industrialParkUser,
+    industrialParkActivity,
+    industrialParkInvestment: industrialParkInvestmentUi,
+    employees,
+  });
+  return investmentTotal * iraePct;
+};
+
 export {
+  classifyCompany,
+  computeIraePct,
   finalScore,
   scoreDecentralization,
   scoreEmployment,

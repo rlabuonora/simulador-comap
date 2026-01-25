@@ -92,11 +92,13 @@ export function computeIraeYears({
   investmentTotal,
   weightedScore,
   coreScoreSum,
+  filedDate,
   firmSize,
   industrialParkUser,
   industrialParkActivity,
   industrialParkInvestment,
   employees,
+  employmentScore,
   iPlusScore,
 }) {
   if (coreScoreSum < 1) {
@@ -127,6 +129,20 @@ export function computeIraeYears({
   } else {
     baseYears = ((weightedScore - 1) * 21) / 9 + 4;
     maxYears = 25;
+  }
+
+  const meetsEmploymentIplus =
+    typeof employmentScore === 'number' && employmentScore >= 5 && (iPlusScore ?? 0) >= 4;
+  const meetsWindowA =
+    filedDate &&
+    isOnOrBefore(filedDate, '2027-12-31') &&
+    investmentTotal >= 180_000_000 &&
+    investmentTotal < 300_000_000;
+  const meetsWindowB =
+    filedDate && isOnOrBefore(filedDate, '2028-12-31') && investmentTotal >= 300_000_000;
+
+  if (meetsEmploymentIplus && (meetsWindowA || meetsWindowB)) {
+    return maxYears;
   }
 
   let years = Math.min(baseYears, maxYears);

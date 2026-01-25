@@ -104,11 +104,13 @@ export const computeScenario = (scenario) => {
     investmentTotal: investment,
     weightedScore: total,
     coreScoreSum,
+    filedDate: scenario.project.filedDate,
     firmSize,
     industrialParkUser: scenario.company?.isIndustrialParkUser,
     industrialParkActivity: scenario.company?.industrialParkActivity,
     industrialParkInvestment: scenario.project?.industrialParkUi ?? 0,
     employees: scenario.company?.employees,
+    employmentScore: scores.employment,
     iPlusScore: scores.iPlus,
   });
 

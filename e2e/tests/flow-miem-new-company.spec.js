@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
 import {
+  computeExonerationAmount,
   expectMetricValue,
   expectStepScore,
-  finalScore,
   fillIfVisible,
+  formatNumberForDisplay,
   goNext,
   goToLocator,
   readRateInputs,
@@ -182,5 +183,17 @@ test('flow: miem new exporting company', async ({ page }) => {
   await goNext(page);
 
   await goToLocator(page, page.locator('.metric-card'));
-  await expectMetricValue(page, 'Puntaje total', finalScore(scores));
+  const exonerationAmount = computeExonerationAmount({
+    scores,
+    investmentTotal: totalInvestment,
+    annualBillingUi: 12000000,
+    employees: 25,
+    industrialParkInvestmentUi: investment.industrialParkInvestmentUi,
+  });
+  await expectMetricValue(
+    page,
+    'Exoneración IRAE',
+    `${formatNumberForDisplay(exonerationAmount, 0, 0)} UI`,
+    { index: 0 }
+  );
 });

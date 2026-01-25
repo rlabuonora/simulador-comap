@@ -132,16 +132,50 @@ describe('Layer A: IRAE scaling', () => {
 });
 
 describe('Layer A: IRAE years scaling', () => {
+  test('IRAE-Y-00: 100% exoneration grants max years for 180M tranche', () => {
+    const years = computeIraeYears({
+      investmentTotal: 200_000_000,
+      weightedScore: 2,
+      coreScoreSum: 2.8,
+      filedDate: '2027-12-31',
+      firmSize: 'GRAN EMPRESA',
+      industrialParkUser: 'no',
+      industrialParkActivity: 'actividades-industriales',
+      industrialParkInvestment: 0,
+      employmentScore: 5,
+      iPlusScore: 4,
+    });
+    expect(years).toBe(22);
+  });
+
+  test('IRAE-Y-00b: 100% exoneration grants max years for 300M tranche', () => {
+    const years = computeIraeYears({
+      investmentTotal: 350_000_000,
+      weightedScore: 2,
+      coreScoreSum: 2.8,
+      filedDate: '2028-12-31',
+      firmSize: 'GRAN EMPRESA',
+      industrialParkUser: 'no',
+      industrialParkActivity: 'actividades-industriales',
+      industrialParkInvestment: 0,
+      employmentScore: 5,
+      iPlusScore: 4,
+    });
+    expect(years).toBe(24);
+  });
+
   test('IRAE-Y-01: industrial park boost scales years proportionally', () => {
     // Rule: years increase proportionally to park investment share.
     const years = computeIraeYears({
       investmentTotal: 3_000_000,
       weightedScore: 5,
       coreScoreSum: 2,
+      filedDate: '2026-01-01',
       firmSize: 'GRAN EMPRESA',
       industrialParkUser: 'si',
       industrialParkActivity: 'actividades-industriales',
       industrialParkInvestment: 1_500_000,
+      employmentScore: 0,
     });
     expect(years).toBe(10);
   });
@@ -152,10 +186,12 @@ describe('Layer A: IRAE years scaling', () => {
       investmentTotal: 3_000_000,
       weightedScore: 5,
       coreScoreSum: 2,
+      filedDate: '2026-01-01',
       firmSize: 'GRAN EMPRESA',
       industrialParkUser: 'no',
       industrialParkActivity: 'actividades-industriales',
       industrialParkInvestment: 1_500_000,
+      employmentScore: 0,
     });
     expect(years).toBe(9);
   });
@@ -166,10 +202,12 @@ describe('Layer A: IRAE years scaling', () => {
       investmentTotal: 3_000_000,
       weightedScore: 5,
       coreScoreSum: 2,
+      filedDate: '2026-01-01',
       firmSize: 'GRAN EMPRESA',
       industrialParkUser: 'no',
       industrialParkActivity: 'actividades-industriales',
       industrialParkInvestment: 0,
+      employmentScore: 0,
       iPlusScore: 2,
     });
     expect(years).toBe(11);
@@ -180,10 +218,12 @@ describe('Layer A: IRAE years scaling', () => {
       investmentTotal: 3_000_000,
       weightedScore: 10,
       coreScoreSum: 2,
+      filedDate: '2026-01-01',
       firmSize: 'GRAN EMPRESA',
       industrialParkUser: 'no',
       industrialParkActivity: 'actividades-industriales',
       industrialParkInvestment: 0,
+      employmentScore: 0,
       iPlusScore: 2,
     });
     expect(years).toBe(16);
@@ -194,10 +234,12 @@ describe('Layer A: IRAE years scaling', () => {
       investmentTotal: 3_000_000,
       weightedScore: 10,
       coreScoreSum: 2,
+      filedDate: '2026-01-01',
       firmSize: 'GRAN EMPRESA',
       industrialParkUser: 'si',
       industrialParkActivity: 'actividades-industriales',
       industrialParkInvestment: 3_000_000,
+      employmentScore: 0,
       iPlusScore: 2,
     });
     expect(years).toBe(18);

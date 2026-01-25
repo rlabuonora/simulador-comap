@@ -121,8 +121,8 @@ const defaultInputs = {
   investment: 0,
   employees: 0,
   annualBillingUi: 0,
-  usdRate: 38.5,
-  uiRate: 6.5,
+  usdRate: 37.454,
+  uiRate: 6.4215,
   machineryUi: 0,
   civilWorksUi: 0,
   industrialParkInvestmentUi: 0,
@@ -879,11 +879,13 @@ export default function App() {
         investmentTotal,
         weightedScore: totalScore,
         coreScoreSum,
+        filedDate: inputs.filedDate,
         firmSize: companyCategory || undefined,
         industrialParkUser: inputs.isIndustrialParkUser,
         industrialParkActivity: inputs.industrialParkActivity,
         industrialParkInvestment: parseNumericValue(numericValues.industrialParkInvestmentUi) ?? 0,
         employees: parseNumericValue(numericValues.employees) ?? undefined,
+        employmentScore: scores.employment,
         iPlusScore: scores.iPlus,
       }),
     [
@@ -891,8 +893,10 @@ export default function App() {
       coreScoreSum,
       inputs.industrialParkActivity,
       inputs.isIndustrialParkUser,
+      inputs.filedDate,
       investmentTotal,
       scores.iPlus,
+      scores.employment,
       totalScore,
     ]
   );
@@ -1317,10 +1321,12 @@ export default function App() {
         { key: 'civilWorksUi', label: 'obra civil' },
         { key: 'industrialParkInvestmentUi', label: 'parque industrial' },
       ];
+      const parsedValues = {};
 
       fields.forEach(({ key }) => {
         const rawValue = numericValues[key]?.trim();
         const parsed = parseNumericValue(rawValue);
+        parsedValues[key] = parsed;
 
         if (!rawValue || parsed === null || parsed < 0) {
           nextErrors[key] = 'Ingrese un valor válido.';
@@ -1338,6 +1344,16 @@ export default function App() {
           totalErrors[key] = 'La suma debe ser mayor a 0.';
         });
         setNumericErrors((prev) => ({ ...prev, ...totalErrors }));
+        return;
+      }
+
+      const parkInvestment = parsedValues.industrialParkInvestmentUi ?? 0;
+      if (parkInvestment > investmentTotal) {
+        setNumericErrors((prev) => ({
+          ...prev,
+          industrialParkInvestmentUi:
+            'No puede superar la inversión elegible total.',
+        }));
         return;
       }
 
@@ -1534,92 +1550,6 @@ export default function App() {
 
             <div className="row">
               <div className="field-group">
-                <label className="field-label">Usuaria de parque industrial</label>
-                <div className="radio">
-                  <label className="pill">
-                  <input
-                    type="radio"
-                    name="isIndustrialParkUser"
-                    value="si"
-                    checked={inputs.isIndustrialParkUser === 'si'}
-                    onChange={(event) =>
-                      setInputs((prev) => ({ ...prev, isIndustrialParkUser: event.target.value }))
-                    }
-                  />
-                  Si
-                </label>
-                <label className="pill">
-                  <input
-                    type="radio"
-                    name="isIndustrialParkUser"
-                    value="no"
-                    checked={inputs.isIndustrialParkUser === 'no'}
-                    onChange={(event) => {
-                      setInputs((prev) => ({ ...prev, isIndustrialParkUser: event.target.value }));
-                      resetNumericFields(['industrialParkInvestmentUi']);
-                    }}
-                  />
-                  No
-                </label>
-              </div>
-              </div>
-              <div />
-            </div>
-
-            {inputs.isIndustrialParkUser === 'si' ? (
-              <div className="row row-narrow">
-                <div className="field-group">
-                  <label className="field-label" htmlFor="industrialParkActivity">
-                    Actividad en parque industrial
-                  </label>
-                  <select
-                    id="industrialParkActivity"
-                    className="field-control"
-                    value={inputs.industrialParkActivity}
-                    onChange={(event) =>
-                      setInputs((prev) => ({
-                        ...prev,
-                        industrialParkActivity: event.target.value,
-                      }))
-                    }
-                  >
-                    <option value="">Seleccionar...</option>
-                    <option value="actividades-industriales">Actividades industriales</option>
-                    <option value="servicios-logisticos">
-                      Prestación de servicios como: operaciones de almacenaje, acondicionamiento,
-                      selección, clasificación, fraccionamiento, armado, desarmado, manipulación o
-                      mezcla de mercaderías o materias primas, vinculados a las actividades
-                      desarrolladas en el parque
-                    </option>
-                    <option value="energia-solar">
-                      Actividades de Generación de Energía solar térmica y/o fotovoltaica enmarcados
-                      en medidas promocionales del Poder Ejecutivo
-                    </option>
-                    <option value="valorizacion-residuos">
-                      Actividades de valorización y aprovechamiento de residuos
-                    </option>
-                    <option value="servicios-tic-biotecnologia">
-                      Actividades de servicios en las áreas de tecnologías de Información y
-                      comunicación, biotecnología, industrias creativas dado su potencial para la
-                      contribución a los objetivos establecidos en el artículo 1 de la Ley N°
-                      19.784
-                    </option>
-                  </select>
-                </div>
-                <NumericField
-                  label="Monto inversión dentro del parque industrial (UI)"
-                  name="industrialParkInvestmentUi"
-                  placeholder="Ej: 1500000"
-                  value={numericValues.industrialParkInvestmentUi ?? ''}
-                  error={numericErrors.industrialParkInvestmentUi}
-                  onChange={handleNumericChange('industrialParkInvestmentUi')}
-                  onBlur={handleNumericBlur('industrialParkInvestmentUi')}
-                />
-              </div>
-            ) : null}
-
-            <div className="row">
-              <div className="field-group">
                 <label className="field-label" htmlFor="evaluatingMinistry">
                   Ministerio evaluador
                 </label>
@@ -1727,6 +1657,102 @@ export default function App() {
                 </div>
               </div>
             </div>
+
+            <div className="row">
+              <div className="field-group">
+                <label className="field-label">Usuaria de parque industrial</label>
+                <div className="radio">
+                  <label className="pill">
+                    <input
+                      type="radio"
+                      name="isIndustrialParkUser"
+                      value="si"
+                      checked={inputs.isIndustrialParkUser === 'si'}
+                      onChange={(event) =>
+                        setInputs((prev) => ({
+                          ...prev,
+                          isIndustrialParkUser: event.target.value,
+                          industrialParkActivity:
+                            prev.industrialParkActivity || 'actividades-industriales',
+                        }))
+                      }
+                    />
+                    Si
+                  </label>
+                  <label className="pill">
+                    <input
+                      type="radio"
+                      name="isIndustrialParkUser"
+                      value="no"
+                      checked={inputs.isIndustrialParkUser === 'no'}
+                      onChange={(event) => {
+                        setInputs((prev) => ({
+                          ...prev,
+                          isIndustrialParkUser: event.target.value,
+                          industrialParkActivity: '',
+                        }));
+                        resetNumericFields(['industrialParkInvestmentUi']);
+                      }}
+                    />
+                    No
+                  </label>
+                </div>
+              </div>
+              <div />
+            </div>
+
+            {inputs.isIndustrialParkUser === 'si' ? (
+              <div className="row row-narrow">
+                <div className="field-group">
+                  <label className="field-label" htmlFor="industrialParkActivity">
+                    Actividad en parque industrial
+                  </label>
+                  <select
+                    id="industrialParkActivity"
+                    className="field-control"
+                    value={inputs.industrialParkActivity}
+                    onChange={(event) =>
+                      setInputs((prev) => ({
+                        ...prev,
+                        industrialParkActivity: event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">Seleccionar...</option>
+                    <option value="actividades-industriales">Actividades industriales</option>
+                    <option value="servicios-logisticos">
+                      Prestación de servicios como: operaciones de almacenaje, acondicionamiento,
+                      selección, clasificación, fraccionamiento, armado, desarmado, manipulación o
+                      mezcla de mercaderías o materias primas, vinculados a las actividades
+                      desarrolladas en el parque
+                    </option>
+                    <option value="energia-solar">
+                      Actividades de Generación de Energía solar térmica y/o fotovoltaica enmarcados
+                      en medidas promocionales del Poder Ejecutivo
+                    </option>
+                    <option value="valorizacion-residuos">
+                      Actividades de valorización y aprovechamiento de residuos
+                    </option>
+                    <option value="servicios-tic-biotecnologia">
+                      Actividades de servicios en las áreas de tecnologías de Información y
+                      comunicación, biotecnología, industrias creativas dado su potencial para la
+                      contribución a los objetivos establecidos en el artículo 1 de la Ley N°
+                      19.784
+                    </option>
+                    <option value="otras-actividades">Otras actividades</option>
+                  </select>
+                </div>
+                <NumericField
+                  label="Monto inversión dentro del parque industrial (UI)"
+                  name="industrialParkInvestmentUi"
+                  placeholder="Ej: 1500000"
+                  value={numericValues.industrialParkInvestmentUi ?? ''}
+                  error={numericErrors.industrialParkInvestmentUi}
+                  onChange={handleNumericChange('industrialParkInvestmentUi')}
+                  onBlur={handleNumericBlur('industrialParkInvestmentUi')}
+                />
+              </div>
+            ) : null}
           </section>
 
           <section className={`step${currentStep === stepIndexById.empleo ? ' active' : ''}`}>
@@ -2192,7 +2218,7 @@ export default function App() {
           </section>
 
           <section className={`step${currentStep === stepIndexById.transformacion ? ' active' : ''}`}>
-            <div className="row impacto-ambiental-row">
+            <div className="row iplus-row">
               <NumericField
                 label="Monto inversión (UI)"
                 name="iPlusPct"
@@ -3069,13 +3095,12 @@ export default function App() {
                     <div className="table-row">
                       <div className="table-cell">Parque industrial</div>
                       <div className="table-cell">
-                        +
+                        x
                         {(
+                          1 +
                           industrialParkBonusDetail.incrementRate *
-                          industrialParkBonusDetail.share *
-                          100
-                        ).toFixed(1)}
-                        %
+                            industrialParkBonusDetail.share
+                        ).toFixed(3)}
                       </div>
                       <div className="table-cell">
                         x

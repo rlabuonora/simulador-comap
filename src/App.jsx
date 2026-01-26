@@ -211,10 +211,12 @@ const defaultInputs = {
 };
 
 
-const getDecimalPlaces = (rawValue) => {
+const getDecimalPlaces = (rawValue, maxDigits = 6) => {
   const match = String(rawValue ?? '').trim().match(/[.,](\d+)$/);
-  return match ? Math.min(match[1].length, 2) : 0;
+  return match ? Math.min(match[1].length, maxDigits) : 0;
 };
+
+const RATE_KEYS = new Set(['usdRate', 'uiRate']);
 
 const parseNumericValue = (value) => {
   const raw = String(value ?? '').trim();
@@ -411,6 +413,11 @@ const buildNumericValues = (source) => {
     }
     const parsed = parseNumericValue(rawValue);
     if (parsed !== null) {
+      if (RATE_KEYS.has(key)) {
+        const decimals = getDecimalPlaces(rawValue);
+        base[key] = formatNumberForDisplay(parsed, 0, decimals);
+        return;
+      }
       base[key] = formatNumberForDisplay(parsed, 0, 0);
     }
   });
@@ -619,7 +626,7 @@ const BASE_STEPS = [
   },
   {
     id: 'alineacion',
-    label: 'Alineación estratégica',
+    label: 'Indicador estratégico',
     hint: 'Impacto en actividades estratégicas para los Ministerios que integran la COMAP',
   },
   {
@@ -674,15 +681,6 @@ export default function App() {
 
   const steps = useMemo(() => {
     const nextSteps = [...BASE_STEPS];
-    if (inputs.evaluatingMinistry === 'mef') {
-      const resultIndex = nextSteps.findIndex((step) => step.id === 'resultado');
-      const insertIndex = resultIndex === -1 ? nextSteps.length : resultIndex;
-      nextSteps.splice(insertIndex, 0, {
-        id: 'indicadores-mef',
-        label: 'Indicadores sectoriales MEF',
-        hint: 'Información específica para proyectos evaluados por MEF.',
-      });
-    }
     return nextSteps.map((step, index) => ({
       ...step,
       title: `Paso ${index + 1} - ${step.label}`,
@@ -840,15 +838,27 @@ export default function App() {
     scoringInputs,
   ]);
 
+  const strategicMinimumScore = useMemo(
+    () => scoreStrategic({ ...scoringInputs, includeNationalComponent: false }),
+    [scoringInputs]
+  );
+
   const coreScoreSum = useMemo(() => {
     return Object.entries(scores).reduce((sum, [key, value]) => {
       if (key === 'decentralization') {
         return sum;
       }
-      return sum + (value ?? 0) * WEIGHTS[key];
+      const effectiveValue = key === 'strategic' ? strategicMinimumScore : value;
+      return sum + (effectiveValue ?? 0) * WEIGHTS[key];
     }, 0);
-  }, [scores]);
-  const totalScore = useMemo(() => finalScore(scores), [scores]);
+  }, [scores, strategicMinimumScore]);
+  const totalScore = useMemo(
+    () =>
+      finalScore(scores, {
+        minimumScores: { ...scores, strategic: strategicMinimumScore },
+      }),
+    [scores, strategicMinimumScore]
+  );
   const iraePct = useMemo(
     () =>
       computeIraePct(totalScore, {
@@ -1054,7 +1064,10 @@ export default function App() {
   };
 
   const handleNumericChange = (key) => (event) => {
-    const nextValue = event.target.value;
+    let nextValue = event.target.value;
+    if (RATE_KEYS.has(key)) {
+      nextValue = nextValue.replace(/\./g, ',');
+    }
     setNumericValues((prev) => ({ ...prev, [key]: nextValue }));
     if (numericErrors[key]) {
       setNumericErrors((prev) => ({ ...prev, [key]: '' }));
@@ -1075,6 +1088,14 @@ export default function App() {
       if (parsed !== null) {
         const normalized = parsed < 0 ? 0 : parsed;
         setInputs((prev) => ({ ...prev, [key]: normalized }));
+        if (RATE_KEYS.has(key)) {
+          const decimals = getDecimalPlaces(rawValue);
+          setNumericValues((prev) => ({
+            ...prev,
+            [key]: formatNumberForDisplay(normalized, 0, decimals),
+          }));
+          return;
+        }
         setNumericValues((prev) => ({
           ...prev,
           [key]: formatNumberForDisplay(normalized, 0, 0),
@@ -1116,6 +1137,14 @@ export default function App() {
 
     setNumericErrors((prev) => ({ ...prev, [key]: '' }));
     setInputs((prev) => ({ ...prev, [key]: parsed }));
+    if (RATE_KEYS.has(key)) {
+      const decimals = getDecimalPlaces(rawValue);
+      setNumericValues((prev) => ({
+        ...prev,
+        [key]: formatNumberForDisplay(parsed, 0, decimals),
+      }));
+      return;
+    }
     setNumericValues((prev) => ({
       ...prev,
       [key]: formatNumberForDisplay(parsed, 0, 0),
@@ -2582,7 +2611,7 @@ export default function App() {
                 ) : null}
 
                 <div className="spacer-top">
-                  <label className="field-label">Al menos 50% de superficie cubierta por campo natural</label>
+                  <label className="field-label">Protección del campo natural</label>
                   <div className="radio">
                     <label className="pill">
                       <input
@@ -2653,7 +2682,7 @@ export default function App() {
                 {inputs.minturStrategicFlag === 'si' ? (
                   <div className="row row-narrow spacer-top">
                     <NumericField
-                      label="Inversión en zonas turísticas (UI)"
+                      label="Inversión en zonas turísticas con puntaje adicional (UI)"
                       name="minturInvestmentZoneUi"
                       placeholder="Ej: 500000"
                       value={numericValues.minturInvestmentZoneUi ?? ''}
@@ -2663,7 +2692,7 @@ export default function App() {
                       className="narrow-field"
                     />
                     <NumericField
-                      label="Inversión fuera de zonas turísticas (UI)"
+                      label="Inversión en zonas turísticas sin puntaje adicional (UI)"
                       name="minturInvestmentOutsideUi"
                       placeholder="Ej: 200000"
                       value={numericValues.minturInvestmentOutsideUi ?? ''}

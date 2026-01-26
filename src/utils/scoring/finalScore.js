@@ -1,12 +1,13 @@
 import { WEIGHTS } from '../constants.js';
 import { clamp } from './helpers.js';
 
-export function finalScore(scores) {
+export function finalScore(scores, options = {}) {
+  const minimumScores = options.minimumScores ?? scores;
   const coreTotal = Object.keys(WEIGHTS).reduce((sum, key) => {
     if (key === 'decentralization') {
       return sum;
     }
-    return sum + (scores[key] ?? 0) * WEIGHTS[key];
+    return sum + (minimumScores[key] ?? 0) * WEIGHTS[key];
   }, 0);
 
   if (coreTotal < 1) {

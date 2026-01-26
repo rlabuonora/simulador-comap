@@ -204,6 +204,7 @@ export function scoreStrategic({
   nationalGoodsUi = 0,
   civilWorksMaterialsUi = 0,
   nationalCivilWorksUi = 0,
+  includeNationalComponent = true,
   mineralProcessingLevel = '',
   mineralEligibleInvestmentUi = 0,
   mineralTransformFlag = 'no',
@@ -266,6 +267,7 @@ export function scoreStrategic({
     civilWorksMaterialsUi,
     nationalCivilWorksUi,
   });
+  const nationalComponentScore = includeNationalComponent ? cinScore : 0;
 
   if (evaluatingMinistry === 'miem') {
     const miemScore = scoreMiemIndicators({
@@ -295,7 +297,7 @@ export function scoreStrategic({
           })
         : 0;
     return roundTo2(
-      Math.min(miemScore + miemWasteScore + mineralTransformScore + cinScore, 10)
+      Math.min(miemScore + miemWasteScore + mineralTransformScore + nationalComponentScore, 10)
     );
   }
 
@@ -332,7 +334,7 @@ export function scoreStrategic({
           naturalFieldBonus +
           mineralTransformScore +
           livestockScore +
-          cinScore,
+          nationalComponentScore,
         10
       )
     );
@@ -345,10 +347,12 @@ export function scoreStrategic({
       investmentZoneUi: minturInvestmentZoneUi,
       investmentOutsideUi: minturInvestmentOutsideUi,
     });
-    return roundTo2(Math.min(minturScore + mineralTransformScore + cinScore, 10));
+    return roundTo2(
+      Math.min(minturScore + mineralTransformScore + nationalComponentScore, 10)
+    );
   }
 
   const baseScore = clamp(strategicPriorities * 3.5);
-  const total = Math.min(baseScore + cinScore + mineralTransformScore, 10);
+  const total = Math.min(baseScore + nationalComponentScore + mineralTransformScore, 10);
   return roundTo2(total);
 }

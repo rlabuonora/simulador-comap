@@ -114,8 +114,22 @@ const scoreTransformInvestments = ({
     return factor * maxPoints;
   };
 
-  const total = calc(minUi, 3) + calc(medUi, 5) + calc(maxUi, 10);
-  return Math.min(total, 10);
+  const minInvestment = Math.max(minUi ?? 0, 0);
+  const medInvestment = Math.max(medUi ?? 0, 0);
+  const maxInvestment = Math.max(maxUi ?? 0, 0);
+  const totalInvestment = minInvestment + medInvestment + maxInvestment;
+  if (totalInvestment <= 0) {
+    return 0;
+  }
+
+  const minScore = calc(minInvestment, 3);
+  const medScore = calc(medInvestment, 5);
+  const maxScore = calc(maxInvestment, 10);
+
+  const weightedAverage =
+    (minScore * minInvestment + medScore * medInvestment + maxScore * maxInvestment) /
+    totalInvestment;
+  return Math.min(weightedAverage, 10);
 };
 
 const scoreMiemIndicators = ({ investmentTotal, values }) => {
@@ -213,7 +227,7 @@ export function scoreStrategic({
   mineralTransformMaxUi = 0,
   mgapRiegoFlag = 'no',
   mgapRiegoInvestmentUi = 0,
-  mgapLivestockImprovement = 'no',
+  mgapLivestockImprovement = [],
   mgapLivestockBirthsA = 0,
   mgapLivestockBreedingAvgB = 0,
   mgapLivestockIncreasePoints = 0,
@@ -313,20 +327,34 @@ export function scoreStrategic({
       investmentUi: mgapPescaInvestmentUi,
     });
     const naturalFieldBonus = mgapNaturalFieldFlag === 'si' ? 1 : 0;
+    const livestockSelections = Array.isArray(mgapLivestockImprovement)
+      ? mgapLivestockImprovement
+      : [mgapLivestockImprovement];
     let livestockScore = 0;
-    if (mgapLivestockImprovement === 'birth-rate') {
-      livestockScore = scoreMgapIncreaseByRatio({
-        numerator: mgapLivestockBirthsA,
-        denominator: mgapLivestockBreedingAvgB,
-        increase: mgapLivestockIncreasePoints,
-      });
-    } else if (mgapLivestockImprovement === 'herd-growth') {
-      const herdIncrease = Math.max(mgapLivestockHerdIncreasePct, 0);
-      const flockIncrease = Math.max(mgapLivestockFlockIncreasePct, 0);
-      const herdScore = clamp(herdIncrease / 10, 0, 10);
-      const flockScore = clamp((flockIncrease / 15) * 2, 0, 10);
-      livestockScore = clamp(herdScore + flockScore, 0, 10);
+    if (livestockSelections.includes('birth-rate')) {
+      const baseRate = mgapLivestockBirthsA;
+      const projectedRate = mgapLivestockBreedingAvgB;
+      let divisor = 2;
+      if (baseRate < 60) {
+        divisor = 4;
+      } else if (baseRate <= 75) {
+        divisor = 3;
+      }
+      const delta = projectedRate - baseRate;
+      const rawScore = (delta / divisor) * 2;
+      livestockScore += clamp(rawScore, 0, 10);
     }
+    if (livestockSelections.includes('herd-growth')) {
+      const herdIncrease = Math.max(mgapLivestockHerdIncreasePct, 0);
+      const herdScore = clamp(herdIncrease / 10, 0, 10);
+      livestockScore += herdScore;
+    }
+    if (livestockSelections.includes('flock-growth')) {
+      const flockIncrease = Math.max(mgapLivestockFlockIncreasePct, 0);
+      const flockScore = clamp(flockIncrease / 7.5, 0, 10);
+      livestockScore += flockScore;
+    }
+    livestockScore = clamp(livestockScore, 0, 10);
     return roundTo2(
       Math.min(
         riegoScore +

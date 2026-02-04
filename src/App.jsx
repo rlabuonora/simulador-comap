@@ -166,7 +166,8 @@ const defaultInputs = {
   mgapRiegoInvestmentUi: 0,
   mgapBioFlag: 'no',
   mgapBioInvestmentUi: 0,
-  mgapLivestockImprovement: 'no',
+  mgapLivestockFlag: 'no',
+  mgapLivestockImprovement: [],
   mgapLivestockBirthsA: 0,
   mgapLivestockBreedingAvgB: 0,
   mgapLivestockIncreasePoints: 0,
@@ -217,6 +218,12 @@ const getDecimalPlaces = (rawValue, maxDigits = 6) => {
 };
 
 const RATE_KEYS = new Set(['usdRate', 'uiRate']);
+const DECIMAL_KEYS = new Set([
+  'mgapLivestockBirthsA',
+  'mgapLivestockBreedingAvgB',
+  'mgapLivestockHerdIncreasePct',
+  'mgapLivestockFlockIncreasePct',
+]);
 
 const parseNumericValue = (value) => {
   const raw = String(value ?? '').trim();
@@ -781,22 +788,6 @@ export default function App() {
 
   const mgapBirthsA = parseNumericValue(numericValues.mgapLivestockBirthsA);
   const mgapBreedingAvgB = parseNumericValue(numericValues.mgapLivestockBreedingAvgB);
-  const mgapBirthRatio =
-    mgapBirthsA !== null && mgapBreedingAvgB !== null && mgapBreedingAvgB > 0
-      ? mgapBirthsA / mgapBreedingAvgB
-      : null;
-  const mgapHerdFinalA = parseNumericValue(numericValues.mgapLivestockHerdFinalA);
-  const mgapHerdAvgB = parseNumericValue(numericValues.mgapLivestockHerdAvgB);
-  const mgapHerdRatio =
-    mgapHerdFinalA !== null && mgapHerdAvgB !== null && mgapHerdAvgB > 0
-      ? mgapHerdFinalA / mgapHerdAvgB
-      : null;
-  const mgapFlockFinalA = parseNumericValue(numericValues.mgapLivestockFlockFinalA);
-  const mgapFlockAvgB = parseNumericValue(numericValues.mgapLivestockFlockAvgB);
-  const mgapFlockRatio =
-    mgapFlockFinalA !== null && mgapFlockAvgB !== null && mgapFlockAvgB > 0
-      ? mgapFlockFinalA / mgapFlockAvgB
-      : null;
 
   const investmentTotalUsd = useMemo(() => {
     const uiRate = parseNumericValue(numericValues.uiRate);
@@ -815,6 +806,7 @@ export default function App() {
         womenIncrease: parseNumericValue(numericValues.womenIncrease) ?? 0,
         youthIncrease: parseNumericValue(numericValues.youthIncrease) ?? 0,
         disabilityIncrease: parseNumericValue(numericValues.disabilityIncrease) ?? 0,
+        investmentTotalMillions: investmentTotal / 1_000_000,
       }),
       decentralization: scoreDecentralization(scoringInputs),
       exports: scoreExports({
@@ -844,13 +836,17 @@ export default function App() {
   );
 
   const coreScoreSum = useMemo(() => {
-    return Object.entries(scores).reduce((sum, [key, value]) => {
+    const baseSum = Object.entries(scores).reduce((sum, [key, value]) => {
       if (key === 'decentralization') {
         return sum;
       }
-      const effectiveValue = key === 'strategic' ? strategicMinimumScore : value;
-      return sum + (effectiveValue ?? 0) * WEIGHTS[key];
+      return sum + (value ?? 0) * WEIGHTS[key];
     }, 0);
+    const nationalComponentScore = Math.max(
+      (scores.strategic ?? 0) - (strategicMinimumScore ?? 0),
+      0
+    );
+    return baseSum - nationalComponentScore * (WEIGHTS.strategic ?? 0);
   }, [scores, strategicMinimumScore]);
   const totalScore = useMemo(
     () =>
@@ -1096,6 +1092,13 @@ export default function App() {
           }));
           return;
         }
+        if (DECIMAL_KEYS.has(key)) {
+          setNumericValues((prev) => ({
+            ...prev,
+            [key]: formatNumberForDisplay(normalized, 2, 2),
+          }));
+          return;
+        }
         setNumericValues((prev) => ({
           ...prev,
           [key]: formatNumberForDisplay(normalized, 0, 0),
@@ -1142,6 +1145,13 @@ export default function App() {
       setNumericValues((prev) => ({
         ...prev,
         [key]: formatNumberForDisplay(parsed, 0, decimals),
+      }));
+      return;
+    }
+    if (DECIMAL_KEYS.has(key)) {
+      setNumericValues((prev) => ({
+        ...prev,
+        [key]: formatNumberForDisplay(parsed, 2, 2),
       }));
       return;
     }
@@ -2423,132 +2433,163 @@ export default function App() {
                 </div>
 
                 <div className="spacer-top">
-                  <label className="field-label" htmlFor="mgapLivestockImprovement">
-                    Mejora de la Producción Ganadera
-                  </label>
-                  <select
-                    id="mgapLivestockImprovement"
-                    className="field-control"
-                    value={inputs.mgapLivestockImprovement}
-                    onChange={(event) => {
-                      const nextValue = event.target.value;
-                      setInputs((prev) => ({
-                        ...prev,
-                        mgapLivestockImprovement: nextValue,
-                      }));
-                      if (nextValue === 'no') {
-                        resetNumericFields([
-                          'mgapLivestockBirthsA',
-                          'mgapLivestockBreedingAvgB',
-                          'mgapLivestockIncreasePoints',
-                          'mgapLivestockHerdFinalA',
-                          'mgapLivestockHerdAvgB',
-                          'mgapLivestockHerdIncreasePct',
-                          'mgapLivestockFlockFinalA',
-                          'mgapLivestockFlockAvgB',
-                          'mgapLivestockFlockIncreasePct',
-                        ]);
-                      }
-                    }}
-                  >
-                    <option value="no">No</option>
-                    <option value="birth-rate">Aumento en la tasa de nacimientos</option>
-                    <option value="herd-growth">Aumento del rodeo o majada de cría</option>
-                  </select>
+                  <label className="field-label">Mejora de la Producción Ganadera</label>
+                  <div className="radio">
+                    <label className="pill">
+                      <input
+                        type="radio"
+                        name="mgapLivestockFlag"
+                        value="si"
+                        checked={inputs.mgapLivestockFlag === 'si'}
+                        onChange={(event) =>
+                          setInputs((prev) => ({
+                            ...prev,
+                            mgapLivestockFlag: event.target.value,
+                          }))
+                        }
+                      />
+                      Si
+                    </label>
+                    <label className="pill">
+                      <input
+                        type="radio"
+                        name="mgapLivestockFlag"
+                        value="no"
+                        checked={inputs.mgapLivestockFlag !== 'si'}
+                        onChange={(event) => {
+                          setInputs((prev) => ({
+                            ...prev,
+                            mgapLivestockFlag: event.target.value,
+                            mgapLivestockImprovement: [],
+                          }));
+                          resetNumericFields([
+                            'mgapLivestockBirthsA',
+                            'mgapLivestockBreedingAvgB',
+                            'mgapLivestockIncreasePoints',
+                            'mgapLivestockHerdFinalA',
+                            'mgapLivestockHerdAvgB',
+                            'mgapLivestockHerdIncreasePct',
+                            'mgapLivestockFlockFinalA',
+                            'mgapLivestockFlockAvgB',
+                            'mgapLivestockFlockIncreasePct',
+                          ]);
+                        }}
+                      />
+                      No
+                    </label>
+                  </div>
+
+                  {inputs.mgapLivestockFlag === 'si' ? (
+                    <div className="spacer-top">
+                      <label className="checkbox">
+                        <input
+                          type="checkbox"
+                          checked={inputs.mgapLivestockImprovement.includes('birth-rate')}
+                          onChange={(event) => {
+                            const checked = event.target.checked;
+                            setInputs((prev) => ({
+                              ...prev,
+                              mgapLivestockImprovement: checked
+                                ? [...prev.mgapLivestockImprovement, 'birth-rate']
+                                : prev.mgapLivestockImprovement.filter(
+                                    (value) => value !== 'birth-rate'
+                                  ),
+                            }));
+                            if (!checked) {
+                              resetNumericFields([
+                                'mgapLivestockBirthsA',
+                                'mgapLivestockBreedingAvgB',
+                                'mgapLivestockIncreasePoints',
+                              ]);
+                            }
+                          }}
+                        />
+                        Aumento en la tasa de nacimientos
+                      </label>
+                      <label className="checkbox">
+                        <input
+                          type="checkbox"
+                          checked={inputs.mgapLivestockImprovement.includes('herd-growth')}
+                          onChange={(event) => {
+                            const checked = event.target.checked;
+                            setInputs((prev) => ({
+                              ...prev,
+                              mgapLivestockImprovement: checked
+                                ? [...prev.mgapLivestockImprovement, 'herd-growth']
+                                : prev.mgapLivestockImprovement.filter(
+                                    (value) => value !== 'herd-growth'
+                                  ),
+                            }));
+                            if (!checked) {
+                              resetNumericFields([
+                                'mgapLivestockHerdIncreasePct',
+                              ]);
+                            }
+                          }}
+                        />
+                        Aumento del rodeo de cría
+                      </label>
+                      <label className="checkbox">
+                        <input
+                          type="checkbox"
+                          checked={inputs.mgapLivestockImprovement.includes('flock-growth')}
+                          onChange={(event) => {
+                            const checked = event.target.checked;
+                            setInputs((prev) => ({
+                              ...prev,
+                              mgapLivestockImprovement: checked
+                                ? [...prev.mgapLivestockImprovement, 'flock-growth']
+                                : prev.mgapLivestockImprovement.filter(
+                                    (value) => value !== 'flock-growth'
+                                  ),
+                            }));
+                            if (!checked) {
+                              resetNumericFields([
+                                'mgapLivestockFlockIncreasePct',
+                              ]);
+                            }
+                          }}
+                        />
+                        Aumento de la majada de cría
+                      </label>
+                    </div>
+                  ) : null}
                 </div>
 
-                {inputs.mgapLivestockImprovement === 'birth-rate' ? (
+                {inputs.mgapLivestockFlag === 'si' &&
+                inputs.mgapLivestockImprovement.includes('birth-rate') ? (
                   <div className="spacer-top">
                     <div className="row-12 mgap-labels">
                       <NumericField
-                        label="Cantidad de teneros/as nacidos vivos en el establecimiento (A) en el ejercicio"
+                        label="Indicador Tasa de Nacimientos en período base"
                         name="mgapLivestockBirthsA"
-                        placeholder="Ej: 120"
+                        placeholder="Ej: 52.4"
                         value={numericValues.mgapLivestockBirthsA ?? ''}
                         error={numericErrors.mgapLivestockBirthsA}
                         onChange={handleNumericChange('mgapLivestockBirthsA')}
                         onBlur={handleNumericBlur('mgapLivestockBirthsA')}
-                        className="col-span-5"
+                        className="col-span-6"
                       />
                       <NumericField
-                        label="Promedio rodeo de cría de los últimos 2 ejercicios (B)"
+                        label="Promedio proyectado indicador tasa nacimientos (prox. 5 años)"
                         name="mgapLivestockBreedingAvgB"
-                        placeholder="Ej: 400"
+                        placeholder="Ej: 58.1"
                         value={numericValues.mgapLivestockBreedingAvgB ?? ''}
                         error={numericErrors.mgapLivestockBreedingAvgB}
                         onChange={handleNumericChange('mgapLivestockBreedingAvgB')}
                         onBlur={handleNumericBlur('mgapLivestockBreedingAvgB')}
-                        className="col-span-5"
+                        className="col-span-6"
                       />
-                      <div className="field-group col-span-2">
-                        <label className="field-label" htmlFor="mgapLivestockBirthRatio">
-                          Relación
-                          <br />
-                          (A/B)
-                        </label>
-                        <div id="mgapLivestockBirthRatio" className="field-control">
-                          {mgapBirthRatio === null
-                            ? '-'
-                            : `${formatNumberForDisplay(mgapBirthRatio * 100, 2, 2)} %`}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="row row-narrow spacer-top">
-                      <NumericField
-                        label="Aumento comprometido en el Indicador I (en puntos porcentuales)"
-                        name="mgapLivestockIncreasePoints"
-                        placeholder="Ej: 2"
-                        value={numericValues.mgapLivestockIncreasePoints ?? ''}
-                        error={numericErrors.mgapLivestockIncreasePoints}
-                        onChange={handleNumericChange('mgapLivestockIncreasePoints')}
-                        onBlur={handleNumericBlur('mgapLivestockIncreasePoints')}
-                        className="narrow-field"
-                      />
-                      <div />
                     </div>
                   </div>
                 ) : null}
 
-                {inputs.mgapLivestockImprovement === 'herd-growth' ? (
+                {inputs.mgapLivestockFlag === 'si' &&
+                inputs.mgapLivestockImprovement.includes('herd-growth') ? (
                   <div className="spacer-top">
-                    <div className="section-subtitle">{'Indicador II (bovinos)'}</div>
-                    <div className="row-12 mgap-labels">
+                    <div className="row row-narrow">
                       <NumericField
-                        label="Stock final rodeo de cría (bovinos) (A)"
-                        name="mgapLivestockHerdFinalA"
-                        placeholder="Ej: 900"
-                        value={numericValues.mgapLivestockHerdFinalA ?? ''}
-                        error={numericErrors.mgapLivestockHerdFinalA}
-                        onChange={handleNumericChange('mgapLivestockHerdFinalA')}
-                        onBlur={handleNumericBlur('mgapLivestockHerdFinalA')}
-                        className="col-span-5"
-                      />
-                      <NumericField
-                        label="Promedio rodeo de cría de los últimos 2 ejercicios (bovinos) (B)"
-                        name="mgapLivestockHerdAvgB"
-                        placeholder="Ej: 850"
-                        value={numericValues.mgapLivestockHerdAvgB ?? ''}
-                        error={numericErrors.mgapLivestockHerdAvgB}
-                        onChange={handleNumericChange('mgapLivestockHerdAvgB')}
-                        onBlur={handleNumericBlur('mgapLivestockHerdAvgB')}
-                        className="col-span-5"
-                      />
-                      <div className="field-group col-span-2">
-                        <label className="field-label" htmlFor="mgapLivestockHerdRatio">
-                          Indicador rodeo de cría (A/B)
-                        </label>
-                        <div id="mgapLivestockHerdRatio" className="field-control">
-                          {mgapHerdRatio === null
-                            ? '-'
-                            : `${formatNumberForDisplay(mgapHerdRatio * 100, 2, 2)} %`}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="row row-narrow spacer-top">
-                      <NumericField
-                        label="Aumento comprometido en el Indicador II (bovinos) (en porcentaje)"
+                        label="Aumento prom. comprometido en indicador rodeo de cría (próx. 5 ejercicios, en porcentaje)"
                         name="mgapLivestockHerdIncreasePct"
                         placeholder="Ej: 5"
                         value={numericValues.mgapLivestockHerdIncreasePct ?? ''}
@@ -2559,44 +2600,15 @@ export default function App() {
                       />
                       <div />
                     </div>
+                  </div>
+                ) : null}
 
-                    <div className="section-subtitle spacer-top">{'Indicador II (ovinos)'}</div>
-                    <div className="row-12 mgap-labels">
+                {inputs.mgapLivestockFlag === 'si' &&
+                inputs.mgapLivestockImprovement.includes('flock-growth') ? (
+                  <div className="spacer-top">
+                    <div className="row row-narrow">
                       <NumericField
-                        label="Stock final majada de cría (ovinos) (A)"
-                        name="mgapLivestockFlockFinalA"
-                        placeholder="Ej: 600"
-                        value={numericValues.mgapLivestockFlockFinalA ?? ''}
-                        error={numericErrors.mgapLivestockFlockFinalA}
-                        onChange={handleNumericChange('mgapLivestockFlockFinalA')}
-                        onBlur={handleNumericBlur('mgapLivestockFlockFinalA')}
-                        className="col-span-5"
-                      />
-                      <NumericField
-                        label="Promedio majada de cría de los últimos 2 ejercicios (ovinos) (B)"
-                        name="mgapLivestockFlockAvgB"
-                        placeholder="Ej: 580"
-                        value={numericValues.mgapLivestockFlockAvgB ?? ''}
-                        error={numericErrors.mgapLivestockFlockAvgB}
-                        onChange={handleNumericChange('mgapLivestockFlockAvgB')}
-                        onBlur={handleNumericBlur('mgapLivestockFlockAvgB')}
-                        className="col-span-5"
-                      />
-                      <div className="field-group col-span-2">
-                        <label className="field-label" htmlFor="mgapLivestockFlockRatio">
-                          Indicador majada de cría (A/B)
-                        </label>
-                        <div id="mgapLivestockFlockRatio" className="field-control">
-                          {mgapFlockRatio === null
-                            ? '-'
-                            : `${formatNumberForDisplay(mgapFlockRatio * 100, 2, 2)} %`}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="row row-narrow spacer-top">
-                      <NumericField
-                        label="Aumento comprometido en el Indicador II (ovinos) (en porcentaje)"
+                        label="Aumento prom. comprometido en indicador majada de cría (próx. 5 ejercicios, en porcentaje)"
                         name="mgapLivestockFlockIncreasePct"
                         placeholder="Ej: 4"
                         value={numericValues.mgapLivestockFlockIncreasePct ?? ''}

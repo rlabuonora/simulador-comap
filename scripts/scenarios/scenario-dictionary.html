@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Diccionario de Escenarios</title>
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --surface: #ffffff;
+        --surface-soft: #eef3ff;
+        --text: #18202a;
+        --muted: #5a6878;
+        --accent: #0f6cbd;
+        --border: #d7dfeb;
+        --code-bg: #0f172a;
+        --code-text: #e2e8f0;
+        --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+        background:
+          radial-gradient(circle at top right, rgba(15, 108, 189, 0.12), transparent 24%),
+          linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+        color: var(--text);
+      }
+
+      .page {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 20px 56px;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, #0f6cbd, #1d4f91);
+        color: #fff;
+        border-radius: 22px;
+        padding: 28px 30px;
+        box-shadow: var(--shadow);
+      }
+
+      .hero h1 {
+        margin: 0 0 8px;
+        font-size: 2rem;
+        line-height: 1.1;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 760px;
+        color: rgba(255, 255, 255, 0.88);
+        line-height: 1.5;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        gap: 24px;
+        margin-top: 24px;
+      }
+
+      .toc,
+      .section {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+      }
+
+      .toc {
+        position: sticky;
+        top: 18px;
+        align-self: start;
+        padding: 20px;
+      }
+
+      .toc h2 {
+        margin: 0 0 14px;
+        font-size: 1rem;
+      }
+
+      .toc a {
+        display: block;
+        color: var(--muted);
+        text-decoration: none;
+        padding: 8px 10px;
+        border-radius: 10px;
+        margin-bottom: 4px;
+      }
+
+      .toc a:hover {
+        background: var(--surface-soft);
+        color: var(--accent);
+      }
+
+      .content {
+        display: grid;
+        gap: 20px;
+      }
+
+      .section {
+        padding: 24px;
+      }
+
+      .section h2 {
+        margin: 0 0 10px;
+        font-size: 1.35rem;
+      }
+
+      .section p,
+      .section li {
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        background: linear-gradient(180deg, #fff, #fbfdff);
+      }
+
+      .card h3 {
+        margin: 0 0 10px;
+        font-size: 1rem;
+      }
+
+      .card ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--surface-soft);
+        color: var(--accent);
+        font-size: 0.82rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+
+      code {
+        background: rgba(15, 108, 189, 0.08);
+        color: #0b4f88;
+        border-radius: 8px;
+        padding: 2px 7px;
+        font-size: 0.92em;
+      }
+
+      pre {
+        margin: 0;
+        padding: 16px;
+        border-radius: 16px;
+        background: var(--code-bg);
+        color: var(--code-text);
+        overflow-x: auto;
+        font-size: 0.92rem;
+        line-height: 1.5;
+      }
+
+      .files a {
+        display: block;
+        text-decoration: none;
+        color: var(--accent);
+        padding: 6px 0;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        margin-top: 16px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 760px;
+        background: #fff;
+      }
+
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      th {
+        background: #f3f7fd;
+        color: var(--text);
+        font-size: 0.92rem;
+      }
+
+      tbody tr:nth-child(even) {
+        background: #fbfdff;
+      }
+
+      @media (max-width: 920px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .toc {
+          position: static;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <h1>Diccionario de Escenarios</h1>
+        <p>
+          Referencia humana para el formato JSON de entrada de los escenarios del simulador COMAP.
+          Este documento complementa el diccionario estructurado en JSON con una vista más legible
+          para análisis, revisión y comunicación.
+        </p>
+      </header>
+
+      <div class="layout">
+        <nav class="toc">
+          <h2>Secciones</h2>
+          <a href="#estructura">Estructura General</a>
+          <a href="#company">company</a>
+          <a href="#project">project</a>
+          <a href="#employment">employment</a>
+          <a href="#exports">exports</a>
+          <a href="#decentralization">decentralization</a>
+          <a href="#sustainability">sustainability</a>
+          <a href="#iplus">iplus</a>
+          <a href="#strategic">strategic</a>
+          <a href="#tabla">Tabla Resumen</a>
+          <a href="#archivos">Archivos de Referencia</a>
+        </nav>
+
+        <main class="content">
+          <section class="section" id="estructura">
+            <span class="tag">Vista general</span>
+            <h2>Estructura General</h2>
+            <p>Todo escenario JSON tiene estos bloques de primer nivel:</p>
+            <pre><code>{
+  "company": {},
+  "project": {},
+  "employment": {},
+  "exports": {},
+  "decentralization": {},
+  "sustainability": {},
+  "iplus": {},
+  "strategic": {}
+}</code></pre>
+          </section>
+
+          <section class="section" id="company">
+            <span class="tag">Bloque</span>
+            <h2>company</h2>
+            <div class="grid">
+              <div class="card">
+                <h3>Campos numéricos</h3>
+                <ul>
+                  <li><code>annualBillingUi</code>: número</li>
+                  <li><code>employees</code>: entero</li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3>Campos categóricos</h3>
+                <ul>
+                  <li><code>sector</code>: <code>industria</code>, <code>servicios</code>, <code>agro</code>, <code>turismo</code></li>
+                  <li><code>isNew</code>: <code>true</code> o <code>false</code></li>
+                  <li><code>isIndustrialParkUser</code>: <code>si</code> o <code>no</code></li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3>Actividad parque industrial</h3>
+                <ul>
+                  <li><code>""</code></li>
+                  <li><code>actividades-industriales</code></li>
+                  <li><code>servicios-logisticos</code></li>
+                  <li><code>energia-solar</code></li>
+                  <li><code>valorizacion-residuos</code></li>
+                  <li><code>servicios-tic-biotecnologia</code></li>
+                  <li><code>otras-actividades</code></li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="project">
+            <span class="tag">Bloque</span>
+            <h2>project</h2>
+            <div class="grid">
+              <div class="card">
+                <h3>Valores posibles</h3>
+                <ul>
+                  <li><code>ministry</code>: <code>miem</code>, <code>mef</code>, <code>mgap</code>, <code>mintur</code></li>
+                  <li><code>filedDate</code>: fecha <code>YYYY-MM-DD</code></li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3>Campos numéricos</h3>
+                <ul>
+                  <li><code>machineryUi</code></li>
+                  <li><code>installationsUi</code></li>
+                  <li><code>civilWorksUi</code></li>
+                  <li><code>industrialParkUi</code></li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="employment">
+            <span class="tag">Bloque</span>
+            <h2>employment</h2>
+            <div class="grid">
+              <div class="card">
+                <h3><code>employment.base</code></h3>
+                <ul>
+                  <li><code>women</code>: número</li>
+                  <li><code>youth</code>: número</li>
+                  <li><code>disability</code>: número</li>
+                  <li><code>others</code>: número</li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3><code>employment.inc</code></h3>
+                <ul>
+                  <li><code>total</code>: número</li>
+                  <li><code>women</code>: número</li>
+                  <li><code>youth</code>: número</li>
+                  <li><code>disability</code>: número</li>
+                  <li><code>others</code>: número</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="exports">
+            <span class="tag">Bloque</span>
+            <h2>exports</h2>
+            <div class="grid">
+              <div class="card">
+                <h3>Campos principales</h3>
+                <ul>
+                  <li><code>currentExports</code>: número</li>
+                  <li><code>exportIncrease</code>: número</li>
+                  <li><code>indirectExports</code>: array</li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3>Items de <code>indirectExports</code></h3>
+                <ul>
+                  <li><code>pct</code>: número</li>
+                  <li><code>initial</code>: número</li>
+                  <li><code>increase</code>: número</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="decentralization">
+            <span class="tag">Bloque</span>
+            <h2>decentralization</h2>
+            <p>Es un objeto cuyas claves son departamentos y cuyos valores son números.</p>
+            <div class="grid">
+              <div class="card">
+                <h3>Departamentos válidos</h3>
+                <ul>
+                  <li><code>artigas</code></li>
+                  <li><code>canelones</code></li>
+                  <li><code>cerroLargo</code></li>
+                  <li><code>colonia</code></li>
+                  <li><code>durazno</code></li>
+                  <li><code>flores</code></li>
+                  <li><code>florida</code></li>
+                  <li><code>lavalleja</code></li>
+                  <li><code>maldonado</code></li>
+                  <li><code>montevideo</code></li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3>Departamentos válidos</h3>
+                <ul>
+                  <li><code>paysandu</code></li>
+                  <li><code>rioNegro</code></li>
+                  <li><code>rivera</code></li>
+                  <li><code>rocha</code></li>
+                  <li><code>salto</code></li>
+                  <li><code>sanJose</code></li>
+                  <li><code>soriano</code></li>
+                  <li><code>tacuarembo</code></li>
+                  <li><code>treintaYTres</code></li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="sustainability">
+            <span class="tag">Bloque</span>
+            <h2>sustainability</h2>
+            <div class="grid">
+              <div class="card">
+                <h3>Campos</h3>
+                <ul>
+                  <li><code>amountUi</code>: número</li>
+                  <li><code>certification</code>: valor categórico</li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3>Valores posibles de <code>certification</code></h3>
+                <ul>
+                  <li><code>none</code></li>
+                  <li><code>leed</code></li>
+                  <li><code>leed-plata</code></li>
+                  <li><code>leed-oro</code></li>
+                  <li><code>leed-platino</code></li>
+                  <li><code>breeam-bueno</code></li>
+                  <li><code>breeam-muy-bueno</code></li>
+                  <li><code>breeam-excelente</code></li>
+                  <li><code>breeam-excepcional</code></li>
+                  <li><code>sello-b</code></li>
+                  <li><code>sello-a</code></li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="iplus">
+            <span class="tag">Bloque</span>
+            <h2>iplus</h2>
+            <div class="grid">
+              <div class="card">
+                <h3>Campos</h3>
+                <ul>
+                  <li><code>amountUi</code>: número</li>
+                  <li><code>category</code>: <code>at</code>, <code>inn</code>, <code>id</code>, <code>none</code></li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="strategic">
+            <span class="tag">Bloque</span>
+            <h2>strategic</h2>
+            <div class="grid">
+              <div class="card">
+                <h3>Campos generales</h3>
+                <ul>
+                  <li><code>priorities</code>: número</li>
+                  <li><code>mefRenewableInvestmentUi</code>: número</li>
+                  <li><code>mineralEligibleInvestmentUi</code>: número</li>
+                  <li><code>mineralProcessingLevel</code>: <code>""</code>, <code>minima</code>, <code>intermedia</code>, <code>maxima</code></li>
+                  <li><code>mineralTransformFlag</code>: <code>si</code> o <code>no</code></li>
+                  <li><code>nationalComponent</code>: <code>si</code> o <code>no</code></li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3>Componente nacional</h3>
+                <ul>
+                  <li><code>nationalGoodsUi</code>: número</li>
+                  <li><code>nationalGoodsTotalUi</code>: número</li>
+                  <li><code>nationalCivilWorksUi</code>: número</li>
+                  <li><code>civilWorksMaterialsUi</code>: número</li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3>Campos MGAP</h3>
+                <ul>
+                  <li><code>mgapRiegoFlag</code>: <code>si</code> o <code>no</code></li>
+                  <li><code>mgapBioFlag</code>: <code>si</code> o <code>no</code></li>
+                  <li><code>mgapLivestockFlag</code>: <code>si</code> o <code>no</code></li>
+                  <li><code>mgapLivestockImprovement</code>: <code>birth-rate</code>, <code>herd-growth</code>, <code>flock-growth</code></li>
+                  <li><code>mgapNaturalFieldFlag</code>: <code>si</code> o <code>no</code></li>
+                  <li><code>mgapPescaFlag</code>: <code>si</code> o <code>no</code></li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3>Campos MINTUR</h3>
+                <ul>
+                  <li><code>minturStrategicFlag</code>: <code>si</code> o <code>no</code></li>
+                  <li><code>minturInvestmentZoneUi</code>: número</li>
+                  <li><code>minturInvestmentOutsideUi</code>: número</li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3>Campos MIEM</h3>
+                <ul>
+                  <li><code>miemEnergyFlag</code>: <code>si</code> o <code>no</code></li>
+                  <li><code>miemHydrogenFlag</code>: <code>si</code> o <code>no</code></li>
+                  <li><code>miemWasteFlag</code>: <code>si</code> o <code>no</code></li>
+                  <li><code>miemBioFlag</code>: <code>si</code> o <code>no</code></li>
+                  <li><code>miemPharmaFlag</code>: <code>si</code> o <code>no</code></li>
+                  <li><code>miemAerospaceFlag</code>: <code>si</code> o <code>no</code></li>
+                  <li><code>miemSatellitesFlag</code>: <code>si</code> o <code>no</code></li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3>Montos MIEM</h3>
+                <ul>
+                  <li><code>miemEnergyInvestmentUi</code>: número</li>
+                  <li><code>miemHydrogenInvestmentUi</code>: número</li>
+                  <li><code>miemWasteTransformMinUi</code>: número</li>
+                  <li><code>miemWasteTransformMedUi</code>: número</li>
+                  <li><code>miemWasteTransformMaxUi</code>: número</li>
+                  <li><code>miemBioInvestmentUi</code>: número</li>
+                  <li><code>miemPharmaInvestmentUi</code>: número</li>
+                  <li><code>miemAerospaceInvestmentUi</code>: número</li>
+                  <li><code>miemSatellitesInvestmentUi</code>: número</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="tabla">
+            <span class="tag">Consulta rápida</span>
+            <h2>Tabla Resumen</h2>
+            <p>
+              Esta tabla agrupa algunos de los campos más relevantes con su tipo, valores posibles
+              y el ministerio o contexto donde típicamente aplican.
+            </p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Campo</th>
+                    <th>Tipo</th>
+                    <th>Valores posibles</th>
+                    <th>Aplica a</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>company.sector</code></td>
+                    <td>string</td>
+                    <td><code>industria</code>, <code>servicios</code>, <code>agro</code>, <code>turismo</code></td>
+                    <td>Todos</td>
+                  </tr>
+                  <tr>
+                    <td><code>company.isNew</code></td>
+                    <td>boolean</td>
+                    <td><code>true</code>, <code>false</code></td>
+                    <td>Todos</td>
+                  </tr>
+                  <tr>
+                    <td><code>company.isIndustrialParkUser</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>Todos</td>
+                  </tr>
+                  <tr>
+                    <td><code>project.ministry</code></td>
+                    <td>string</td>
+                    <td><code>miem</code>, <code>mef</code>, <code>mgap</code>, <code>mintur</code></td>
+                    <td>Todos</td>
+                  </tr>
+                  <tr>
+                    <td><code>project.filedDate</code></td>
+                    <td>date string</td>
+                    <td><code>YYYY-MM-DD</code></td>
+                    <td>Todos</td>
+                  </tr>
+                  <tr>
+                    <td><code>sustainability.certification</code></td>
+                    <td>string</td>
+                    <td><code>none</code>, <code>leed</code>, <code>leed-plata</code>, <code>leed-oro</code>, <code>leed-platino</code>, <code>breeam-bueno</code>, <code>breeam-muy-bueno</code>, <code>breeam-excelente</code>, <code>breeam-excepcional</code>, <code>sello-b</code>, <code>sello-a</code></td>
+                    <td>Todos</td>
+                  </tr>
+                  <tr>
+                    <td><code>iplus.category</code></td>
+                    <td>string</td>
+                    <td><code>at</code>, <code>inn</code>, <code>id</code>, <code>none</code></td>
+                    <td>Todos</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.priorities</code></td>
+                    <td>number</td>
+                    <td>0 o más</td>
+                    <td>Base general, especialmente MEF</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.nationalComponent</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>Todos</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.mineralProcessingLevel</code></td>
+                    <td>string</td>
+                    <td><code>""</code>, <code>minima</code>, <code>intermedia</code>, <code>maxima</code></td>
+                    <td>General y MIEM</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.mineralTransformFlag</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>Principalmente MIEM</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.mgapRiegoFlag</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>MGAP</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.mgapBioFlag</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>MGAP</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.mgapLivestockFlag</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>MGAP</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.mgapLivestockImprovement</code></td>
+                    <td>array[string]</td>
+                    <td><code>birth-rate</code>, <code>herd-growth</code>, <code>flock-growth</code></td>
+                    <td>MGAP</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.mgapNaturalFieldFlag</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>MGAP</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.mgapPescaFlag</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>MGAP</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.minturStrategicFlag</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>MINTUR</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.minturInvestmentZoneUi</code></td>
+                    <td>number</td>
+                    <td>0 o más</td>
+                    <td>MINTUR</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.minturInvestmentOutsideUi</code></td>
+                    <td>number</td>
+                    <td>0 o más</td>
+                    <td>MINTUR</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.miemEnergyFlag</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>MIEM</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.miemHydrogenFlag</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>MIEM</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.miemWasteFlag</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>MIEM</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.miemBioFlag</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>MIEM</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.miemPharmaFlag</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>MIEM</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.miemAerospaceFlag</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>MIEM</td>
+                  </tr>
+                  <tr>
+                    <td><code>strategic.miemSatellitesFlag</code></td>
+                    <td>string</td>
+                    <td><code>si</code>, <code>no</code></td>
+                    <td>MIEM</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="section files" id="archivos">
+            <span class="tag">Referencia</span>
+            <h2>Archivos de Referencia</h2>
+            <a href="./mgap-complete.json">mgap-complete.json</a>
+            <a href="./mef-complete.json">mef-complete.json</a>
+            <a href="./miem-complete.json">miem-complete.json</a>
+            <a href="./mintur-complete.json">mintur-complete.json</a>
+            <a href="./scenario-dictionary.json">scenario-dictionary.json</a>
+            <a href="./scenario-dictionary.md">scenario-dictionary.md</a>
+          </section>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

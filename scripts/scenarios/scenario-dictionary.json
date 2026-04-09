@@ -1,0 +1,487 @@
+{
+  "root": {
+    "type": "object",
+    "properties": {
+      "company": {
+        "type": "object"
+      },
+      "project": {
+        "type": "object"
+      },
+      "employment": {
+        "type": "object"
+      },
+      "exports": {
+        "type": "object"
+      },
+      "decentralization": {
+        "type": "object"
+      },
+      "sustainability": {
+        "type": "object"
+      },
+      "iplus": {
+        "type": "object"
+      },
+      "strategic": {
+        "type": "object"
+      }
+    }
+  },
+  "company": {
+    "annualBillingUi": {
+      "type": "number"
+    },
+    "employees": {
+      "type": "integer"
+    },
+    "sector": {
+      "type": "string",
+      "enum": [
+        "industria",
+        "servicios",
+        "agro",
+        "turismo"
+      ]
+    },
+    "isNew": {
+      "type": "boolean",
+      "enum": [
+        true,
+        false
+      ]
+    },
+    "isIndustrialParkUser": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "industrialParkActivity": {
+      "type": "string",
+      "enum": [
+        "",
+        "actividades-industriales",
+        "servicios-logisticos",
+        "energia-solar",
+        "valorizacion-residuos",
+        "servicios-tic-biotecnologia",
+        "otras-actividades"
+      ]
+    }
+  },
+  "project": {
+    "ministry": {
+      "type": "string",
+      "enum": [
+        "miem",
+        "mef",
+        "mgap",
+        "mintur"
+      ]
+    },
+    "filedDate": {
+      "type": "string",
+      "format": "date",
+      "example": "2026-04-08"
+    },
+    "machineryUi": {
+      "type": "number"
+    },
+    "installationsUi": {
+      "type": "number"
+    },
+    "civilWorksUi": {
+      "type": "number"
+    },
+    "industrialParkUi": {
+      "type": "number"
+    }
+  },
+  "employment": {
+    "base": {
+      "women": {
+        "type": "number"
+      },
+      "youth": {
+        "type": "number"
+      },
+      "disability": {
+        "type": "number"
+      },
+      "others": {
+        "type": "number"
+      }
+    },
+    "inc": {
+      "total": {
+        "type": "number"
+      },
+      "women": {
+        "type": "number"
+      },
+      "youth": {
+        "type": "number"
+      },
+      "disability": {
+        "type": "number"
+      },
+      "others": {
+        "type": "number"
+      }
+    }
+  },
+  "exports": {
+    "currentExports": {
+      "type": "number"
+    },
+    "exportIncrease": {
+      "type": "number"
+    },
+    "indirectExports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pct": {
+            "type": "number"
+          },
+          "initial": {
+            "type": "number"
+          },
+          "increase": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  },
+  "decentralization": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "artigas": {
+        "type": "number"
+      },
+      "canelones": {
+        "type": "number"
+      },
+      "cerroLargo": {
+        "type": "number"
+      },
+      "colonia": {
+        "type": "number"
+      },
+      "durazno": {
+        "type": "number"
+      },
+      "flores": {
+        "type": "number"
+      },
+      "florida": {
+        "type": "number"
+      },
+      "lavalleja": {
+        "type": "number"
+      },
+      "maldonado": {
+        "type": "number"
+      },
+      "montevideo": {
+        "type": "number"
+      },
+      "paysandu": {
+        "type": "number"
+      },
+      "rioNegro": {
+        "type": "number"
+      },
+      "rivera": {
+        "type": "number"
+      },
+      "rocha": {
+        "type": "number"
+      },
+      "salto": {
+        "type": "number"
+      },
+      "sanJose": {
+        "type": "number"
+      },
+      "soriano": {
+        "type": "number"
+      },
+      "tacuarembo": {
+        "type": "number"
+      },
+      "treintaYTres": {
+        "type": "number"
+      }
+    }
+  },
+  "sustainability": {
+    "amountUi": {
+      "type": "number"
+    },
+    "certification": {
+      "type": "string",
+      "enum": [
+        "none",
+        "leed",
+        "leed-plata",
+        "leed-oro",
+        "leed-platino",
+        "breeam-bueno",
+        "breeam-muy-bueno",
+        "breeam-excelente",
+        "breeam-excepcional",
+        "sello-b",
+        "sello-a"
+      ]
+    }
+  },
+  "iplus": {
+    "amountUi": {
+      "type": "number"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "at",
+        "inn",
+        "id",
+        "none"
+      ]
+    }
+  },
+  "strategic": {
+    "priorities": {
+      "type": "number"
+    },
+    "mefRenewableInvestmentUi": {
+      "type": "number"
+    },
+    "mineralEligibleInvestmentUi": {
+      "type": "number"
+    },
+    "mineralProcessingLevel": {
+      "type": "string",
+      "enum": [
+        "",
+        "minima",
+        "intermedia",
+        "maxima"
+      ]
+    },
+    "mineralTransformFlag": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "mineralTransformMinUi": {
+      "type": "number"
+    },
+    "mineralTransformMedUi": {
+      "type": "number"
+    },
+    "mineralTransformMaxUi": {
+      "type": "number"
+    },
+    "nationalComponent": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "nationalGoodsUi": {
+      "type": "number"
+    },
+    "nationalGoodsTotalUi": {
+      "type": "number"
+    },
+    "nationalCivilWorksUi": {
+      "type": "number"
+    },
+    "civilWorksMaterialsUi": {
+      "type": "number"
+    },
+    "mgapRiegoFlag": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "mgapRiegoInvestmentUi": {
+      "type": "number"
+    },
+    "mgapBioFlag": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "mgapBioInvestmentUi": {
+      "type": "number"
+    },
+    "mgapLivestockFlag": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "mgapLivestockImprovement": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "birth-rate",
+          "herd-growth",
+          "flock-growth"
+        ]
+      }
+    },
+    "mgapLivestockBirthsA": {
+      "type": "number"
+    },
+    "mgapLivestockBreedingAvgB": {
+      "type": "number"
+    },
+    "mgapLivestockIncreasePoints": {
+      "type": "number"
+    },
+    "mgapLivestockHerdFinalA": {
+      "type": "number"
+    },
+    "mgapLivestockHerdAvgB": {
+      "type": "number"
+    },
+    "mgapLivestockHerdIncreasePct": {
+      "type": "number"
+    },
+    "mgapLivestockFlockFinalA": {
+      "type": "number"
+    },
+    "mgapLivestockFlockAvgB": {
+      "type": "number"
+    },
+    "mgapLivestockFlockIncreasePct": {
+      "type": "number"
+    },
+    "mgapNaturalFieldFlag": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "mgapPescaFlag": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "mgapPescaInvestmentUi": {
+      "type": "number"
+    },
+    "minturStrategicFlag": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "minturInvestmentZoneUi": {
+      "type": "number"
+    },
+    "minturInvestmentOutsideUi": {
+      "type": "number"
+    },
+    "miemEnergyFlag": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "miemEnergyInvestmentUi": {
+      "type": "number"
+    },
+    "miemHydrogenFlag": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "miemHydrogenInvestmentUi": {
+      "type": "number"
+    },
+    "miemWasteFlag": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "miemWasteInvestmentUi": {
+      "type": "number"
+    },
+    "miemWasteTransformMinUi": {
+      "type": "number"
+    },
+    "miemWasteTransformMedUi": {
+      "type": "number"
+    },
+    "miemWasteTransformMaxUi": {
+      "type": "number"
+    },
+    "miemBioFlag": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "miemBioInvestmentUi": {
+      "type": "number"
+    },
+    "miemPharmaFlag": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "miemPharmaInvestmentUi": {
+      "type": "number"
+    },
+    "miemAerospaceFlag": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "miemAerospaceInvestmentUi": {
+      "type": "number"
+    },
+    "miemSatellitesFlag": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "miemSatellitesInvestmentUi": {
+      "type": "number"
+    }
+  }
+}

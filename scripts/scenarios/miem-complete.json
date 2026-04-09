@@ -1,0 +1,110 @@
+{
+  "company": {
+    "annualBillingUi": 125000000,
+    "employees": 72,
+    "sector": "industria",
+    "isNew": false,
+    "isIndustrialParkUser": "si",
+    "industrialParkActivity": "actividades-industriales"
+  },
+  "project": {
+    "ministry": "miem",
+    "filedDate": "2026-04-08",
+    "machineryUi": 18000000,
+    "installationsUi": 6200000,
+    "civilWorksUi": 4600000,
+    "industrialParkUi": 2400000
+  },
+  "employment": {
+    "base": {
+      "women": 18,
+      "youth": 7,
+      "disability": 2,
+      "others": 4
+    },
+    "inc": {
+      "total": 16,
+      "women": 5,
+      "youth": 3,
+      "disability": 1,
+      "others": 2
+    }
+  },
+  "exports": {
+    "currentExports": 8200000,
+    "exportIncrease": 2100000,
+    "indirectExports": [
+      {
+        "pct": 15,
+        "initial": 600000,
+        "increase": 180000
+      }
+    ]
+  },
+  "decentralization": {
+    "sanJose": 7000000,
+    "lavalleja": 6400000,
+    "montevideo": 10100000
+  },
+  "sustainability": {
+    "amountUi": 2100000,
+    "certification": "iso14001"
+  },
+  "iplus": {
+    "amountUi": 1700000,
+    "category": "id"
+  },
+  "strategic": {
+    "priorities": 1,
+    "mefRenewableInvestmentUi": 250000,
+    "mineralEligibleInvestmentUi": 1800000,
+    "mineralProcessingLevel": "maxima",
+    "mineralTransformFlag": "si",
+    "mineralTransformMinUi": 600000,
+    "mineralTransformMedUi": 500000,
+    "mineralTransformMaxUi": 700000,
+    "nationalComponent": "si",
+    "nationalGoodsUi": 5200000,
+    "nationalGoodsTotalUi": 8500000,
+    "nationalCivilWorksUi": 900000,
+    "civilWorksMaterialsUi": 1300000,
+    "mgapRiegoFlag": "no",
+    "mgapRiegoInvestmentUi": 0,
+    "mgapBioFlag": "no",
+    "mgapBioInvestmentUi": 0,
+    "mgapLivestockFlag": "no",
+    "mgapLivestockImprovement": [],
+    "mgapLivestockBirthsA": 0,
+    "mgapLivestockBreedingAvgB": 0,
+    "mgapLivestockIncreasePoints": 0,
+    "mgapLivestockHerdFinalA": 0,
+    "mgapLivestockHerdAvgB": 0,
+    "mgapLivestockHerdIncreasePct": 0,
+    "mgapLivestockFlockFinalA": 0,
+    "mgapLivestockFlockAvgB": 0,
+    "mgapLivestockFlockIncreasePct": 0,
+    "mgapNaturalFieldFlag": "no",
+    "mgapPescaFlag": "no",
+    "mgapPescaInvestmentUi": 0,
+    "minturStrategicFlag": "no",
+    "minturInvestmentZoneUi": 0,
+    "minturInvestmentOutsideUi": 0,
+    "miemEnergyFlag": "si",
+    "miemEnergyInvestmentUi": 1600000,
+    "miemHydrogenFlag": "si",
+    "miemHydrogenInvestmentUi": 1200000,
+    "miemWasteFlag": "si",
+    "miemWasteInvestmentUi": 700000,
+    "miemWasteTransformMinUi": 350000,
+    "miemWasteTransformMedUi": 420000,
+    "miemWasteTransformMaxUi": 530000,
+    "miemBioFlag": "si",
+    "miemBioInvestmentUi": 800000,
+    "miemPharmaFlag": "si",
+    "miemPharmaInvestmentUi": 600000,
+    "miemAerospaceFlag": "si",
+    "miemAerospaceInvestmentUi": 500000,
+    "miemSatellitesFlag": "si",
+    "miemSatellitesInvestmentUi": 450000
+  }
+}

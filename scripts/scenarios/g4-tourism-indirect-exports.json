@@ -1,0 +1,54 @@
+{
+  "company": {
+    "annualBillingUi": 60000000,
+    "employees": 40,
+    "sector": "turismo",
+    "isNew": false
+  },
+  "project": {
+    "ministry": "mintur",
+    "machineryUi": 3000000,
+    "installationsUi": 2500000,
+    "civilWorksUi": 1500000,
+    "industrialParkUi": 0
+  },
+  "employment": {
+    "base": {
+      "women": 15,
+      "youth": 10,
+      "disability": 0,
+      "others": 0
+    },
+    "inc": {
+      "total": 8,
+      "women": 2,
+      "youth": 2,
+      "disability": 0,
+      "others": 0
+    }
+  },
+  "exports": {
+    "currentExports": 1500000,
+    "exportIncrease": 0,
+    "indirectExports": [
+      {
+        "pct": 100,
+        "increase": 600000
+      }
+    ]
+  },
+  "decentralization": {
+    "rocha": 7000000
+  },
+  "sustainability": {
+    "amountUi": 400000,
+    "certification": "none"
+  },
+  "iplus": {
+    "amountUi": 0,
+    "category": "none"
+  },
+  "strategic": {
+    "priorities": 0
+  }
+}
